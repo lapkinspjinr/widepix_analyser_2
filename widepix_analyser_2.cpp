@@ -9,7 +9,10 @@ widepix_analyser_2::widepix_analyser_2(QWidget *parent) :
 
     wai = new UC_wai();
     wai->U_set_qcp(ui->widget, ui->widget_2, ui->widget_3);
+    wai->U_set_colibration_qcp(ui->widget_4, ui->widget_5);
+    wai->U_set_identification_qcp(ui->widget_6);
     wai->U_set_table(ui->tableView);
+    wai->U_set_list(ui->listView);
 
     connect(wai, SIGNAL(US_set_spectra_max_x(double)), ui->doubleSpinBox_4, SLOT(setValue(double)));
     connect(wai, SIGNAL(US_set_spectra_min_x(double)), ui->doubleSpinBox_3, SLOT(setValue(double)));
@@ -46,9 +49,8 @@ widepix_analyser_2::widepix_analyser_2(QWidget *parent) :
     connect(ui->doubleSpinBox_15, SIGNAL(valueChanged(double)), wai, SLOT(U_set_distribution_min_y(double)));
     ////
     connect(wai, SIGNAL(US_mouse_data(QString)), ui->statusBar, SLOT(showMessage(QString)));
-    ////
-    connect(wai, SIGNAL(US_new_thl(int)), this, SLOT(U_add_thl(int)));
-    ////
+    ////////
+    connect(wai->U_get_plot(), SIGNAL(US_thl_range(int, int)),                 this, SLOT(U_add_thl(int, int)));
     connect(wai->U_get_plot(), SIGNAL(US_file_found(QString)),                this, SLOT(U_file_found(QString)));
     connect(wai->U_get_plot(), SIGNAL(US_n_files(int)),                       this, SLOT(U_n_files(int)));
     connect(wai->U_get_plot(), SIGNAL(US_renew_progress_bar(double, double)), this, SLOT(U_renew_progress_bar(double, double)));
@@ -57,12 +59,24 @@ widepix_analyser_2::widepix_analyser_2(QWidget *parent) :
     connect(wai->U_get_plot(), SIGNAL(US_range_data(double, double)), this, SLOT(U_set_distribution_range(double, double)));
     ///
     connect(wai->U_get_plot(), SIGNAL(US_count_mask(int)), this, SLOT(U_set_count_mask(int)));
+    connect(wai, SIGNAL(US_set_scan(int)), this, SLOT(U_set_scan(int)));
     ///
+    connect(wai, SIGNAL(US_set_scan(int)), this, SLOT(U_set_scan(int)));
+    ///
+    connect(wai, SIGNAL(US_set_roi_range(int, int, int, int)),  this, SLOT(U_set_roi_range(int, int, int, int)));
+    connect(wai, SIGNAL(US_set_thl_range(double, double)),            this, SLOT(U_set_thl_range(double, double)));
+    //
+    connect(this, SIGNAL(US_set_threshold_level(double)),            wai->U_get_plot(), SLOT(U_set_threshold_level(double)));
+    //
+    connect(this, SIGNAL(US_save_calibration(QString)),            wai->U_get_plot(), SLOT(U_save_calibration(QString)));
+    connect(this, SIGNAL(US_load_calibration(QString)),            wai->U_get_plot(), SLOT(U_load_calibration(QString)));
+
     wai->U_start();
 
     ui->pushButton_3->setEnabled(false);
-    ui->pushButton_4->setEnabled(false);
-    ui->pushButton_5->setEnabled(false);
+    ui->pushButton_2->setEnabled(false);
+    ui->pushButton_29->setEnabled(false);
+    ui->pushButton_21->setEnabled(false);
 
     ui->pushButton_13->setEnabled(false);
     //ui->pushButton_14->setEnabled(false);
@@ -82,8 +96,6 @@ widepix_analyser_2::widepix_analyser_2(QWidget *parent) :
     ui->pushButton_19->setEnabled(false);
     ui->pushButton_20->setEnabled(false);
 
-    ui->pushButton_29->setEnabled(false);
-    ui->pushButton_30->setEnabled(false);
     ui->pushButton_31->setEnabled(false);
 
     ui->pushButton_34->setEnabled(false);
@@ -94,7 +106,7 @@ widepix_analyser_2::widepix_analyser_2(QWidget *parent) :
     ui->pushButton_33->setEnabled(false);
     ui->pushButton_32->setEnabled(false);
 
-    ui->comboBox->setEnabled(false);
+    //ui->comboBox->setEnabled(false);
 
     //////////////////////////////////////////////////////
     roi = "all chips";
@@ -108,15 +120,27 @@ widepix_analyser_2::~widepix_analyser_2()
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
-void widepix_analyser_2::U_add_thl(int thl)
+void widepix_analyser_2::U_add_thl(int thl_min, int thl_max)
 {
-    ui->comboBox->addItem(QString("thl = %1").arg(thl));
-    ui->comboBox_5->addItem(QString("thl = %1").arg(thl));
-    ui->comboBox_11->addItem(QString("thl = %1").arg(thl));
-    ui->comboBox_12->addItem(QString("thl = %1").arg(thl));
-    ui->comboBox_13->addItem(QString("thl = %1").arg(thl));
-    ui->comboBox_14->addItem(QString("thl = %1").arg(thl));
-    ui->comboBox_15->addItem(QString("thl = %1").arg(thl));
+    QString str = QString("thl = %1").arg(thl_min);
+    int i = ui->comboBox->findText(str);
+
+    ui->comboBox->clear();
+    ui->comboBox_5->clear();
+    ui->comboBox_11->clear();
+    ui->comboBox_12->clear();
+    ui->comboBox_13->clear();
+    ui->comboBox_14->clear();
+    ui->comboBox_15->clear();
+    for (int thl = thl_min; thl <= thl_max; thl++) {
+        ui->comboBox->addItem(QString("thl = %1").arg(thl));
+        ui->comboBox_5->addItem(QString("thl = %1").arg(thl));
+        ui->comboBox_11->addItem(QString("thl = %1").arg(thl));
+        ui->comboBox_12->addItem(QString("thl = %1").arg(thl));
+        ui->comboBox_13->addItem(QString("thl = %1").arg(thl));
+        ui->comboBox_14->addItem(QString("thl = %1").arg(thl));
+        ui->comboBox_15->addItem(QString("thl = %1").arg(thl));
+    }
     ui->comboBox_11->setCurrentIndex(ui->comboBox_11->count()-1);
 }
 
@@ -145,39 +169,56 @@ void widepix_analyser_2::U_set_count_mask(int n)
 {
     ui->label_8->setText(QString("Number of pixel would be mask: %1").arg(n));
 }
+
+void widepix_analyser_2::U_set_roi_range(int x_min, int x_max, int y_min, int y_max)
+{
+    ui->spinBox_5->setValue(x_min);
+    ui->spinBox_7->setValue(x_max);
+    ui->spinBox_4->setValue(y_min);
+    ui->spinBox_6->setValue(y_max);
+}
+
+void widepix_analyser_2::U_set_thl_range(double thl_min, double thl_max)
+{
+    int thl_min_int = static_cast<int>(std::round(thl_min));
+    int thl_max_int = static_cast<int>(std::round(thl_max));
+    ui->comboBox_5->setCurrentText(QString("thl = %1").arg(thl_min_int));
+    ui->comboBox_11->setCurrentText(QString("thl = %1").arg(thl_max_int));
+}
+
+void widepix_analyser_2::U_set_scan(int index)
+{
+    ui->comboBox_17->setCurrentIndex(index);
+    ui->label->setText("Current scan: " + ui->listView->currentIndex().data().toString());
+
+}
 //////////////////////////////////////////////////////////////////////////////////////////////
 void widepix_analyser_2::on_pushButton_clicked()
 {
     QString graph_name;
     graph_name = ui->comboBox_3->currentText() + "; " + ui->comboBox_2->currentText() + "; " + roi;
-    wai->U_generate_plot(graph_name);
+    wai->U_generate_spectra(graph_name);
 }
 
 void widepix_analyser_2::on_pushButton_2_clicked()
 {
-    QString str = QFileDialog::getExistingDirectory(nullptr, "Open frames direction");
-    if (str != "") {
-        ui->lineEdit->setText(str);
-        ui->lineEdit_2->setText("");
-        ui->lineEdit_3->setText("");
-        ui->pushButton_29->setEnabled(true);
-    }
+    wai->U_set_ff(ui->listView->currentIndex().row());
+    ui->label_2->setText("Flat field scan: " + ui->listView->currentIndex().data().toString());
 }
 
 void widepix_analyser_2::on_pushButton_3_clicked()
 {
-    QString str = QFileDialog::getExistingDirectory(nullptr, "Open dark field direction");
-    if (str != "") {
-        ui->lineEdit_2->setText(str);
-   }
+    wai->U_set_df(ui->listView->currentIndex().row());
+    ui->label_5->setText("Dark field scan: " + ui->listView->currentIndex().data().toString());
 }
 
 void widepix_analyser_2::on_pushButton_4_clicked()
 {
-    QString str = QFileDialog::getExistingDirectory(nullptr, "Open flat field direction");
+    QString str = QFileDialog::getExistingDirectory(nullptr, "Open scan direction");
     if (str != "") {
         ui->lineEdit_3->setText(str);
     }
+    ui->pushButton_31->setEnabled(true);
 }
 
 void widepix_analyser_2::on_comboBox_currentIndexChanged(int index)
@@ -207,17 +248,29 @@ void widepix_analyser_2::on_comboBox_4_currentIndexChanged(int index)
 
 void widepix_analyser_2::on_comboBox_5_currentIndexChanged(int index)
 {
-    wai->U_set_threshold_range(index, ui->comboBox_11->currentIndex());
+    //wai->U_set_threshold_range(index, ui->comboBox_11->currentText().remove(0, 6).toInt());
 }
 
 void widepix_analyser_2::on_pushButton_6_clicked()
 {
-    wai->U_generate_frame(ui->comboBox->currentIndex());
+    wai->U_generate_frame(ui->comboBox->currentText().remove(0, 6).toInt());
 }
 
 void widepix_analyser_2::on_pushButton_7_clicked()
 {
-    wai->U_generate_table(ui->comboBox->currentIndex());
+    UC_pixels_info::UTStr_data_enable data_enable;
+    data_enable.max_enable = (ui->checkBox_10->checkState() == Qt::Checked);
+    data_enable.min_enable = (ui->checkBox_8->checkState() == Qt::Checked);
+    data_enable.sum_enable = (ui->checkBox_5->checkState() == Qt::Checked);
+    data_enable.mean_enable = (ui->checkBox_9->checkState() == Qt::Checked);
+    data_enable.median_enable = (ui->checkBox_4->checkState() == Qt::Checked);
+    data_enable.zeros_enable = (ui->checkBox_11->checkState() == Qt::Checked);
+    data_enable.std_dev_enable = (ui->checkBox_7->checkState() == Qt::Checked);
+    data_enable.snr_enable = (ui->checkBox_6->checkState() == Qt::Checked);
+    data_enable.id1_enable = (ui->checkBox_12->checkState() == Qt::Checked);
+    wai->U_set_data_enable(data_enable);
+
+    wai->U_generate_table(ui->comboBox->currentText().remove(0, 6).toInt());
     ui->pushButton_25->setEnabled(true);
 }
 
@@ -273,12 +326,12 @@ void widepix_analyser_2::on_pushButton_12_clicked()
 
 void widepix_analyser_2::on_pushButton_13_clicked()
 {
-    wai->U_set_mask(true, ui->radioButton->isChecked(), ui->doubleSpinBox_11->value(), (ui->checkBox->checkState() == Qt::Checked), ui->comboBox->currentIndex());
+    wai->U_set_mask(true, ui->radioButton->isChecked(), ui->doubleSpinBox_11->value(), (ui->checkBox->checkState() == Qt::Checked), ui->comboBox->currentText().remove(0, 6).toInt());
 }
 
 void widepix_analyser_2::on_pushButton_14_clicked()
 {
-    wai->U_set_mask(true, true, ui->doubleSpinBox_11->value(), (ui->checkBox->checkState() == Qt::Checked), ui->comboBox->currentIndex());
+    wai->U_diff_spectra();
 }
 
 void widepix_analyser_2::on_pushButton_15_clicked()
@@ -306,18 +359,24 @@ void widepix_analyser_2::on_pushButton_17_clicked()
     QString graph_name;
     graph_name = ui->comboBox_3->currentText() + "; " + roi;
     graph_name += "; " + ui->comboBox->currentText();
-    wai->U_generate_frame_distribution(ui->spinBox->value(), ui->doubleSpinBox_17->value(), ui->doubleSpinBox_16->value(), ui->comboBox->currentIndex(), graph_name);
+    wai->U_generate_frame_distribution(ui->spinBox->value(), ui->doubleSpinBox_17->value(), ui->doubleSpinBox_16->value(), ui->comboBox->currentText().remove(0, 6).toInt(), graph_name);
 }
 
 void widepix_analyser_2::on_pushButton_21_clicked()
 {
-    //wai->U_generate_calibration();
+    int index = ui->listView->currentIndex().row();
+    wai->U_delete_scan(index);
+    if (ui->comboBox_17->currentIndex() == index) {
+        ui->comboBox_17->removeItem(index);
+        if (ui->comboBox_17->count() != 0) ui->comboBox_17->setCurrentIndex(0);
+    } else {
+        ui->comboBox_17->removeItem(index);
+    }
+    ui->label->setText("Current scan: " + ui->comboBox_17->currentText());
 }
 
 void widepix_analyser_2::on_pushButton_5_clicked()
 {
-    ui->lineEdit->setText("");
-    ui->lineEdit_2->setText("");
     ui->lineEdit_3->setText("");
     ui->comboBox->clear();
     ui->comboBox_5->clear();
@@ -326,10 +385,12 @@ void widepix_analyser_2::on_pushButton_5_clicked()
     ui->comboBox_13->clear();
     ui->comboBox_14->clear();
     ui->comboBox_15->clear();
+    ui->comboBox_17->clear();
     wai->U_reset_data();
     ui->pushButton_3->setEnabled(false);
-    ui->pushButton_4->setEnabled(false);
-    ui->pushButton_5->setEnabled(false);
+    ui->pushButton_2->setEnabled(false);
+    ui->pushButton_29->setEnabled(false);
+    ui->pushButton_21->setEnabled(false);
 
     ui->pushButton_13->setEnabled(false);
     //ui->pushButton_14->setEnabled(false);
@@ -357,12 +418,12 @@ void widepix_analyser_2::on_pushButton_5_clicked()
     ui->pushButton_33->setEnabled(false);
     ui->pushButton_32->setEnabled(false);
 
-    ui->comboBox->setEnabled(false);
+    //ui->comboBox->setEnabled(false);
 }
 
 void widepix_analyser_2::on_pushButton_22_clicked()
 {
-    wai->U_reset_plot();
+    wai->U_reset_spectra();
 }
 
 void widepix_analyser_2::on_pushButton_18_clicked()
@@ -435,60 +496,61 @@ void widepix_analyser_2::on_pushButton_28_clicked()
 
 void widepix_analyser_2::on_pushButton_29_clicked()
 {
-    QString str = ui->lineEdit->text();
-    if (str != "") {
-        wai->U_set_data(str, ui->spinBox_9->value(), ui->doubleSpinBox_20->value(), (ui->checkBox_2->checkState() == Qt::Checked));
-        ui->pushButton_3->setEnabled(true);
-        ui->pushButton_4->setEnabled(true);
-        ui->pushButton_5->setEnabled(true);
-
-        ui->pushButton_13->setEnabled(true);
-        //ui->pushButton_14->setEnabled(true);
-        ui->pushButton_15->setEnabled(true);
-        ui->pushButton_23->setEnabled(true);
-        ui->pushButton_24->setEnabled(true);
-
-        ui->pushButton_16->setEnabled(true);
-
-        ui->pushButton_6->setEnabled(true);
-        ui->pushButton_12->setEnabled(true);
-
-        ui->pushButton_7->setEnabled(true);
-        ui->pushButton_25->setEnabled(false);
-
-        ui->pushButton_17->setEnabled(true);
-        ui->pushButton_19->setEnabled(true);
-        ui->pushButton_20->setEnabled(true);
-
-        ui->pushButton_30->setEnabled(true);
-        ui->pushButton_31->setEnabled(true);
-
-        ui->pushButton_34->setEnabled(true);
-        ui->pushButton_35->setEnabled(true);
-        ui->pushButton_36->setEnabled(true);
-
-        ui->pushButton_40->setEnabled(true);
-        ui->pushButton_33->setEnabled(true);
-        ui->pushButton_32->setEnabled(true);
-
-        ui->comboBox->setEnabled(true);
-    }
+    wai->U_set_scan(ui->listView->currentIndex().row());
+    ui->label->setText("Current scan: " + ui->listView->currentIndex().data().toString());
 }
 
 void widepix_analyser_2::on_pushButton_30_clicked()
 {
-    QString str = ui->lineEdit_2->text();
-    if (str != "") {
-        wai->U_set_data_df(str, ui->spinBox_10->value(), ui->doubleSpinBox_19->value(), (ui->checkBox_2->checkState() == Qt::Checked));
-    }
+    wai->U_smooth_spectra();
 }
 
 void widepix_analyser_2::on_pushButton_31_clicked()
 {
-    QString str = ui->lineEdit_3->text();
-    if (str != "") {
-        wai->U_set_data_ff(str, ui->spinBox_11->value(), ui->doubleSpinBox_18->value(), (ui->checkBox_2->checkState() == Qt::Checked));
+    UC_data_container::UTStr_data_container_settings settings;
+    settings.path = ui->lineEdit_3->text();
+    settings.time = ui->doubleSpinBox_18->value();
+    settings.count = ui->spinBox_11->value();
+    settings.energy = ui->doubleSpinBox_19->value();
+    settings.calibration = (ui->checkBox_3->checkState() == Qt::Checked);
+    settings.both_counters = (ui->checkBox_2->checkState() == Qt::Checked);
+    QString str;
+    str += settings.path + "; ";
+    str += QString("count = %1").arg(settings.count) + "; ";
+    str += QString("time = %1").arg(settings.time) + "; ";
+    if (settings.both_counters) {
+        str += "both counters;";
+    } else {
+        str += "one counter;";
     }
+    wai->U_set_data(settings, str);
+    ui->comboBox_17->addItem(str);
+
+    ui->pushButton_3->setEnabled(true);
+    ui->pushButton_2->setEnabled(true);
+    ui->pushButton_29->setEnabled(true);
+    ui->pushButton_21->setEnabled(true);
+
+    ui->pushButton_15->setEnabled(true);
+    ui->pushButton_13->setEnabled(true);
+    ui->pushButton_34->setEnabled(true);
+    ui->pushButton_35->setEnabled(true);
+    ui->pushButton_23->setEnabled(true);
+    ui->pushButton_24->setEnabled(true);
+    ui->pushButton_36->setEnabled(true);
+    ui->pushButton_16->setEnabled(true);
+    ui->pushButton_6->setEnabled(true);
+    ui->pushButton_12->setEnabled(true);
+    ui->pushButton_7->setEnabled(true);
+    ui->pushButton_40->setEnabled(true);
+    ui->pushButton_25->setEnabled(true);
+    ui->pushButton_32->setEnabled(true);
+    ui->pushButton_33->setEnabled(true);
+    ui->pushButton_17->setEnabled(true);
+    ui->pushButton_20->setEnabled(true);
+    ui->pushButton_19->setEnabled(true);
+
+    ui->comboBox->setEnabled(true);
 }
 
 void widepix_analyser_2::on_pushButton_34_clicked()
@@ -504,7 +566,7 @@ void widepix_analyser_2::on_pushButton_35_clicked()
 void widepix_analyser_2::on_pushButton_36_clicked()
 {
 
-    wai->U_count_mask(ui->radioButton->isChecked(), ui->doubleSpinBox_11->value(), (ui->checkBox->checkState() == Qt::Checked), ui->comboBox->currentIndex());
+   wai->U_count_mask(ui->radioButton->isChecked(), ui->doubleSpinBox_11->value(), (ui->checkBox->checkState() == Qt::Checked), ui->comboBox->currentText().remove(0, 6).toInt());
 }
 
 void widepix_analyser_2::on_radioButton_toggled(bool checked)
@@ -519,7 +581,7 @@ void widepix_analyser_2::on_radioButton_2_toggled(bool checked)
 
 void widepix_analyser_2::on_pushButton_33_clicked()
 {
-    wai->U_generate_range(ui->comboBox->currentIndex());
+    wai->U_generate_range(ui->comboBox->currentText().remove(0, 6).toInt());
 }
 
 void widepix_analyser_2::on_pushButton_32_clicked()
@@ -553,35 +615,323 @@ void widepix_analyser_2::on_pushButton_39_clicked()
 
 void widepix_analyser_2::on_pushButton_40_clicked()
 {
+    UC_pixels_info::UTStr_data_enable data_enable;
+    data_enable.max_enable = (ui->checkBox_10->checkState() == Qt::Checked);
+    data_enable.min_enable = (ui->checkBox_8->checkState() == Qt::Checked);
+    data_enable.sum_enable = (ui->checkBox_5->checkState() == Qt::Checked);
+    data_enable.mean_enable = (ui->checkBox_9->checkState() == Qt::Checked);
+    data_enable.median_enable = (ui->checkBox_4->checkState() == Qt::Checked);
+    data_enable.zeros_enable = (ui->checkBox_11->checkState() == Qt::Checked);
+    data_enable.std_dev_enable = (ui->checkBox_7->checkState() == Qt::Checked);
+    data_enable.snr_enable = (ui->checkBox_6->checkState() == Qt::Checked);
+    data_enable.id1_enable = (ui->checkBox_12->checkState() == Qt::Checked);
+    wai->U_set_data_enable(data_enable);
     wai->U_generate_table();
 }
 
 void widepix_analyser_2::on_comboBox_11_currentIndexChanged(int index)
 {
-    wai->U_set_threshold_range(ui->comboBox_5->currentIndex(), index);
+    //wai->U_set_threshold_range(ui->comboBox_5->currentIndex(), index);
 }
 
 void widepix_analyser_2::on_comboBox_15_currentIndexChanged(int index)
 {
-    wai->U_set_thresholds(index, ui->comboBox_14->currentIndex(), ui->comboBox_13->currentIndex(), ui->comboBox_12->currentIndex());
+    //wai->U_set_thresholds(index, ui->comboBox_14->currentIndex(), ui->comboBox_13->currentIndex(), ui->comboBox_12->currentIndex());
 }
 
 void widepix_analyser_2::on_comboBox_14_currentIndexChanged(int index)
 {
-    wai->U_set_thresholds(ui->comboBox_15->currentIndex(), index, ui->comboBox_13->currentIndex(), ui->comboBox_12->currentIndex());
+    //wai->U_set_thresholds(ui->comboBox_15->currentIndex(), index, ui->comboBox_13->currentIndex(), ui->comboBox_12->currentIndex());
 }
 
 void widepix_analyser_2::on_comboBox_13_currentIndexChanged(int index)
 {
-    wai->U_set_thresholds(ui->comboBox_15->currentIndex(), ui->comboBox_14->currentIndex(), index, ui->comboBox_12->currentIndex());
+    //wai->U_set_thresholds(ui->comboBox_15->currentIndex(), ui->comboBox_14->currentIndex(), index, ui->comboBox_12->currentIndex());
 }
 
 void widepix_analyser_2::on_comboBox_12_currentIndexChanged(int index)
 {
-    wai->U_set_thresholds(ui->comboBox_15->currentIndex(), ui->comboBox_14->currentIndex(), ui->comboBox_13->currentIndex(), index);
+   // wai->U_set_thresholds(ui->comboBox_15->currentIndex(), ui->comboBox_14->currentIndex(), ui->comboBox_13->currentIndex(), index);
 }
 
 void widepix_analyser_2::on_pushButton_41_clicked()
 {
     wai->U_normalize_spectra();
+}
+
+void widepix_analyser_2::on_pushButton_2_clicked(bool checked)
+{
+
+}
+
+void widepix_analyser_2::on_comboBox_17_currentIndexChanged(int index)
+{
+    wai->U_set_scan(index);
+    ui->label->setText("Current scan: " + ui->comboBox_17->currentText());
+}
+
+void widepix_analyser_2::on_comboBox_5_currentIndexChanged(const QString &arg1)
+{
+    QString str = arg1;
+    wai->U_set_threshold_range(str.remove(0, 6).toInt(), ui->comboBox_11->currentText().remove(0, 6).toInt());
+}
+
+void widepix_analyser_2::on_comboBox_11_currentIndexChanged(const QString &arg1)
+{
+    QString str = arg1;
+    wai->U_set_threshold_range(ui->comboBox_5->currentText().remove(0, 6).toInt(), str.remove(0, 6).toInt());
+}
+
+void widepix_analyser_2::on_comboBox_15_currentIndexChanged(const QString &arg1)
+{
+    QString str = arg1;
+    wai->U_set_thresholds(str.remove(0, 6).toInt(), ui->comboBox_14->currentText().remove(0, 6).toInt(), ui->comboBox_13->currentText().remove(0, 6).toInt(), ui->comboBox_12->currentText().remove(0, 6).toInt());
+
+}
+
+void widepix_analyser_2::on_comboBox_14_currentIndexChanged(const QString &arg1)
+{
+    QString str = arg1;
+    wai->U_set_thresholds(ui->comboBox_15->currentText().remove(0, 6).toInt(), str.remove(0, 6).toInt(), ui->comboBox_13->currentText().remove(0, 6).toInt(), ui->comboBox_12->currentText().remove(0, 6).toInt());
+}
+
+void widepix_analyser_2::on_comboBox_13_currentIndexChanged(const QString &arg1)
+{
+    QString str = arg1;
+    wai->U_set_thresholds(ui->comboBox_15->currentText().remove(0, 6).toInt(), ui->comboBox_14->currentText().remove(0, 6).toInt(), str.remove(0, 6).toInt(), ui->comboBox_12->currentText().remove(0, 6).toInt());
+}
+
+void widepix_analyser_2::on_comboBox_12_currentIndexChanged(const QString &arg1)
+{
+    QString str = arg1;
+    wai->U_set_thresholds(ui->comboBox_15->currentText().remove(0, 6).toInt(), ui->comboBox_14->currentText().remove(0, 6).toInt(), ui->comboBox_13->currentText().remove(0, 6).toInt(), str.remove(0, 6).toInt());
+}
+
+void widepix_analyser_2::on_radioButton_3_clicked(bool checked)
+{
+    //if (checked) ui->radioButton_4->setChecked(false);
+    wai->U_set_interaction_mode(checked);
+}
+
+void widepix_analyser_2::on_radioButton_4_clicked(bool checked)
+{
+    //if (checked) ui->radioButton_3->setChecked(false);
+    wai->U_set_interaction_mode(!checked);
+}
+
+void widepix_analyser_2::on_pushButton_43_clicked()
+{
+    switch (ui->tabWidget->currentIndex()) {
+        case 0 : {
+            wai->U_mask_selected_value(ui->checkBox->checkState() == Qt::Checked/*, ui->comboBox->currentText().remove(0, 6).toInt()*/);
+            break;
+        }
+        case 2 : {
+            wai->U_mask_selected(ui->spinBox_5->value(), ui->spinBox_7->value(), ui->spinBox_4->value(), ui->spinBox_6->value());
+            break;
+        }
+        case 4 : {
+            wai->U_mask_selected_value(ui->checkBox->checkState() == Qt::Checked/*, ui->comboBox->currentText().remove(0, 6).toInt()*/);
+            break;
+        }
+    }
+}
+
+void widepix_analyser_2::on_pushButton_44_clicked()
+{
+    switch (ui->tabWidget->currentIndex()) {
+        case 0 : {
+            wai->U_mask_selected_value_thl(ui->checkBox->checkState() == Qt::Checked, ui->comboBox->currentText().remove(0, 6).toInt());
+            break;
+        }
+        case 2 : {
+            wai->U_mask_selected(ui->spinBox_5->value(), ui->spinBox_7->value(), ui->spinBox_4->value(), ui->spinBox_6->value());
+            break;
+        }
+        case 4 : {
+            wai->U_mask_selected_value_thl(ui->checkBox->checkState() == Qt::Checked, ui->comboBox->currentText().remove(0, 6).toInt());
+            break;
+        }
+    }
+}
+
+void widepix_analyser_2::on_radioButton_5_clicked(bool checked)
+{
+    wai->U_set_x_axis_type(checked);
+}
+
+void widepix_analyser_2::on_radioButton_6_clicked(bool checked)
+{
+    wai->U_set_x_axis_type(!checked);
+}
+
+void widepix_analyser_2::on_radioButton_7_clicked()
+{
+
+}
+
+void widepix_analyser_2::on_radioButton_7_clicked(bool checked)
+{
+    wai->U_set_y_axis_type(checked);
+}
+
+void widepix_analyser_2::on_radioButton_8_clicked(bool checked)
+{
+    wai->U_set_y_axis_type(!checked);
+}
+
+void widepix_analyser_2::on_pushButton_42_clicked()
+{
+    wai->U_generate_calibration_chip(ui->comboBox_18->currentIndex());
+}
+
+void widepix_analyser_2::on_pushButton_45_clicked()
+{
+    wai->U_generate_calibration();
+}
+
+void widepix_analyser_2::on_pushButton_46_clicked()
+{
+    QString graph_name;
+    graph_name = ui->comboBox_3->currentText() + "; " + ui->comboBox_2->currentText() + "; " + roi;
+    wai->U_generate_spectra(graph_name, ui->doubleSpinBox_20->value(), ui->doubleSpinBox_21->value(), ui->spinBox_2->value());
+}
+
+void widepix_analyser_2::on_pushButton_47_clicked()
+{
+    wai->U_generate_frame(ui->doubleSpinBox_22->value());
+}
+
+void widepix_analyser_2::on_pushButton_48_clicked()
+{
+    wai->U_generate_table(ui->doubleSpinBox_22->value());
+}
+
+void widepix_analyser_2::on_pushButton_49_clicked()
+{
+    QString str = QFileDialog::getSaveFileName(nullptr, "Save chip fit");
+    if (str != "") {
+        wai->U_save_calibration_chip(str, static_cast<UC_wai::UTE_file_type>(ui->comboBox_16->currentIndex()));
+    }
+}
+
+void widepix_analyser_2::on_pushButton_52_clicked()
+{
+    wai->U_reset_calibration_chip();
+}
+
+void widepix_analyser_2::on_pushButton_54_clicked()
+{
+    QString str = QFileDialog::getSaveFileName(nullptr, "Save spectra");
+    if (str != "") {
+        wai->U_automatic_save_spectra(str, static_cast<UC_wai::UTE_file_type>(ui->comboBox_8->currentIndex()));
+    }
+}
+
+void widepix_analyser_2::on_pushButton_57_clicked()
+{
+    QString str = QFileDialog::getSaveFileName(nullptr, "Save calibration");
+    if (str != "") {
+        wai->U_save_calibration(str, static_cast<UC_wai::UTE_file_type>(ui->comboBox_20->currentIndex()));
+    }
+}
+
+void widepix_analyser_2::on_pushButton_55_clicked()
+{
+    QString graph_name;
+    graph_name = ui->comboBox_3->currentText() + "; " + ui->comboBox_2->currentText() + "; " + roi;
+    wai->U_generate_identification(graph_name);
+}
+
+void widepix_analyser_2::on_pushButton_56_clicked()
+{
+    wai->U_reset_identification();
+}
+
+void widepix_analyser_2::on_pushButton_60_clicked()
+{
+    wai->U_reset_calibration();
+}
+
+void widepix_analyser_2::on_checkBox_13_toggled(bool checked)
+{
+    wai->U_set_renew_ranges(checked);
+    if (checked) {
+        connect(wai, SIGNAL(US_set_spectra_max_x(double)), ui->doubleSpinBox_4, SLOT(setValue(double)));
+        connect(wai, SIGNAL(US_set_spectra_min_x(double)), ui->doubleSpinBox_3, SLOT(setValue(double)));
+        connect(wai, SIGNAL(US_set_spectra_max_y(double)), ui->doubleSpinBox,   SLOT(setValue(double)));
+        connect(wai, SIGNAL(US_set_spectra_min_y(double)), ui->doubleSpinBox_2, SLOT(setValue(double)));
+
+        connect(wai, SIGNAL(US_set_frame_max_x(double)), ui->doubleSpinBox_8,  SLOT(setValue(double)));
+        connect(wai, SIGNAL(US_set_frame_min_x(double)), ui->doubleSpinBox_7,  SLOT(setValue(double)));
+        connect(wai, SIGNAL(US_set_frame_max_y(double)), ui->doubleSpinBox_5,  SLOT(setValue(double)));
+        connect(wai, SIGNAL(US_set_frame_min_y(double)), ui->doubleSpinBox_6,  SLOT(setValue(double)));
+        connect(wai, SIGNAL(US_set_frame_max_z(double)), ui->doubleSpinBox_9,  SLOT(setValue(double)));
+        connect(wai, SIGNAL(US_set_frame_min_z(double)), ui->doubleSpinBox_10, SLOT(setValue(double)));
+
+        connect(wai, SIGNAL(US_set_distribution_max_x(double)), ui->doubleSpinBox_14, SLOT(setValue(double)));
+        connect(wai, SIGNAL(US_set_distribution_min_x(double)), ui->doubleSpinBox_13, SLOT(setValue(double)));
+        connect(wai, SIGNAL(US_set_distribution_max_y(double)), ui->doubleSpinBox_12, SLOT(setValue(double)));
+        connect(wai, SIGNAL(US_set_distribution_min_y(double)), ui->doubleSpinBox_15, SLOT(setValue(double)));
+
+    } else {
+        disconnect(wai, SIGNAL(US_set_spectra_max_x(double)), ui->doubleSpinBox_4, SLOT(setValue(double)));
+        disconnect(wai, SIGNAL(US_set_spectra_min_x(double)), ui->doubleSpinBox_3, SLOT(setValue(double)));
+        disconnect(wai, SIGNAL(US_set_spectra_max_y(double)), ui->doubleSpinBox,   SLOT(setValue(double)));
+        disconnect(wai, SIGNAL(US_set_spectra_min_y(double)), ui->doubleSpinBox_2, SLOT(setValue(double)));
+
+        disconnect(wai, SIGNAL(US_set_frame_max_x(double)), ui->doubleSpinBox_8,  SLOT(setValue(double)));
+        disconnect(wai, SIGNAL(US_set_frame_min_x(double)), ui->doubleSpinBox_7,  SLOT(setValue(double)));
+        disconnect(wai, SIGNAL(US_set_frame_max_y(double)), ui->doubleSpinBox_5,  SLOT(setValue(double)));
+        disconnect(wai, SIGNAL(US_set_frame_min_y(double)), ui->doubleSpinBox_6,  SLOT(setValue(double)));
+        disconnect(wai, SIGNAL(US_set_frame_max_z(double)), ui->doubleSpinBox_9,  SLOT(setValue(double)));
+        disconnect(wai, SIGNAL(US_set_frame_min_z(double)), ui->doubleSpinBox_10, SLOT(setValue(double)));
+
+        disconnect(wai, SIGNAL(US_set_distribution_max_x(double)), ui->doubleSpinBox_14, SLOT(setValue(double)));
+        disconnect(wai, SIGNAL(US_set_distribution_min_x(double)), ui->doubleSpinBox_13, SLOT(setValue(double)));
+        disconnect(wai, SIGNAL(US_set_distribution_max_y(double)), ui->doubleSpinBox_12, SLOT(setValue(double)));
+        disconnect(wai, SIGNAL(US_set_distribution_min_y(double)), ui->doubleSpinBox_15, SLOT(setValue(double)));
+
+    }
+}
+
+void widepix_analyser_2::on_doubleSpinBox_3_valueChanged(double arg1)
+{
+
+}
+
+void widepix_analyser_2::on_pushButton_50_clicked()
+{
+    wai->U_resize_calibration_chip();
+}
+
+void widepix_analyser_2::on_pushButton_51_clicked()
+{
+
+}
+
+void widepix_analyser_2::on_pushButton_53_clicked()
+{
+    emit US_set_threshold_level(ui->doubleSpinBox_31->value());
+}
+
+void widepix_analyser_2::on_pushButton_59_clicked()
+{
+    wai->U_toggle_calibration();
+}
+
+void widepix_analyser_2::on_pushButton_62_clicked()
+{
+    QString str = QFileDialog::getSaveFileName(nullptr, "Save calibration");
+    if (str != "") {
+        emit US_save_calibration(str);
+    }
+}
+
+void widepix_analyser_2::on_pushButton_61_clicked()
+{
+    QString str = QFileDialog::getSaveFileName(nullptr, "Load calibration");
+    if (str != "") {
+        emit US_load_calibration(str);
+    }
 }

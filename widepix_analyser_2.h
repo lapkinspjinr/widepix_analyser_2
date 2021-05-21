@@ -20,15 +20,29 @@ public:
     explicit widepix_analyser_2(QWidget *parent = nullptr);
     ~widepix_analyser_2();
 
+
+
+
 private slots:
     ///////////////////////////////////
-    void U_add_thl(int thl);
+    void U_add_thl(int thl_min, int thl_max);
     void U_file_found(QString file_name);
     void U_n_files(int n);
     void U_renew_progress_bar(double current, double total);
     void U_set_distribution_range(double lower, double upper);
     void U_set_count_mask(int n);
+    void U_set_roi_range(int x_min, int x_max, int y_min, int y_max);
+    void U_set_thl_range(double thl_min, double thl_max);
+    ///
+    void U_set_scan(int index);
     //////////////////////////////////////
+
+signals :
+    void US_set_threshold_level(double level);
+    void US_save_calibration(QString file_name);
+    void US_load_calibration(QString file_name);
+
+private slots:
 
     void on_pushButton_clicked();
 
@@ -147,6 +161,80 @@ private slots:
     void on_comboBox_12_currentIndexChanged(int index);
 
     void on_pushButton_41_clicked();
+
+    void on_pushButton_2_clicked(bool checked);
+
+    void on_comboBox_17_currentIndexChanged(int index);
+
+    void on_comboBox_5_currentIndexChanged(const QString &arg1);
+
+    void on_comboBox_11_currentIndexChanged(const QString &arg1);
+
+    void on_comboBox_15_currentIndexChanged(const QString &arg1);
+
+    void on_comboBox_14_currentIndexChanged(const QString &arg1);
+
+    void on_comboBox_13_currentIndexChanged(const QString &arg1);
+
+    void on_comboBox_12_currentIndexChanged(const QString &arg1);
+
+    void on_radioButton_3_clicked(bool checked);
+
+    void on_radioButton_4_clicked(bool checked);
+
+    void on_pushButton_43_clicked();
+
+    void on_pushButton_44_clicked();
+
+    void on_radioButton_5_clicked(bool checked);
+
+    void on_radioButton_6_clicked(bool checked);
+
+    void on_radioButton_7_clicked();
+
+    void on_radioButton_7_clicked(bool checked);
+
+    void on_radioButton_8_clicked(bool checked);
+
+    void on_pushButton_42_clicked();
+
+    void on_pushButton_45_clicked();
+
+    void on_pushButton_46_clicked();
+
+    void on_pushButton_47_clicked();
+
+    void on_pushButton_48_clicked();
+
+    void on_pushButton_49_clicked();
+
+    void on_pushButton_52_clicked();
+
+    void on_pushButton_54_clicked();
+
+    void on_pushButton_57_clicked();
+
+    void on_pushButton_55_clicked();
+
+    void on_pushButton_56_clicked();
+
+    void on_pushButton_60_clicked();
+
+    void on_checkBox_13_toggled(bool checked);
+
+    void on_doubleSpinBox_3_valueChanged(double arg1);
+
+    void on_pushButton_50_clicked();
+
+    void on_pushButton_51_clicked();
+
+    void on_pushButton_53_clicked();
+
+    void on_pushButton_59_clicked();
+
+    void on_pushButton_62_clicked();
+
+    void on_pushButton_61_clicked();
 
 private:
     Ui::widepix_analyser_2 *ui;
