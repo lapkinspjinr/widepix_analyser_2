@@ -32,7 +32,8 @@ SOURCES += \
     uc_wai.cpp \
     uc_data_container.cpp \
     uc_pixels_info.cpp \
-    common_functions.cpp
+    common_functions.cpp \
+    uc_identification.cpp
 
 HEADERS += \
         widepix_analyser_2.h \
@@ -41,7 +42,8 @@ HEADERS += \
     uc_wai.h \
     uc_data_container.h \
     uc_pixels_info.h \
-    common_functions.h
+    common_functions.h \
+    uc_identification.h
 
 FORMS += \
         widepix_analyser_2.ui

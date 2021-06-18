@@ -35,12 +35,12 @@ UC_wai::UC_wai(QObject *parent) : QObject(parent)
     pens << QPen(Qt::darkGray);
     pens << QPen(Qt::lightGray);
 
-    connect(this, SIGNAL(US_set_data(UC_data_container::UTStr_data_container_settings)),    plot, SLOT(U_set_data(UC_data_container::UTStr_data_container_settings)), Qt::DirectConnection);
-    connect(this, SIGNAL(US_reset_data()),                                                  plot, SLOT(U_reset_data()), Qt::DirectConnection);
-    connect(this, SIGNAL(US_delete_scan(int)),                                              plot, SLOT(U_delete_scan(int)), Qt::DirectConnection);
-    connect(this, SIGNAL(US_set_scan(int)),                                                 plot, SLOT(U_set_scan(int)), Qt::DirectConnection);
-    connect(this, SIGNAL(US_set_ff(int)),                                                   plot, SLOT(U_set_ff(int)), Qt::DirectConnection);
-    connect(this, SIGNAL(US_set_df(int)),                                                   plot, SLOT(U_set_df(int)), Qt::DirectConnection);
+    connect(this, SIGNAL(US_set_data(UC_data_container::UTStr_data_container_settings)),            plot, SLOT(U_set_data(UC_data_container::UTStr_data_container_settings)),           Qt::DirectConnection);
+    connect(this, SIGNAL(US_reset_data()),                                                          plot, SLOT(U_reset_data()),                                                         Qt::DirectConnection);
+    connect(this, SIGNAL(US_delete_scan(int)),                                                      plot, SLOT(U_delete_scan(int)),                                                     Qt::DirectConnection);
+    connect(this, SIGNAL(US_set_scan(int)),                                                         plot, SLOT(U_set_scan(int)),                                                        Qt::DirectConnection);
+    connect(this, SIGNAL(US_get_settings(int)),                                                     plot, SLOT(U_get_settings(int)),                                                    Qt::DirectConnection);
+    connect(this, SIGNAL(US_set_settings(int, UC_data_container::UTStr_data_container_settings)),   plot, SLOT(U_set_settings(int, UC_data_container::UTStr_data_container_settings)),  Qt::DirectConnection);
 
     connect(this, SIGNAL(US_generate_spectra()),                                    plot, SLOT(U_generate_spectra()), Qt::DirectConnection);
     connect(this, SIGNAL(US_generate_spectra(double, double, int)),                 plot, SLOT(U_generate_spectra(double, double, int)), Qt::DirectConnection);
@@ -53,17 +53,22 @@ UC_wai::UC_wai(QObject *parent) : QObject(parent)
     connect(this, SIGNAL(US_generate_frame_distribution(int, double, double, int)), plot, SLOT(U_generate_frame_distribution(int, double, double, int)), Qt::DirectConnection);
     connect(this, SIGNAL(US_generate_calibration(int)),                             plot, SLOT(U_generate_calibration(int)), Qt::DirectConnection);
     connect(this, SIGNAL(US_generate_calibration()),                                plot, SLOT(U_generate_calibration()), Qt::DirectConnection);
-    connect(this, SIGNAL(US_generate_identification()),                             plot, SLOT(U_generate_identification()), Qt::DirectConnection);
+    connect(this, SIGNAL(US_generate_identification_roi()),                         plot, SLOT(U_generate_identification_roi()), Qt::DirectConnection);
+    connect(this, SIGNAL(US_generate_additional_data()),                            plot, SLOT(U_generate_additional_data()), Qt::DirectConnection);
+    connect(this, SIGNAL(US_generate_identification_data()),                        plot, SLOT(U_generate_identification_data()), Qt::DirectConnection);
+    connect(this, SIGNAL(US_generate_identification_frame(int)),                    plot, SLOT(U_generate_identification_frame(int)), Qt::DirectConnection);
     connect(this, SIGNAL(US_generate_range()),                                      plot, SLOT(U_generate_range()), Qt::DirectConnection);
     connect(this, SIGNAL(US_generate_range(int)),                                   plot, SLOT(U_generate_range(int)), Qt::DirectConnection);
+    //connect(this, SIGNAL(US_generate_identification(int, int)),                     plot, SLOT(U_generate_identification(int, int)), Qt::DirectConnection);
 
-    connect(this, SIGNAL(US_set_frame_type(UC_plot::UTE_frame_type)),                   plot, SLOT(U_set_frame_type(UC_plot::UTE_frame_type)), Qt::DirectConnection);
-    connect(this, SIGNAL(US_set_pixel_type(UC_plot::UTE_pixel_type)),                   plot, SLOT(U_set_pixel_type(UC_plot::UTE_pixel_type)), Qt::DirectConnection);
-    connect(this, SIGNAL(US_set_roi(int, int, int, int)),                               plot, SLOT(U_set_roi(int, int, int, int)), Qt::DirectConnection);
-    connect(this, SIGNAL(US_set_identification_type(UC_plot::UTE_identification_type)), plot, SLOT(U_set_identification_type(UC_plot::UTE_identification_type)), Qt::DirectConnection);
-    connect(this, SIGNAL(US_set_thresholds(int, int, int, int)),                        plot, SLOT(U_set_thresholds(int, int, int, int)), Qt::DirectConnection);
-    connect(this, SIGNAL(US_set_threshold_range(int, int)),                             plot, SLOT(U_set_threshold_range(int, int)), Qt::DirectConnection);
-    connect(this, SIGNAL(US_set_data_enable(UC_pixels_info::UTStr_data_enable)),        plot, SLOT(U_set_data_enable(UC_pixels_info::UTStr_data_enable)), Qt::DirectConnection);
+    connect(this, SIGNAL(US_set_frame_type(UC_plot::UTE_frame_type)),                   plot, SLOT(U_set_frame_type(UC_plot::UTE_frame_type)),                      Qt::DirectConnection);
+    connect(this, SIGNAL(US_set_pixel_type(UC_plot::UTE_pixel_type)),                   plot, SLOT(U_set_pixel_type(UC_plot::UTE_pixel_type)),                      Qt::DirectConnection);
+    connect(this, SIGNAL(US_set_roi(int, int, int, int)),                               plot, SLOT(U_set_roi(int, int, int, int)),                                  Qt::DirectConnection);
+    connect(this, SIGNAL(US_set_rebin(int, int, int)),                                  plot, SLOT(U_set_rebin(int, int, int)),                                     Qt::DirectConnection);
+    connect(this, SIGNAL(US_set_identification_type(UC_plot::UTE_identification_type)), plot, SLOT(U_set_identification_type(UC_plot::UTE_identification_type)),    Qt::DirectConnection);
+    connect(this, SIGNAL(US_set_thresholds(int, int, int, int)),                        plot, SLOT(U_set_thresholds(int, int, int, int)),                           Qt::DirectConnection);
+    connect(this, SIGNAL(US_set_threshold_range(int, int)),                             plot, SLOT(U_set_threshold_range(int, int)),                                Qt::DirectConnection);
+    connect(this, SIGNAL(US_set_data_enable(UC_pixels_info::UTStr_data_enable)),        plot, SLOT(U_set_data_enable(UC_pixels_info::UTStr_data_enable)),           Qt::DirectConnection);
 
     connect(this, SIGNAL(US_set_mask(bool, bool, double, bool, int)),               plot, SLOT(U_set_mask(bool, bool, double, bool, int)), Qt::DirectConnection);
     connect(this, SIGNAL(US_count_mask(bool, double, bool, int)),                   plot, SLOT(U_count_mask(bool, double, bool, int)), Qt::DirectConnection);
@@ -74,13 +79,15 @@ UC_wai::UC_wai(QObject *parent) : QObject(parent)
     connect(this, SIGNAL(US_mask_selected_value(double, double, bool)),             plot, SLOT(U_mask_selected_value(double, double, bool)), Qt::DirectConnection);
     connect(this, SIGNAL(US_mask_selected_value_thl(double, double, bool, int)),    plot, SLOT(U_mask_selected_value_thl(double, double, bool, int)), Qt::DirectConnection);
 
-    connect(plot, SIGNAL(US_spectra_data(double, double)),                          this, SLOT(U_add_spectra_data(double, double)), Qt::DirectConnection);
-    connect(plot, SIGNAL(US_frame_data(double, double, double)),                    this, SLOT(U_add_frame_data(double, double, double)), Qt::DirectConnection);
-    connect(plot, SIGNAL(US_chip_data(UC_pixels_info)),                             this, SLOT(U_add_table_data(UC_pixels_info)), Qt::DirectConnection);
-    connect(plot, SIGNAL(US_distribution_data(double, double)),                     this, SLOT(U_add_distibution_data(double, double)), Qt::DirectConnection);
-    connect(plot, SIGNAL(US_calibration_chip_data(double, double, bool)),           this, SLOT(U_add_calibration_chip_data(double, double, bool)), Qt::DirectConnection);
-    connect(plot, SIGNAL(US_calibration_data(double, double, int, bool)),           this, SLOT(U_add_calibration_data(double, double, int, bool)), Qt::DirectConnection);
-    connect(plot, SIGNAL(US_identification_data(double, double, bool)),             this, SLOT(U_add_identification_data(double, double, bool)), Qt::DirectConnection);
+    connect(plot, SIGNAL(US_spectra_data(double, double)),                      this, SLOT(U_add_spectra_data(double, double)),                         Qt::DirectConnection);
+    connect(plot, SIGNAL(US_frame_data(double, double, double)),                this, SLOT(U_add_frame_data(double, double, double)),                   Qt::DirectConnection);
+    connect(plot, SIGNAL(US_chip_data(UC_pixels_info)),                         this, SLOT(U_add_table_data(UC_pixels_info)),                           Qt::DirectConnection);
+    connect(plot, SIGNAL(US_distribution_data(double, double)),                 this, SLOT(U_add_distibution_data(double, double)),                     Qt::DirectConnection);
+    connect(plot, SIGNAL(US_calibration_chip_data(double, double, bool)),       this, SLOT(U_add_calibration_chip_data(double, double, bool)),          Qt::DirectConnection);
+    connect(plot, SIGNAL(US_calibration_data(double, double, int, bool)),       this, SLOT(U_add_calibration_data(double, double, int, bool)),          Qt::DirectConnection);
+    connect(plot, SIGNAL(US_id_roi_GA_data(UC_plot::UTStr_id_GA_data)),         this, SLOT(U_add_id_roi_GA_data(UC_plot::UTStr_id_GA_data)),            Qt::DirectConnection);
+    connect(plot, SIGNAL(US_id_roi_LC_data(UC_plot::UTStr_id_LC_data)),         this, SLOT(U_add_id_roi_LC_data(UC_plot::UTStr_id_LC_data)),            Qt::DirectConnection);
+    connect(plot, SIGNAL(US_identification_frame_data(double, double, double)), this, SLOT(U_add_identification_frame_data(double, double, double)),    Qt::DirectConnection);
 
     connect(plot, SIGNAL(US_replot_spectra()),                                      this, SLOT(U_replot_spectra()), Qt::DirectConnection);
     connect(plot, SIGNAL(US_replot_frame()),                                        this, SLOT(U_replot_frame()), Qt::DirectConnection);
@@ -89,9 +96,16 @@ UC_wai::UC_wai(QObject *parent) : QObject(parent)
     connect(plot, SIGNAL(US_replot_calibration_chip()),                             this, SLOT(U_replot_calibration_chip()), Qt::DirectConnection);
     connect(plot, SIGNAL(US_replot_calibration()),                                  this, SLOT(U_replot_calibration()), Qt::DirectConnection);
     connect(plot, SIGNAL(US_replot_identificaton()),                                this, SLOT(U_replot_identification()), Qt::DirectConnection);
+    connect(plot, SIGNAL(US_replot_identificaton_frame()),                          this, SLOT(U_replot_identification_frame()), Qt::DirectConnection);
 
     connect(plot, SIGNAL(US_new_thl(int)),                                          this, SLOT(U_new_thl(int)), Qt::DirectConnection);
     connect(plot, SIGNAL(US_new_thl(int)),                                          this, SLOT(U_new_thl(int)), Qt::DirectConnection);
+
+    connect(this, SIGNAL(US_generate_muxes(int, int)),                              plot, SLOT(U_generate_muxes(int, int)), Qt::DirectConnection);
+
+    connect(plot, SIGNAL(US_scan_settings(UC_data_container::UTStr_data_container_settings)),                              this, SLOT(U_renew_list_model(UC_data_container::UTStr_data_container_settings)), Qt::DirectConnection);
+
+    connect(this, SIGNAL(US_set_smoothing(int)),                              plot, SLOT(U_set_smoothing(int)), Qt::DirectConnection);
 
 
     plot->moveToThread(thread);
@@ -212,14 +226,36 @@ void UC_wai::U_set_colibration_qcp(QCustomPlot * chip_fit_qcp, QCustomPlot * cal
 
 }
 
-void UC_wai::U_set_identification_qcp(QCustomPlot * id_qcp) {
-    this->id_qcp = id_qcp;
+void UC_wai::U_set_identification_qcp(QCustomPlot * id_frame_qcp) {
+    this->id_frame_qcp = id_frame_qcp;
 
-    id_qcp->setInteractions(QCP::iRangeDrag|QCP::iRangeZoom);
-    id_qcp->xAxis->setLabel("thl");
-    id_qcp->yAxis->setLabel("value");
-    //id_qcp = new QCPSelectionRect(chip_fit_qcp);
-    //id_qcp->setSelectionRect(chip_fit_qcp_sr);
+    id_frame_qcp->setInteractions(QCP::iRangeDrag|QCP::iRangeZoom); // this will also allow rescaling the color scale by dragging/zooming
+    id_frame_qcp->axisRect()->setupFullAxesBox(true);
+    id_frame_qcp->xAxis->setLabel("x");
+    id_frame_qcp->yAxis->setLabel("y");
+
+    id_qcp_color_map = new QCPColorMap(id_frame_qcp->xAxis, id_frame_qcp->yAxis);
+    id_color_map_data = new QCPColorMapData(3840, 256, QCPRange(0, 3839), QCPRange(0, 255));
+    id_qcp_color_map->setData(id_color_map_data, true);
+
+    id_qcp_color_scale = new QCPColorScale(id_frame_qcp);
+    id_frame_qcp->plotLayout()->addElement(0, 1, id_qcp_color_scale);
+    id_qcp_color_scale->setType(QCPAxis::atRight);
+    id_qcp_color_map->setColorScale(id_qcp_color_scale);
+    id_qcp_color_scale->axis()->setLabel("count");
+
+    gradient = new QCPColorGradient(QCPColorGradient::gpThermal);
+    id_qcp_color_map->setGradient(*gradient);
+    id_qcp_color_map->setInterpolate(false);
+
+    id_margin_group = new QCPMarginGroup(id_frame_qcp);
+    id_frame_qcp->axisRect()->setMarginGroup(QCP::msBottom|QCP::msTop, id_margin_group);
+    id_qcp_color_scale->setMarginGroup(QCP::msBottom|QCP::msTop, id_margin_group);
+
+    id_qcp_color_map->rescaleDataRange(true);
+    id_qcp_color_scale->rescaleDataRange(true);
+    id_frame_qcp->rescaleAxes();
+    id_frame_qcp->replot(QCustomPlot::rpQueuedReplot);
 }
 
 void UC_wai::U_set_table(QTableView * table) {
@@ -301,6 +337,44 @@ void UC_wai::U_set_table(QTableView * table) {
     table_model->setData(table_index, "roi thl id3 - thl id4");
 }
 
+void UC_wai::U_set_id_table(QTableView * id_table) {
+    this->id_table = id_table;
+
+    id_GA_table_model = new QStandardItemModel(1, 10);
+    id_table_index = id_GA_table_model->index(0, 0);
+    id_GA_table_model->setData(id_table_index, "element");
+    id_table_index = id_GA_table_model->index(0, 1);
+    id_GA_table_model->setData(id_table_index, "value");
+    id_table_index = id_GA_table_model->index(0, 2);
+    id_GA_table_model->setData(id_table_index, "first window left");
+    id_table_index = id_GA_table_model->index(0, 3);
+    id_GA_table_model->setData(id_table_index, "first window right");
+    id_table_index = id_GA_table_model->index(0, 4);
+    id_GA_table_model->setData(id_table_index, "second window left");
+    id_table_index = id_GA_table_model->index(0, 5);
+    id_GA_table_model->setData(id_table_index, "second window right");
+    id_table_index = id_GA_table_model->index(0, 6);
+    id_GA_table_model->setData(id_table_index, "first window sum");
+    id_table_index = id_GA_table_model->index(0, 7);
+    id_GA_table_model->setData(id_table_index, "second window sum");
+    id_table_index = id_GA_table_model->index(0, 8);
+    id_GA_table_model->setData(id_table_index, "frame type");
+    id_table_index = id_GA_table_model->index(0, 9);
+    id_GA_table_model->setData(id_table_index, "pixel type");
+
+    id_LC_table_model = new QStandardItemModel(1, 4);
+    id_table_index = id_LC_table_model->index(0, 0);
+    id_LC_table_model->setData(id_table_index, "element");
+    id_table_index = id_LC_table_model->index(0, 0);
+    id_LC_table_model->setData(id_table_index, "value");
+    id_table_index = id_LC_table_model->index(0, 1);
+    id_LC_table_model->setData(id_table_index, "scan name");
+    id_table_index = id_LC_table_model->index(0, 2);
+    id_LC_table_model->setData(id_table_index, "thl sample");
+    id_table_index = id_LC_table_model->index(0, 3);
+    id_LC_table_model->setData(id_table_index, "sample data");
+}
+
 void UC_wai::U_set_list(QListView * list) {
     this->list = list;
     list_model = new QStandardItemModel();
@@ -309,16 +383,19 @@ void UC_wai::U_set_list(QListView * list) {
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 void UC_wai::U_set_data(UC_data_container::UTStr_data_container_settings settings, QString str) {
     list_model->appendRow(new QStandardItem(str));
-    if (n_scans == 0) scan_index = 0;
-    n_scans++;
     emit US_set_data(settings);
+    if (n_scans == 0) {
+        scan_index = 0;
+        emit US_set_scan(0);
+        emit US_get_settings(0);
+    }
+    n_scans++;
+
 }
 
 void UC_wai::U_reset_data() {
     emit US_reset_data();
     scan_index = -1;
-    ff_index = -1;
-    df_index = -1;
     n_scans = 0;
     list_model->clear();
 }
@@ -327,46 +404,28 @@ void UC_wai::U_delete_scan(int index) {
     if (index == scan_index) {
         scan_index = 0;
     }
-    if (index == ff_index) {
-        ff_index = -1;
-    }
-    if (index == df_index) {
-        df_index = -1;
-    }
     list_model->removeRows(index, 1);
     if (scan_index > index) scan_index--;
-    if (ff_index > index) ff_index--;
-    if (df_index > index) df_index--;
     n_scans--;
     emit US_delete_scan(index);
 }
 
 void UC_wai::U_set_scan(int index) {
     scan_index = index;
-    U_renew_list_model();
     emit US_set_scan(index);
+    emit US_get_settings(index);
 }
 
-void UC_wai::U_set_ff(int index) {
-    ff_index = index;
-    U_renew_list_model();
-    emit US_set_ff(index);
+void UC_wai::U_change_scan(int index) {
+    emit US_get_settings(index);
 }
 
-void UC_wai::U_set_df(int index) {
-    df_index = index;
-    U_renew_list_model();
-    emit US_set_df(index);
+void UC_wai::U_change_scan_setting(int index, UC_data_container::UTStr_data_container_settings settings) {
+    emit US_set_settings(index, settings);
+    emit US_renew_scan_settings(settings);
 }
 
-void UC_wai::U_renew_list_model() {
-    for (int i = 0; i < n_scans; i++) {
-        list_model->item(i)->setBackground(QBrush(Qt::white));
-    }
-    if (scan_index != -1) list_model->item(scan_index)->setBackground(QBrush(Qt::green));
-    if (ff_index != -1) list_model->item(ff_index)->setBackground(QBrush(Qt::red));
-    if (df_index != -1) list_model->item(df_index)->setBackground(QBrush(Qt::blue));
-}
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
 void UC_wai::U_generate_spectra(QString graph_name) {
     U_delete_mask_plots();
@@ -528,25 +587,80 @@ void UC_wai::U_toggle_calibration() {
 
 //
 
-void UC_wai::U_generate_identification(QString graph_name) {
+void UC_wai::U_generate_identification_roi(QString id_GA_element, UC_plot::UTE_identification_type type) {
+    this->id_GA_element = id_GA_element;
+    if (type == UC_plot::UTE_IT_linear_combination) {
+        int n = id_LC_table_model->rowCount();
+        id_LC_table_model->removeRows(1, n - 1);
+        n = id_LC_table_model->columnCount();
+        id_LC_table_model->removeColumns(4, n - 4);
+    }
+    switch (type) {
+        case UC_plot::UTE_IT_GA_method : {
+            id_table->setModel(id_GA_table_model);
+            break;
+        }
+        case UC_plot::UTE_IT_linear_combination : {
+            id_table->setModel(id_LC_table_model);
+            break;
+        }
+    }
 
-    id_qcp->addGraph();
-    id_qcp->graph()->setName(graph_name);
-    id_qcp->graph()->setPen(pens[id_qcp->graphCount() % 16]);
-    id_qcp->graph()->setLineStyle(QCPGraph::lsStepCenter);
-
-    id_qcp->addGraph();
-    id_qcp->graph()->setName(QString("Fit ") + graph_name);
-    id_qcp->graph()->setPen(pens[id_qcp->graphCount() % 16]);
-    id_qcp->graph()->setLineStyle(QCPGraph::lsLine);
-
-    emit US_generate_identification();
+    emit US_generate_identification_roi();
 }
 
-void UC_wai::U_reset_identification() {
-    id_qcp->clearGraphs();
-    id_qcp->replot(QCustomPlot::rpQueuedReplot);
+void UC_wai::U_reset_identification_roi(UC_plot::UTE_identification_type type) {
+    switch (type) {
+        case UC_plot::UTE_IT_GA_method : {
+            int n = id_GA_table_model->rowCount();
+            id_GA_table_model->removeRows(2, n - 1);
+            return;
+        }
+        case UC_plot::UTE_IT_linear_combination : {
+            int n = id_LC_table_model->rowCount();
+            id_LC_table_model->removeRows(2, n - 1);
+            n = id_LC_table_model->columnCount();
+            id_LC_table_model->removeColumns(4, n - 3);
+            return;
+        }
+    }
 }
+
+void UC_wai::U_generate_additional_data() {
+    emit US_generate_additional_data();
+}
+
+void UC_wai::U_generate_identification_data() {
+    emit US_generate_identification_data();
+}
+
+void UC_wai::U_generate_identification_frame(int element_index) {
+    emit US_generate_identification_frame(element_index);
+}
+
+//void UC_wai::U_generate_identification(QString graph_name) {
+
+//    id_qcp->addGraph();
+//    id_qcp->graph()->setName(graph_name);
+//    id_qcp->graph()->setPen(pens[id_qcp->graphCount() % 16]);
+//    id_qcp->graph()->setLineStyle(QCPGraph::lsStepCenter);
+
+//    id_qcp->addGraph();
+//    id_qcp->graph()->setName(QString("Fit ") + graph_name);
+//    id_qcp->graph()->setPen(pens[id_qcp->graphCount() % 16]);
+//    id_qcp->graph()->setLineStyle(QCPGraph::lsLine);
+
+//    emit US_generate_identification();
+//}
+
+//void UC_wai::U_reset_identification() {
+//    id_qcp->clearGraphs();
+//    id_qcp->replot(QCustomPlot::rpQueuedReplot);
+//}
+
+
+
+
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -570,11 +684,17 @@ void UC_wai::U_set_roi(int x_min, int x_max, int y_min, int y_max) {
     this->y_max = y_max;
 }
 
+void UC_wai::U_set_rebin(int rebin_x, int rebin_y, int rebin_thl) {
+    emit US_set_rebin(rebin_x, rebin_y, rebin_thl);
+}
+
 void UC_wai::U_set_thresholds(int thl_id_1, int thl_id_2, int thl_id_3, int thl_id_4) {
     emit US_set_thresholds(thl_id_1, thl_id_2, thl_id_3, thl_id_4);
 }
 
 void UC_wai::U_set_threshold_range(int thl_min, int thl_max) {
+    thl_start = thl_min;
+    thl_finish = thl_max;
     emit US_set_threshold_range(thl_min, thl_max);
 }
 
@@ -633,6 +753,11 @@ void UC_wai::U_set_y_axis_type(bool view) {
 
 void UC_wai::U_set_renew_ranges(bool enable) {
     renew_renges = enable;
+}
+
+void UC_wai::U_set_smoothing(int smoothing) {
+    this->smoothing = smoothing;
+    US_set_smoothing(smoothing);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
@@ -699,7 +824,7 @@ void UC_wai::U_smooth_spectra() {
             y[j] = qcp->graph(i)->data()->at(j)->value;
             x[j] = qcp->graph(i)->data()->at(j)->key;
         }
-        y = U_smooth(x, y);
+        y = U_smooth(x, y, smoothing);
 
         qcp->graph(i)->data().clear();
         qcp->graph(i)->setData(x, y);
@@ -1198,6 +1323,118 @@ void UC_wai::U_mask_selected_value_thl(bool in_roi, int thl) {
 void UC_wai::U_mask_selected_value(bool in_roi) {
     emit US_mask_selected_value(value_min, value_max, in_roi);
 }
+//
+//
+
+void UC_wai::U_add_roi(int x_min, int x_max, int y_min, int y_max) {
+    list_roi.append(QRect(x_min, y_min, x_max - x_min, y_max - y_min));
+}
+
+QRect UC_wai::U_get_roi(int index) {
+    return list_roi[index];
+}
+
+void UC_wai::U_delete_roi(int index) {
+    list_roi.removeAt(index);
+}
+
+//
+
+void UC_wai::U_calculating_spectra(UTE_calculating_spectras calc_type, int index1, int index2) {
+    int n_graph = qcp->graphCount();
+    if (n_graph < 2) return;
+    int n1 = qcp->graph(index1)->dataCount();
+    QVector<double> x1(n1), y1(n1);
+    for (int i = 0; i < n1; i++) {
+        y1[i] = qcp->graph(index1)->data()->at(i)->value;
+        x1[i] = qcp->graph(index1)->data()->at(i)->key;
+    }
+    int n2 = qcp->graph(index2)->dataCount();
+    QVector<double> x2(n2), y2(n2);
+    for (int i = 0; i < n2; i++) {
+        y2[i] = qcp->graph(index2)->data()->at(i)->value;
+        x2[i] = qcp->graph(index2)->data()->at(i)->key;
+    }
+
+    QVector<double> x, y;
+    for (double thl = thl_start; thl <= thl_finish; thl++) {
+        int i1 = x1.indexOf(thl);
+        int i2 = x2.indexOf(thl);
+        double data1 = 0;
+        if (i1 != -1) data1 = y1[i1];
+        double data2 = 0;
+        if (i2 != -1) data2 = y2[i2];
+        x << thl;
+        double data;
+        switch (calc_type) {
+            case UTE_CS_add : {
+                data = U_calculating_spectra_1(data1, data2);
+                break;
+            }
+            case UTE_CS_multiplay : {
+                data = U_calculating_spectra_2(data1, data2);
+                break;
+            }
+            case UTE_CS_subtract : {
+                data = U_calculating_spectra_3(data1, data2);
+                break;
+            }
+            case UTE_CS_divide : {
+                data = U_calculating_spectra_4(data1, data2);
+                break;
+            }
+        }
+        y << data;
+    }
+
+    qcp->addGraph();
+    QString name = qcp->graph(index1)->name();
+    switch (calc_type) {
+        case UTE_CS_add : {
+            name += " + ";
+            break;
+        }
+        case UTE_CS_multiplay : {
+            name += " * ";
+            break;
+        }
+        case UTE_CS_subtract : {
+            name += " - ";
+            break;
+        }
+        case UTE_CS_divide : {
+            name += " / ";
+            break;
+        }
+    }
+    name += qcp->graph(index2)->name();
+    emit US_new_spectra(name);
+    qcp->graph()->setName(name);
+    qcp->graph()->setPen(pens[qcp->graphCount() % 16]);
+    qcp->graph()->setData(x, y);
+
+    if (renew_renges) qcp->rescaleAxes(true);
+    qcp->replot(QCustomPlot::rpQueuedReplot);
+}
+
+double UC_wai::U_calculating_spectra_1(double data1, double data2) {
+    return data1 + data2;
+}
+
+double UC_wai::U_calculating_spectra_2(double data1, double data2) {
+    return data1 * data2;
+}
+
+double UC_wai::U_calculating_spectra_3(double data1, double data2) {
+    return data1 - data2;
+}
+
+double UC_wai::U_calculating_spectra_4(double data1, double data2) {
+    if (qAbs(data2) < 1e-10) return 0;
+        else return data1 / data2;
+}
+
+
 //////////////////////////!!!!!!!!!!!SLOTS!!!!!!!!!!!!!!!!!!!!!!!///////////////////////////////////////
 void UC_wai::U_add_spectra_data(double x, double y) {
     qcp->graph()->addData(x, y);
@@ -1254,14 +1491,90 @@ void UC_wai::U_add_calibration_data(double x, double y, int chip, bool is_fit) {
         calibration_qcp->graph(chip * 2)->addData(x, y);
     }
 }
-//
-void UC_wai::U_add_identification_data(double x, double y, bool is_fit) {
-    if (is_fit) {
-        id_qcp->graph(id_qcp->graphCount() - 1)->addData(x, y);
-    } else {
-        id_qcp->graph(id_qcp->graphCount() - 2)->addData(x, y);
+
+void UC_wai::U_add_id_roi_GA_data(UC_plot::UTStr_id_GA_data data) {
+    QStandardItem * item;
+    QList<QStandardItem *> list;
+
+    item = new QStandardItem(id_GA_element);
+    list << item;
+    item = new QStandardItem(QString("%1").arg(data.id_data));
+    list << item;
+    item = new QStandardItem(QString("%1").arg(data.thl_1_window_left));
+    list << item;
+    item = new QStandardItem(QString("%1").arg(data.thl_1_window_right));
+    list << item;
+    item = new QStandardItem(QString("%1").arg(data.thl_2_window_left));
+    list << item;
+    item = new QStandardItem(QString("%1").arg(data.thl_2_window_right));
+    list << item;
+    item = new QStandardItem(QString("%1").arg(data.sum_1_window));
+    list << item;
+    item = new QStandardItem(QString("%1").arg(data.sum_2_window));
+    list << item;
+    item = new QStandardItem(QString("%1").arg(data.frame_type));
+    list << item;
+    item = new QStandardItem(QString("%1").arg(data.pixel_type));
+    list << item;
+
+    id_GA_table_model->appendRow(list);
+}
+
+void UC_wai::U_add_id_roi_LC_data(UC_plot::UTStr_id_LC_data data) {
+    int n = data.number_of_samples;
+    QList<QStandardItem *> list;
+    QStandardItem * item;
+    for (int i = 0; i < n; i++) {
+        list.clear();
+        item = new QStandardItem(data.elements[i]);
+        list << item;
+        id_LC_table_model->appendColumn(list);
+    }
+    list.clear();
+    item = new QStandardItem("Frame count type");
+    list << item;
+    id_LC_table_model->appendColumn(list);
+    list.clear();
+    item = new QStandardItem("Pixel count type");
+    list << item;
+    id_LC_table_model->appendColumn(list);
+
+    for (int i = 0; i < n; i++) {
+        list.clear();
+        item = new QStandardItem(QString("%1").arg(data.id_values[i]));
+        list << item;
+        item = new QStandardItem(data.elements[i]);
+        list << item;
+        item = new QStandardItem(QString("%1").arg(data.thl_samples[i]));
+        list << item;
+        item = new QStandardItem(QString("%1").arg(data.data[i]));
+        list << item;
+        for (int j = 0; j < n; j++) {
+            item = new QStandardItem(QString("%1").arg(data.matrix[i][j]));
+            list << item;
+        }
+        item = new QStandardItem(QString("%1").arg(data.frame_type));
+        list << item;
+        item = new QStandardItem(QString("%1").arg(data.pixel_type));
+        list << item;
+        id_LC_table_model->appendRow(list);
     }
 }
+
+void UC_wai::U_add_identification_frame_data(double x, double y, double z) {
+    id_qcp_color_map->data()->setData(x, y, z);
+}
+
+//
+//void UC_wai::U_add_identification_data(double x, double y, bool is_fit) {
+//    if (is_fit) {
+//        id_qcp->graph(id_qcp->graphCount() - 1)->addData(x, y);
+//    } else {
+//        id_qcp->graph(id_qcp->graphCount() - 2)->addData(x, y);
+//    }
+//}
+
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void UC_wai::U_replot_frame() {
@@ -1306,11 +1619,13 @@ void UC_wai::U_replot_calibration() {
     //connect(qcp_3, SIGNAL(mouseMove(QMouseEvent*)), this, SLOT(U_mouse_move_distribution(QMouseEvent*)));
 }
 
-void UC_wai::U_replot_identification() {
-    id_qcp->legend->setVisible(true);
-    if (renew_renges) id_qcp->rescaleAxes(true);
-    id_qcp->replot(QCustomPlot::rpQueuedReplot);
-    //connect(qcp_3, SIGNAL(mouseMove(QMouseEvent*)), this, SLOT(U_mouse_move_distribution(QMouseEvent*)));
+void UC_wai::U_replot_identification_frame() {
+    if (renew_renges) id_frame_qcp->xAxis->setRange(x_min, x_max);
+    if (renew_renges) id_frame_qcp->yAxis->setRange(y_min, y_max);
+    //if (renew_renges) U_rescale_frame();
+    id_frame_qcp->replot(QCustomPlot::rpQueuedReplot);
+//    connect(qcp_2, SIGNAL(mouseMove(QMouseEvent*)), this, SLOT(U_mouse_move_frame(QMouseEvent*)));
+//    emit US_set_distribution_range(qcp_color_scale->axis()->range().lower, qcp_color_scale->axis()->range().upper);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
@@ -1511,6 +1826,8 @@ void UC_wai::U_mouse_select_spectra(QMouseEvent * event) {
     ymin = static_cast<int>(std::round(value_min));
     ymax = static_cast<int>(std::round(value_max));
     emit US_set_thl_range(xmin, xmax);
+    thl_start = xmin;
+    thl_finish = xmax;
     emit US_set_distribution_range(ymin, ymax);
 }
 
@@ -1540,3 +1857,12 @@ void UC_wai::U_new_thl(int thl) {
     emit US_new_thl(thl);
 }
 
+void UC_wai::U_renew_list_model(UC_data_container::UTStr_data_container_settings settings) {
+    for (int i = 0; i < n_scans; i++) {
+        list_model->item(i)->setBackground(QBrush(Qt::white));
+    }
+    if (scan_index != -1) list_model->item(scan_index)->setBackground(QBrush(Qt::green));
+    if (settings.ff_int != -1) list_model->item(settings.ff_int)->setBackground(QBrush(Qt::red));
+    if (settings.df_int != -1) list_model->item(settings.df_int)->setBackground(QBrush(Qt::blue));
+    emit US_renew_scan_settings(settings);
+}

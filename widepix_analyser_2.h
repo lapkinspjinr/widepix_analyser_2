@@ -35,6 +35,13 @@ private slots:
     void U_set_thl_range(double thl_min, double thl_max);
     ///
     void U_set_scan(int index);
+
+    void U_set_id(double x, double y);
+
+    void U_change_scan_settings(UC_data_container::UTStr_data_container_settings settings);
+    void U_renew_identification_elements(QList<QString> list);
+    //
+    void U_new_spectra(QString name);
     //////////////////////////////////////
 
 signals :
@@ -235,6 +242,30 @@ private slots:
     void on_pushButton_62_clicked();
 
     void on_pushButton_61_clicked();
+
+    void on_pushButton_63_clicked();
+
+    void on_pushButton_64_clicked();
+
+    void on_pushButton_65_clicked();
+
+    void on_pushButton_66_clicked();
+
+    void on_comboBox_21_currentIndexChanged(int index);
+
+    void on_pushButton_67_clicked();
+
+    void on_listView_clicked(const QModelIndex &index);
+
+    void on_spinBox_3_valueChanged(int arg1);
+
+    void on_spinBox_8_valueChanged(int arg1);
+
+    void on_spinBox_10_valueChanged(int arg1);
+
+    void on_pushButton_68_clicked();
+
+    void on_spinBox_12_valueChanged(int arg1);
 
 private:
     Ui::widepix_analyser_2 *ui;

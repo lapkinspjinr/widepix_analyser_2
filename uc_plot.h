@@ -26,6 +26,7 @@
 #include "uc_data_container.h"
 #include "uc_pixels_info.h"
 #include "common_functions.h"
+#include "uc_identification.h"
 
 /*!
  * \brief Класс, который хранит данные и выполняет расчеты.
@@ -35,46 +36,44 @@
  */
 class UC_plot : public QObject
 {
-    int x_min;                  ///< Левая граница области интереса.
-    int x_max;                  ///< Правая граница области интереса.
-    int y_min;                  ///< Нижняя граница области интереса.
-    int y_max;                  ///< Верхняя граница области интереса.
-    int thl_id_1, thl_id_2, thl_id_3, thl_id_4;
-    int thl_start, thl_finish;
+    int x_min;              ///< Левая граница области интереса.
+    int x_max;              ///< Правая граница области интереса.
+    int y_min;              ///< Нижняя граница области интереса.
+    int y_max;              ///< Верхняя граница области интереса.
+    int thl_id_1;           ///< Нижний порог левого оокна для идентификации веществ по методу Шелкова.
+    int thl_id_2;           ///< Верхний порог левого оокна для идентификации веществ по методу Шелкова.
+    int thl_id_3;           ///< Нижний порог правого оокна для идентификации веществ по методу Шелкова.
+    int thl_id_4;           ///< Верхний порог правого оокна для идентификации веществ по методу Шелкова.
+    int thl_start;          ///< Нижний порог области интереса по порогам.
+    int thl_finish;         ///< Верхний порог области интереса по порогам.
+    int thl_min;            ///< Минимальный порог области интереса по порогам.
+    int thl_max;            ///< Максимальный порог области интереса по порогам.
+    int threshold_level;    ///< Уровень порога активности пикселя.
+    int rebin_x;
+    int rebin_y;
+    int rebin_thl;
+    int smoothing;
 
-    double calibration_p0[15];
-    double calibration_p1[15];
-    double calibration_p2[15];
-    bool using_calibration;
-
-
-    /// Массивы вспомогательных данных.
-    bool mask[256 * 256 * 15];                  ///< Массив масок. По одно значению на каждый пиксель
-//    double data_cnt0_mean[256 * 256 * 15];      ///< Массив средних значений нулевого счетчика для сканирования с образцом.
-//    double data_df_cnt0_mean[256 * 256 * 15];   ///< Массив средних значений нулевого счетчика для сканирования с выключенным источником.
-//    double data_ff_cnt0_mean[256 * 256 * 15];   ///< Массив средних значений нулевого счетчика для сканирования без образца.
-//    double * ff_minus_df_mean;                  ///< Динамический массив средних значений обоих счетчиков для сканирования без образца.
-
-//    /// Динамические массивы основных данных
-//    int * data;                 ///< Динамический массив значений обоих счетчиков для сканирования c образцом.
-//    int * data_ff;              ///< Динамический массив значений обоих счетчиков для сканирования без образца.
-//    int * data_df;              ///< Динамический массив значений обоих счетчиков для сканирования с выключенным источником.
-//    int * data_x;               ///< Динамический массив значений порогов.
-    QList<UC_data_container> scans_list;
-    bool scan_enable;
-    UC_data_container * scan;
-    bool ff_enable;
-    UC_data_container * ff;
-    bool df_enable;
-    UC_data_container * df;
-
-    UC_pixels_info::UTStr_data_enable data_enable;
+    bool using_calibration;     ///< Использование калибровки.
+    bool scan_enable;           ///< Наличие активного скана.
+    bool ff_enable;             ///< Наличие активного скана плоского поля.
+    bool df_enable;             ///< Наличие активного скана черного поля.
+    bool mask[256 * 256 * 15];  ///< Массив масок. По одному значению на каждый пиксель.
 
 
-    int thl_min;
-    int thl_max;
+    double calibration_p0[15];  ///< Нулевые коэффициенты калибровки по чипам.
+    double calibration_p1[15];  ///< Первые коэффициенты калибровки по чипам.
+    double calibration_p2[15];  ///< Вторые коэффициенты калибровки по чипам.
 
-    double threshold_level;
+    QList<UC_data_container> scans_list;    ///< Список загруженных сканов.
+
+    UC_data_container * scan;   ///< Указатель на активный скан.
+    UC_data_container * ff;     ///< Указатель на активный скан плоского поля.
+    UC_data_container * df;     ///< Указатель на активный скан черного поля.
+
+    UC_pixels_info::UTStr_data_enable data_enable; ///< Структура, показывающая расчитываемые статистические данные.
+
+    QVector<int> element_vector;    ///< Вектор индексов эелементов.
 
 public :
     ///Методы расчета кадра.
@@ -91,23 +90,17 @@ public :
     } UTE_frame_type;
 
     typedef enum {
-        UTE_IT_no_identification,
-        UTE_IT_1,
+        UTE_IT_GA_method,
+        UTE_IT_linear_combination,
     } UTE_identification_type;
 
     ///Методы расчета пикселя.
     typedef enum {
         UTE_PT_cnt0,                        ///< Значение нулевого счетчика при сканировании с образцом.
         UTE_PT_cnt1,                        ///< Значение первого счетчика при сканировании с образцом.
-        UTE_PT_cnt0ff,                      ///< Значение нулевого счетчика при сканировании без образца.
-        UTE_PT_cnt1ff,                      ///< Значение первого счетчика при сканировании без образца.
-        UTE_PT_cnt0df,                      ///< Значение нулевого счетчика при сканировании с выключенным источником.
-        UTE_PT_cnt1df,                      ///< Значение первого счетчика при сканировании с выключенным источником.
         UTE_PT_cnt1_divide_on_cnt0,         ///< Отношение значений первого счетчика ко значению нулевого счетчика, взятых при сканировании с образцом.
         UTE_PT_cnt0_subtr_cnt1,             ///< Разность значений нулевого и первого счетчиков, взятых при сканировании с образцом.
         UTE_PT_diff_cnt1,                   ///< Приращение значения первого счетчика при понижении порога в сканировании с образцом.
-        UTE_PT_diff_cnt1ff,                 ///< Приращение значения первого счетчика при понижении порога в сканировании без образца.
-        UTE_PT_diff_cnt1df,                 ///< Приращение значения первого счетчика при понижении порога в сканировании с выключенным источником.
         UTE_PT_ffc,                         ///< Коррекция плоского поля. Значения берутся из сырых данных.
         UTE_PT_mu,                          ///< Коэффициент поглощения. Значения берутся из сырых данных.
         UTE_PT_diff_ffc,                    ///< Коррекция плоского поля. Значения берутся равными соответствующим приращениям при понижении порога.
@@ -116,11 +109,7 @@ public :
         UTE_PT_mu_diff,                     ///< Коэффициент поглощения. Значения берутся равными соответствующим приращениям при понижении порога.
 
         UTE_PT_cnt1_corr_cnt0,              ///< Значение первого счетчика, скореектированного по среднему значению нулевого счетчика, при сканировании с образцом.
-        UTE_PT_cnt1ff_corr_cnt0,            ///< Значение первого счетчика, скореектированного по среднему значению нулевого счетчика, при сканировании без образца.
-        UTE_PT_cnt1df_corr_cnt0,            ///< Значение первого счетчика, скореектированного по среднему значению нулевого счетчика, при сканировании с выключенным источником.
         UTE_PT_diff_cnt1_corr_cnt0,         ///< Приращение значения первого счетчика, скореектированного по среднему значению нулевого счетчика, при понижении порога в сканировании с образцом.
-        UTE_PT_diff_cnt1ff_corr_cnt0,       ///< Приращение значения первого счетчика, скореектированного по среднему значению нулевого счетчика, при понижении порога в сканировании без образца.
-        UTE_PT_diff_cnt1df_corr_cnt0,       ///< Приращение значения первого счетчика, скореектированного по среднему значению нулевого счетчика, при понижении порога в сканировании с выключенным источником.
         UTE_PT_ffc_corr_cnt0,               ///< Коррекция плоского поля. Значения, скореектированные по среднему значению нулевого счетчика, берутся из сырых данных.
         UTE_PT_mu_corr_cnt0,                ///< Коэффициент поглощения. Значения, скореектированные по среднему значению нулевого счетчика, берутся из сырых данных.
         UTE_PT_diff_ffc_corr_cnt0,          ///< Коррекция плоского поля. Значения, скореектированные по среднему значению нулевого счетчика, берутся равными соответствующим приращениям при понижении порога.
@@ -128,26 +117,45 @@ public :
         UTE_PT_ffc_diff_corr_cnt0,          ///< Коррекция плоского поля. Значения, скореектированные по среднему значению нулевого счетчика, берутся равными соответствующим приращениям при понижении порога.
         UTE_PT_mu_diff_corr_cnt0,           ///< Коэффициент поглощения. Значения, скореектированные по среднему значению нулевого счетчика, берутся равными соответствующим приращениям при понижении порога.
 
-        UTE_PT_mu_max,                      ///< Детектирование максимума коэффициента поглощения. Значения берутся равными соответствующим приращениям при понижении порога.
-        UTE_PT_ffc_min,                     ///< Детектирование минимума коррекции плоского поля. Значения берутся равными соответствующим приращениям при понижении порога.
-        UTE_PT_noise_edge,                  ///< Детектирование края шума.
         UTE_PT_ffc_non_xray,                ///< Коррекция плоского поля для нерентгеновских изображений.
         UTE_PT_cnt0_deviation,              ///< Коррекция плоского поля для нерентгеновских изображений.
-        UTE_PT_cnt0ff_deviation,
-        UTE_PT_cnt0df_deviation,
-        UTE_PT_int2,
-        UTE_PT_cnt1_act,
-        UTE_PT_cnt0_act,
-        UTE_PT_cnt1_rejected,
-        UTE_PT_diff_cnt1_rejected,
+        UTE_PT_cnt1_act,                    ///< Активность нулевого счетчика.
+        UTE_PT_cnt0_act,                    ///< Активность первого счетчика.
+        UTE_PT_cnt1_rejected,               ///< подавление активности пикселя порогом.
+        UTE_PT_diff_cnt1_rejected,          ///< Порог подавления активности пикселя.
+        UTE_PT_cnt1ffc_div_cnt0ffc,         ///< Отношение коррекции чистого поля 1-го счетчика к коррекции плоского поля для 2-го счетчика.
+        UTE_PT_additional_data,             ///< Дополнительные данные.
+        UTE_PT_GA_request
     } UTE_pixel_type;
 
+    typedef struct {
+        double id_data;
+        int thl_1_window_left;
+        int thl_1_window_right;
+        int thl_2_window_left;
+        int thl_2_window_right;
+        double sum_1_window;
+        double sum_2_window;
+        UTE_frame_type frame_type;                      ///< Текущий метод расчета кадра.
+        UTE_pixel_type pixel_type;
+    } UTStr_id_GA_data;
+
+    typedef struct {
+        int number_of_samples;
+        QList<QString> elements;
+        QVector<double> id_values;
+        QVector<int> thl_samples;
+        QVector<double> data;
+        QVector<QVector<double>> matrix;
+        UTE_frame_type frame_type;                      ///< Текущий метод расчета кадра.
+        UTE_pixel_type pixel_type;
+    } UTStr_id_LC_data;
 
 private :
 
-    UTE_frame_type frame_type;  ///< Текущий метод расчета кадра.
-    UTE_pixel_type pixel_type;  ///< Текущий метод расчета пикселей.
-    UTE_identification_type identification_type;
+    UTE_frame_type frame_type;                      ///< Текущий метод расчета кадра.
+    UTE_pixel_type pixel_type;                      ///< Текущий метод расчета пикселей.
+    UTE_identification_type identification_type;    ///< Текущий метод идентификации.
 
 
     Q_OBJECT
@@ -165,32 +173,23 @@ public:
      */
     ~UC_plot();
 
-    /// Функции преобразования координат.
+    /// Функции калибровки
 
     /*!
-     * Преобразование координаты x в определенном чипе и номера чипа в координату детектора.
-     * \brief U_get_coord_x_chip Преобразование координаты x в определенном чипе и номера чипа в координату детектора.
-     * \param[in] chip Номер чипа.
-     * \param[in] x Координта х в чипе.
-     * \return Координата х в детекторе.
+     * Возвращает значение энергии по координате и порогу.
+     * \brief U_get_energy_from_thl Возвращает значение энергии по координате и порогу.
+     * \param[in] x Координата х пикселя.
+     * \param[in] thl Значение порог.
+     * \return Занчение энергии.
      */
-    int U_get_coord_x_chip(int chip, int x);
-    /*!
-     * Преобразование координаты x в номер соответствующего чипа.
-     * \brief U_get_chip_coord_x Преобразование координаты x в номер соответствующего чипа.
-     * \param[in] x Координата х в детекторе.
-     * \return Номер чипа.
-     */
-    int U_get_chip_coord_x(int x);
-    /*!
-     * Преобразование координаты x в детекторе в координату х в чипе.
-     * \brief U_get_coord_x_in_chip Преобразование координаты x в детекторе в координату х в чипе.
-     * \param[in] x Координата х в детекторе.
-     * \return Координта х в чипе.
-     */
-    int U_get_coord_x_in_chip(int x);
-//
     double U_get_energy_from_thl(int x, int thl);
+    /*!
+     * Возвращает значение энергии по номеру чипа и порогу.
+     * \brief U_get_energy_from_thl Возвращает значение энергии по координате и порогу.
+     * \param[in] chip Номер чипа.
+     * \param[in] thl Значение порог.
+     * \return Занчение энергии.
+     */
     double U_get_energy_from_thl_chip(int chip, int thl);
     int U_get_thl_from_energy(int x, double energy);
     int U_get_thl_from_energy_chip(int chip, double energy);
@@ -205,49 +204,38 @@ public:
     double U_get_pixel_data(UTE_pixel_type type, int thl, int x, int y);
     int U_get_pixel_data_1(int thl, int x, int y); //UTE_PT_cnt0
     int U_get_pixel_data_2(int thl, int x, int y); //UTE_PT_cnt1
-    int U_get_pixel_data_3(int thl, int x, int y); //UTE_PT_cnt0ff
-    int U_get_pixel_data_4(int thl, int x, int y); //UTE_PT_cnt1ff
-    int U_get_pixel_data_5(int thl, int x, int y); //UTE_PT_cnt0df
-    int U_get_pixel_data_6(int thl, int x, int y); //UTE_PT_cnt1df
-    double U_get_pixel_data_7(int thl, int x, int y); //UTE_PT_cnt1_divide_on_cnt0
-    int U_get_pixel_data_8(int thl, int x, int y); //UTE_PT_cnt0_subtr_cnt1
-    double U_get_pixel_data_9(int thl, int x, int y); //UTE_PT_diff_cnt1
-    double U_get_pixel_data_10(int thl, int x, int y); //UTE_PT_diff_cnt1ff
-    double U_get_pixel_data_11(int thl, int x, int y); //UTE_PT_diff_cnt1df
-    double U_get_pixel_data_12(int thl, int x, int y); //UTE_PT_ffc
-    double U_get_pixel_data_13(int thl, int x, int y); //UTE_PT_mu
-    double U_get_pixel_data_14(int thl, int x, int y); //UTE_PT_diff_ffc
-    double U_get_pixel_data_15(int thl, int x, int y); //UTE_PT_diff_mu
-    double U_get_pixel_data_16(int thl, int x, int y); //UTE_PT_ffc_diff
-    double U_get_pixel_data_17(int thl, int x, int y); //UTE_PT_mu_diff
+    double U_get_pixel_data_3(int thl, int x, int y); //UTE_PT_cnt1_divide_on_cnt0
+    int U_get_pixel_data_4(int thl, int x, int y); //UTE_PT_cnt0_subtr_cnt1
+    double U_get_pixel_data_5(int thl, int x, int y); //UTE_PT_diff_cnt1
+    double U_get_pixel_data_6(int thl, int x, int y); //UTE_PT_ffc
+    double U_get_pixel_data_7(int thl, int x, int y); //UTE_PT_mu
+    double U_get_pixel_data_8(int thl, int x, int y); //UTE_PT_diff_ffc
+    double U_get_pixel_data_9(int thl, int x, int y); //UTE_PT_diff_mu
+    double U_get_pixel_data_10(int thl, int x, int y); //UTE_PT_ffc_diff
+    double U_get_pixel_data_11(int thl, int x, int y); //UTE_PT_mu_diff
     ///
-    double U_get_pixel_data_18(int thl, int x, int y); //UTE_PT_cnt1_corr_cnt0
-    double U_get_pixel_data_19(int thl, int x, int y); //UTE_PT_cnt1ff_corr_cnt0
-    double U_get_pixel_data_20(int thl, int x, int y); //UTE_PT_cnt1df_corr_cnt0
-    double U_get_pixel_data_21(int thl, int x, int y); //UTE_PT_diff_cnt1_corr_cnt0
-    double U_get_pixel_data_22(int thl, int x, int y); //UTE_PT_diff_cnt1ff_corr_cnt0
-    double U_get_pixel_data_23(int thl, int x, int y); //UTE_PT_diff_cnt1df_corr_cnt0
-    double U_get_pixel_data_24(int thl, int x, int y); //UTE_PT_ffc_corr_cnt0
-    double U_get_pixel_data_25(int thl, int x, int y); //UTE_PT_mu_corr_cnt0
-    double U_get_pixel_data_26(int thl, int x, int y); //UTE_PT_diff_ffc_corr_cnt0
-    double U_get_pixel_data_27(int thl, int x, int y); //UTE_PT_diff_mu_corr_cnt0
-    double U_get_pixel_data_28(int thl, int x, int y); //UTE_PT_ffc_diff_corr_cnt0
-    double U_get_pixel_data_29(int thl, int x, int y); //UTE_PT_mu_diff_corr_cnt0
+    double U_get_pixel_data_12(int thl, int x, int y); //UTE_PT_cnt1_corr_cnt0
+    double U_get_pixel_data_13(int thl, int x, int y); //UTE_PT_diff_cnt1_corr_cnt0
+    double U_get_pixel_data_14(int thl, int x, int y); //UTE_PT_ffc_corr_cnt0
+    double U_get_pixel_data_15(int thl, int x, int y); //UTE_PT_mu_corr_cnt0
+    double U_get_pixel_data_16(int thl, int x, int y); //UTE_PT_diff_ffc_corr_cnt0
+    double U_get_pixel_data_17(int thl, int x, int y); //UTE_PT_diff_mu_corr_cnt0
+    double U_get_pixel_data_18(int thl, int x, int y); //UTE_PT_ffc_diff_corr_cnt0
+    double U_get_pixel_data_19(int thl, int x, int y); //UTE_PT_mu_diff_corr_cnt0
     ///
-    int U_get_pixel_data_30(int thl, int x, int y); //UTE_PT_mu_max
-    int U_get_pixel_data_31(int thl, int x, int y); //UTE_PT_ffc_min
-    int U_get_pixel_data_32(int thl, int x, int y); //UTE_PT_noise_edge
-    double U_get_pixel_data_33(int thl, int x, int y); //UTE_PT_ffc_non_xray
-    double U_get_pixel_data_34(int thl, int x, int y); //UTE_PT_cnt0_deviation
-    double U_get_pixel_data_35(int thl, int x, int y); //UTE_PT_cnt0ff_deviation
-    double U_get_pixel_data_36(int thl, int x, int y); //UTE_PT_cnt0df_deviation
-    ///
-    double U_get_pixel_data_37(int thl, int x, int y); //UTE_PT_int2
+    double U_get_pixel_data_20(int thl, int x, int y); //UTE_PT_ffc_non_xray
+    double U_get_pixel_data_21(int thl, int x, int y); //UTE_PT_cnt0_deviation
     //
-    int U_get_pixel_data_38(int thl, int x, int y); //UTE_PT_cnt1_act
-    int U_get_pixel_data_39(int thl, int x, int y); //UTE_PT_cnt0_act
-    int U_get_pixel_data_40(int thl, int x, int y); //UTE_PT_cnt1_rejected
-    int U_get_pixel_data_41(int thl, int x, int y); //UTE_PT_diff_cnt1_rejected
+    int U_get_pixel_data_22(int thl, int x, int y); //UTE_PT_cnt1_act
+    int U_get_pixel_data_23(int thl, int x, int y); //UTE_PT_cnt0_act
+    int U_get_pixel_data_24(int thl, int x, int y); //UTE_PT_cnt1_rejected
+    int U_get_pixel_data_25(int thl, int x, int y); //UTE_PT_diff_cnt1_rejected
+    //
+    double U_get_pixel_data_26(int thl, int x, int y); //UTE_PT_cnt1ffc_div_cnt0ffc
+    //
+    double U_get_pixel_data_27(int thl, int x, int y); //UTE_PT_smoothing_mu_diff
+    //
+    double U_get_pixel_data_28(int thl, int x, int y); //UTE_PT_GA_request
 ////////////////////////////////////////////////////////////////////////////////
     double U_get_frame_data(UTE_frame_type type_spectra, UTE_pixel_type type_pixel, int thl);
     double U_get_frame_data_1(UTE_pixel_type type, int thl); //UTE_FT_average
@@ -271,13 +259,20 @@ public:
     double U_get_frame_data_energy_8(UTE_pixel_type type_pixel, double e_min, double e_max); //UTE_FT_standart_deviation
     double U_get_frame_data_energy_9(UTE_pixel_type type_pixel, double e_min, double e_max); //UTE_FT_signal_to_noise_resolution
 ////////////////////////////////////////////////////////////////////////////////////
-    double U_get_identification_data(UTE_identification_type type, int thl, int x, int y);
-    double U_get_identification_data_1(int x, int y); //UTE_PT_cnt0
-    int U_get_identification_data_2(int x, int y); //UTE_PT_cnt1
+
+
+
 ///////////////////////////////////////////////////////////////////////////////////
     void U_find_thl_range();
-    ///
-    //Double_t U_fit_function(Double_t *x, Double_t *par);
+//
+
+    void U_identification_roi_1();
+
+    QVector<double> U_calculating_samples_value(UC_data_container * scan, QVector<int> thl_samples);
+    void U_identification_roi_2();
+    //
+    void U_calculating_xmu(UC_data_container * scan, int i, int j, int rebin_x, int rebin_y, int rebin_thl);
+    void U_calculating_id(UC_data_container * scan, QList<UC_data_container *> id_samples);
 
 signals:
     void US_spectra_data(double x, double y);
@@ -287,7 +282,12 @@ signals:
     void US_range_data(double lower, double upper);
     void US_calibration_chip_data(double x, double y, bool is_fit);
     void US_calibration_data(double x, double y, int chip, bool is_fit);
-    void US_identification_data(double x, double y, bool is_fit);
+    void US_id_roi_GA_data(UC_plot::UTStr_id_GA_data data);
+    void US_id_roi_LC_data(UC_plot::UTStr_id_LC_data data);
+    void US_identification_data();
+    void US_identification_frame_data(double x, double y, double z);
+    void US_identification_data(int x, int y, double value);
+    void US_identification_data(double x, double y);
     ///////////////////////////////////////////////////////////////////////////////////
 
     void US_replot_spectra();
@@ -297,6 +297,7 @@ signals:
     void US_replot_calibration();
     void US_replot_calibration_chip();
     void US_replot_identificaton();
+    void US_replot_identificaton_frame();
     /////////////////////////////////////////////////////////////////////////////
     void US_new_thl(int thl);
     void US_count_mask(int n);
@@ -305,14 +306,18 @@ signals:
     void US_file_found(QString file_name);
     void US_n_files(int n);
     void US_renew_progress_bar(double current, double total);
+    //
+    void US_scan_settings(UC_data_container::UTStr_data_container_settings settings);
+    //
+    void US_identification_scan_list(QList<QString> list);
 
 public slots:
     void U_set_data(UC_data_container::UTStr_data_container_settings settings);
     void U_reset_data();
     void U_delete_scan(int index);
     void U_set_scan(int index);
-    void U_set_ff(int index);
-    void U_set_df(int index);
+    void U_set_settings(int index, UC_data_container::UTStr_data_container_settings settings);
+    void U_get_settings(int index);
 //////////////////////////////////////////////////////////////////////////////////
     void U_generate_spectra();
     void U_generate_spectra(double energy_min, double energy_max, int n);
@@ -325,20 +330,26 @@ public slots:
     void U_generate_frame_distribution(int n_bins, double min, double max, int thl);
     void U_generate_calibration(int chip);
     void U_generate_calibration();
-    void U_generate_identification();
+    void U_generate_identification_roi();
+    void U_generate_additional_data();
+    void U_generate_identification_data();
+    void U_generate_identification_frame(int element_index);
     void U_generate_range(int thl);
     void U_generate_range();
+    //void U_generate_identification(int element_index);
 /////////////////////////////////////////////////////////////////
     void U_set_frame_type(UC_plot::UTE_frame_type frame_type);
     void U_set_pixel_type(UC_plot::UTE_pixel_type pixel_type);
     void U_set_identification_type(UC_plot::UTE_identification_type identification_type);
     ///
     void U_set_roi(int x_min, int x_max, int y_min, int y_max);
+    void U_set_rebin(int rebin_x, int rebin_y, int rebin_thl);
     void U_set_thresholds(int thl_id_1, int thl_id_2, int thl_id_3, int thl_id_4);
     void U_set_threshold_range(int thl_start, int thl_finish);
     void U_set_data_enable(UC_pixels_info::UTStr_data_enable data_enable);
     void U_set_using_calibraion(bool enable);
-    void U_set_threshold_level(double level);
+    void U_set_threshold_level(int level);
+    void U_set_smoothing(int smoothing);
     //
     void U_save_calibration(QString file_name);
     void U_load_calibration(QString file_name);
@@ -351,9 +362,37 @@ public slots:
     void U_mask_selected(int x_min, int x_max, int y_min, int y_max);
     void U_mask_selected_value(double value_min, double value_max, bool in_roi);
     void U_mask_selected_value_thl(double value_min, double value_max, bool in_roi, int thl);
+    //
+    //void U_generate_muxes(int rebin_xy, int rebin_thl);
 };
 
 
 
 
 #endif // UC_PLOT_H
+
+//    double * ff_minus_df_mean;                  ///< Динамический массив средних значений обоих счетчиков для сканирования без образца.
+//    /// Функции преобразования координат.
+//    /*!
+//     * Преобразование координаты x в определенном чипе и номера чипа в координату детектора.
+//     * \brief U_get_coord_x_chip Преобразование координаты x в определенном чипе и номера чипа в координату детектора.
+//     * \param[in] chip Номер чипа.
+//     * \param[in] x Координта х в чипе.
+//     * \return Координата х в детекторе.
+//     */
+//    int U_get_coord_x_chip(int chip, int x);
+//    /*!
+//     * Преобразование координаты x в номер соответствующего чипа.
+//     * \brief U_get_chip_coord_x Преобразование координаты x в номер соответствующего чипа.
+//     * \param[in] x Координата х в детекторе.
+//     * \return Номер чипа.
+//     */
+//    int U_get_chip_coord_x(int x);
+//    /*!
+//     * Преобразование координаты x в детекторе в координату х в чипе.
+//     * \brief U_get_coord_x_in_chip Преобразование координаты x в детекторе в координату х в чипе.
+//     * \param[in] x Координата х в детекторе.
+//     * \return Координта х в чипе.
+//     */
+//    int U_get_coord_x_in_chip(int x);
+//

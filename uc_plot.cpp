@@ -5,17 +5,45 @@
 
 
 UC_plot::UC_plot(QObject *parent) : QObject(parent) {
+    /// Инициализация всех переменных класса
     x_min = 0;
     x_max = 15 * 256;
     y_min = 0;
     y_max = 256;
+    thl_id_1 = 0;
+    thl_id_2 = 511;
+    thl_id_3 = 0;
+    thl_id_4 = 511;
+    thl_start = 0;
+    thl_finish = 511;
+    thl_min = 0;
+    thl_max = 511;
+    threshold_level = 10;   /// Стандартное значение Pixet'а при эквилизации
+    rebin_x = 1;
+    rebin_y = 1;
+    rebin_thl = 1;
+
+    using_calibration = false;
+    scan_enable = false;
+    ff_enable = false;
+    df_enable = false;
+    for (int i = 0; i < (256 * 256 * 15); i++) { /// Цикл для инициализации масок, индекс - i
+        mask[i] = false;
+    }
+
+
+    for (int i = 0; i < 15; i++) { /// Цикл для инициализации масок, индекс - i
+        calibration_p0[i] = 0;
+        calibration_p1[i] = 0;
+        calibration_p2[i] = 0;
+    }
 
     frame_type = UTE_FT_average;
     pixel_type = UTE_PT_cnt1;
 
-    threshold_level = 1;
 
-    U_reset_data();
+
+
 
     data_enable.id1_enable = true;
     data_enable.min_enable = true;
@@ -27,7 +55,9 @@ UC_plot::UC_plot(QObject *parent) : QObject(parent) {
     data_enable.zeros_enable = true;
     data_enable.snr_enable = true;
 
-    using_calibration = false;
+
+
+    U_reset_data();
 }
 
 UC_plot::~UC_plot() {
@@ -36,17 +66,6 @@ UC_plot::~UC_plot() {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-int UC_plot::U_get_coord_x_chip(int chip, int x) {
-    return chip * 256 + x;
-}
-
-int UC_plot::U_get_chip_coord_x(int x) {
-    return x / 256;
-}
-
-int UC_plot::U_get_coord_x_in_chip(int x) {
-    return x % 256;
-}
 //
 double UC_plot::U_get_energy_from_thl(int x, int thl) {
     if (using_calibration) {
@@ -140,124 +159,85 @@ double UC_plot::U_get_pixel_data(UTE_pixel_type type, int thl, int x, int y) {
         case UTE_PT_cnt1 : {
             return U_get_pixel_data_2(thl, x, y);
         }
-        case UTE_PT_cnt0ff : {
+        case UTE_PT_cnt1_divide_on_cnt0 : {
             return U_get_pixel_data_3(thl, x, y);
         }
-        case UTE_PT_cnt1ff : {
+        case UTE_PT_cnt0_subtr_cnt1 : {
             return U_get_pixel_data_4(thl, x, y);
         }
-        case UTE_PT_cnt0df : {
+        case UTE_PT_diff_cnt1 : {
             return U_get_pixel_data_5(thl, x, y);
         }
-        case UTE_PT_cnt1df : {
+        case UTE_PT_ffc : {
             return U_get_pixel_data_6(thl, x, y);
         }
-        case UTE_PT_cnt1_divide_on_cnt0 : {
+        case UTE_PT_mu : {
             return U_get_pixel_data_7(thl, x, y);
         }
-        case UTE_PT_cnt0_subtr_cnt1 : {
+        case UTE_PT_diff_ffc : {
             return U_get_pixel_data_8(thl, x, y);
         }
-        case UTE_PT_diff_cnt1 : {
+        case UTE_PT_diff_mu : {
             return U_get_pixel_data_9(thl, x, y);
         }
-        case UTE_PT_diff_cnt1ff : {
+        case UTE_PT_ffc_diff : {
             return U_get_pixel_data_10(thl, x, y);
         }
-        case UTE_PT_diff_cnt1df : {
-            return U_get_pixel_data_11(thl, x, y);
-        }
-        case UTE_PT_ffc : {
-            return U_get_pixel_data_12(thl, x, y);
-        }
-        case UTE_PT_mu : {
-            return U_get_pixel_data_13(thl, x, y);
-        }
-        case UTE_PT_diff_ffc : {
-            return U_get_pixel_data_14(thl, x, y);
-        }
-        case UTE_PT_diff_mu : {
-            return U_get_pixel_data_15(thl, x, y);
-        }
-        case UTE_PT_ffc_diff : {
-            return U_get_pixel_data_16(thl, x, y);
-        }
         case UTE_PT_mu_diff : {
-            return U_get_pixel_data_17(thl, x, y);
+            return U_get_pixel_data_11(thl, x, y);
         }
         ////
         case UTE_PT_cnt1_corr_cnt0 : {
-            return U_get_pixel_data_18(thl, x, y);
-        }
-        case UTE_PT_cnt1ff_corr_cnt0 : {
-            return U_get_pixel_data_19(thl, x, y);
-        }
-        case UTE_PT_cnt1df_corr_cnt0 : {
-            return U_get_pixel_data_20(thl, x, y);
+            return U_get_pixel_data_12(thl, x, y);
         }
         case UTE_PT_diff_cnt1_corr_cnt0 : {
-            return U_get_pixel_data_21(thl, x, y);
-        }
-        case UTE_PT_diff_cnt1ff_corr_cnt0 : {
-            return U_get_pixel_data_22(thl, x, y);
-        }
-        case UTE_PT_diff_cnt1df_corr_cnt0 : {
-            return U_get_pixel_data_23(thl, x, y);
+            return U_get_pixel_data_13(thl, x, y);
         }
         case UTE_PT_ffc_corr_cnt0 : {
-            return U_get_pixel_data_24(thl, x, y);
+            return U_get_pixel_data_14(thl, x, y);
         }
         case UTE_PT_mu_corr_cnt0 : {
-            return U_get_pixel_data_25(thl, x, y);
+            return U_get_pixel_data_15(thl, x, y);
         }
         case UTE_PT_diff_ffc_corr_cnt0 : {
-            return U_get_pixel_data_26(thl, x, y);
+            return U_get_pixel_data_16(thl, x, y);
         }
         case UTE_PT_diff_mu_corr_cnt0 : {
-            return U_get_pixel_data_27(thl, x, y);
+            return U_get_pixel_data_17(thl, x, y);
         }
         case UTE_PT_ffc_diff_corr_cnt0 : {
-            return U_get_pixel_data_28(thl, x, y);
+            return U_get_pixel_data_18(thl, x, y);
         }
         case UTE_PT_mu_diff_corr_cnt0 : {
-            return U_get_pixel_data_29(thl, x, y);
+            return U_get_pixel_data_19(thl, x, y);
         }
         ////
-        case UTE_PT_mu_max : {
-            return U_get_pixel_data_30(thl, x, y);
-        }
-        case UTE_PT_ffc_min : {
-            return U_get_pixel_data_31(thl, x, y);
-        }
-        case UTE_PT_noise_edge : {
-            return U_get_pixel_data_32(thl, x, y);
-        }
         case UTE_PT_ffc_non_xray : {
-            return U_get_pixel_data_33(thl, x, y);
+            return U_get_pixel_data_20(thl, x, y);
         }
         case UTE_PT_cnt0_deviation : {
-            return U_get_pixel_data_34(thl, x, y);
-        }
-        case UTE_PT_cnt0ff_deviation : {
-            return U_get_pixel_data_35(thl, x, y);
-        }
-        case UTE_PT_cnt0df_deviation : {
-            return U_get_pixel_data_36(thl, x, y);
-        }
-        case UTE_PT_int2 : {
-            return U_get_pixel_data_37(thl, x, y);
+            return U_get_pixel_data_21(thl, x, y);
         }
         case UTE_PT_cnt1_act : {
-            return U_get_pixel_data_38(thl, x, y);
+            return U_get_pixel_data_22(thl, x, y);
         }
         case UTE_PT_cnt0_act : {
-            return U_get_pixel_data_39(thl, x, y);
+            return U_get_pixel_data_23(thl, x, y);
         }
         case UTE_PT_cnt1_rejected : {
-            return U_get_pixel_data_40(thl, x, y);
+            return U_get_pixel_data_24(thl, x, y);
         }
         case UTE_PT_diff_cnt1_rejected : {
-            return U_get_pixel_data_41(thl, x, y);
+            return U_get_pixel_data_25(thl, x, y);
+        }
+        case UTE_PT_cnt1ffc_div_cnt0ffc : {
+            return U_get_pixel_data_26(thl, x, y);
+        }
+        case UTE_PT_additional_data : {
+            return U_get_pixel_data_27(thl, x, y);
+        }
+        case UTE_PT_GA_request : {
+            return U_get_pixel_data_28(thl, x, y);
         }
     }
     return 0;
@@ -271,60 +251,21 @@ int UC_plot::U_get_pixel_data_2(int thl, int x, int y) { //UTE_PT_cnt1
     return scan->U_get_data(thl, x, y, 1);
 }
 
-int UC_plot::U_get_pixel_data_3(int thl, int x, int y) { //UTE_PT_cnt0ff
-    return ff->U_get_data(thl, x, y, 0);
-}
-
-int UC_plot::U_get_pixel_data_4(int thl, int x, int y) { //UTE_PT_cnt1ff
-    return ff->U_get_data(thl, x, y, 1);
-}
-
-int UC_plot::U_get_pixel_data_5(int thl, int x, int y) { //UTE_PT_cnt0df
-    return df->U_get_data(thl, x, y, 0);
-}
-
-int UC_plot::U_get_pixel_data_6(int thl, int x, int y) { //UTE_PT_cnt1df
-    return df->U_get_data(thl, x, y, 1);
-}
-
-double UC_plot::U_get_pixel_data_7(int thl, int x, int y) { //UTE_PT_cnt1_divide_on_cnt0
-    int denom = U_get_pixel_data_1(thl, x, y);
+double UC_plot::U_get_pixel_data_3(int thl, int x, int y) { //UTE_PT_cnt1_divide_on_cnt0
+    int denom = scan->U_get_data(thl, x, y, 1);;
     if (denom == 0) return 0;
-    return (static_cast<double>(U_get_pixel_data_2(thl, x, y)) / denom);
+    return (static_cast<double>(scan->U_get_data(thl, x, y, 0)) / denom);
 }
 
-int UC_plot::U_get_pixel_data_8(int thl, int x, int y) { //UTE_PT_cnt0_subtr_cnt1
-    return (U_get_pixel_data_1(thl, x, y) - U_get_pixel_data_2(thl, x, y));
+int UC_plot::U_get_pixel_data_4(int thl, int x, int y) { //UTE_PT_cnt0_subtr_cnt1
+    return (scan->U_get_data(thl, x, y, 0) - scan->U_get_data(thl, x, y, 1));
 }
 
-double UC_plot::U_get_pixel_data_9(int thl, int x, int y) { //UTE_PT_diff_cnt1
-//    if (thl_index == (n_thl - 1)) return 0;
-//    if (thl_index == 0) return 0;
-//    double d = U_get_pixel_data_2(thl_index - 1, x, y) - U_get_pixel_data_2(thl_index + 1, x, y);
-//    d /= 2;
-//    return d;
-    return U_get_pixel_data_2(thl, x, y) - U_get_pixel_data_2(thl + 1, x, y);
+double UC_plot::U_get_pixel_data_5(int thl, int x, int y) { //UTE_PT_diff_cnt1
+    return scan->U_get_data(thl, x, y, 1) - scan->U_get_data(thl + 1, x, y, 1);
 }
 
-double UC_plot::U_get_pixel_data_10(int thl, int x, int y) { //UTE_PT_diff_cnt1ff
-//    if (thl_index == (n_thl - 1)) return 0;
-//    if (thl_index == 0) return 0;
-//    double d = U_get_pixel_data_4(thl_index - 1, x, y) - U_get_pixel_data_4(thl_index + 1, x, y);
-//    d /= 2;
-//    return d;
-    return U_get_pixel_data_4(thl, x, y) - U_get_pixel_data_4(thl + 1, x, y);
-}
-
-double UC_plot::U_get_pixel_data_11(int thl, int x, int y) { //UTE_PT_diff_cnt1df
-//    if (thl_index == (n_thl - 1)) return 0;
-//    if (thl_index == 0) return 0;
-//    double d = U_get_pixel_data_6(thl_index - 1, x, y) - U_get_pixel_data_6(thl_index + 1, x, y);
-//    d /= 2;
-//    return d;
-    return U_get_pixel_data_6(thl, x, y) - U_get_pixel_data_6(thl + 1, x, y);
-}
-
-double UC_plot::U_get_pixel_data_12(int thl, int x, int y) { //UTE_PT_ffc
+double UC_plot::U_get_pixel_data_6(int thl, int x, int y) { //UTE_PT_ffc
     if (!ff_enable) return 0;
     double cnt1df;
     if (df_enable) {
@@ -340,7 +281,7 @@ double UC_plot::U_get_pixel_data_12(int thl, int x, int y) { //UTE_PT_ffc
     return ffc;
 }
 
-double UC_plot::U_get_pixel_data_13(int thl, int x, int y) { //UTE_PT_mu
+double UC_plot::U_get_pixel_data_7(int thl, int x, int y) { //UTE_PT_mu
     if (!ff_enable) return 0;
     double cnt1df;
     if (df_enable) {
@@ -354,18 +295,58 @@ double UC_plot::U_get_pixel_data_13(int thl, int x, int y) { //UTE_PT_mu
     mu = ff->U_get_data_scaled(thl, x, y, 1) - cnt1df;
     mu /= denom;
     if (mu < 1e-10) return 0;
-    return (mu);
+    return qLn(mu);
 }
 
-double UC_plot::U_get_pixel_data_14(int thl, int x, int y) { //UTE_PT_diff_ffc
-    return U_get_pixel_data_12(thl + 1, x, y) - U_get_pixel_data_12(thl, x, y);
+double UC_plot::U_get_pixel_data_8(int thl, int x, int y) { //UTE_PT_diff_ffc
+    if (!ff_enable) return 0;
+    double cnt1df, cnt1df_1;
+    if (df_enable) {
+        cnt1df = df->U_get_data_scaled(thl, x, y, 1);
+        cnt1df_1 = df->U_get_data_scaled(thl + 1, x, y, 1);
+    } else {
+        cnt1df = 0;
+        cnt1df_1 = 0;
+    }
+    double ffc = 0;
+    double denom = ff->U_get_data_scaled(thl, x, y, 1) - cnt1df;
+    if (qAbs(denom) < 1e-10) return 0;
+    double ffc_1 = 0;
+    double denom_1 = ff->U_get_data_scaled(thl + 1, x, y, 1) - cnt1df_1;
+    if (qAbs(denom_1) < 1e-10) return 0;
+    ffc = scan->U_get_data_scaled(thl, x, y, 1) - cnt1df;
+    ffc /= denom;
+    ffc_1 = scan->U_get_data_scaled(thl + 1, x, y, 1) - cnt1df_1;
+    ffc_1 /= denom_1;
+    return ffc_1 - ffc;
 }
 
-double UC_plot::U_get_pixel_data_15(int thl, int x, int y) { //UTE_PT_diff_mu
-    return U_get_pixel_data_13(thl + 1, x, y) - U_get_pixel_data_13(thl, x, y);
+double UC_plot::U_get_pixel_data_9(int thl, int x, int y) { //UTE_PT_diff_mu
+    if (!ff_enable) return 0;
+    double cnt1df, cnt1df_1;
+    if (df_enable) {
+        cnt1df = df->U_get_data_scaled(thl, x, y, 1);
+        cnt1df_1 = df->U_get_data_scaled(thl + 1, x, y, 1);
+    } else {
+        cnt1df = 0;
+        cnt1df_1 = 0;
+    }
+    double mu = 0;
+    double denom = scan->U_get_data_scaled(thl, x, y, 1) - cnt1df;
+    if (qAbs(denom) < 1e-10) return 0;
+    double mu_1 = 0;
+    double denom_1 = scan->U_get_data_scaled(thl + 1, x, y, 1) - cnt1df_1;
+    if (qAbs(denom_1) < 1e-10) return 0;
+    mu = ff->U_get_data_scaled(thl, x, y, 1) - cnt1df;
+    mu /= denom;
+    if (mu < 1e-10) return 0;
+    mu_1 = ff->U_get_data_scaled(thl + 1, x, y, 1) - cnt1df_1;
+    mu_1 /= denom_1;
+    if (mu_1 < 1e-10) return 0;
+    return qLn(mu_1) - qLn(mu);
 }
 
-double UC_plot::U_get_pixel_data_16(int thl, int x, int y) { //UTE_PT_ffc_diff
+double UC_plot::U_get_pixel_data_10(int thl, int x, int y) { //UTE_PT_ffc_diff
     if (!ff_enable) return 0;
     double delta_cnt1df;
     if (df_enable) {
@@ -380,7 +361,7 @@ double UC_plot::U_get_pixel_data_16(int thl, int x, int y) { //UTE_PT_ffc_diff
     return ffc;
 }
 
-double UC_plot::U_get_pixel_data_17(int thl, int x, int y) { //UTE_PT_mu_diff
+double UC_plot::U_get_pixel_data_11(int thl, int x, int y) { //UTE_PT_mu_diff
     if (!ff_enable) return 0;
     double delta_cnt1df;
     if (df_enable) {
@@ -393,51 +374,20 @@ double UC_plot::U_get_pixel_data_17(int thl, int x, int y) { //UTE_PT_mu_diff
     double mu = ff->U_get_data_scaled(thl, x, y, 1) - ff->U_get_data_scaled(thl + 1, x, y, 1) - delta_cnt1df;
     mu /= denom;
     if (mu < 1e-10) return 0;
-    //return qLn(mu);
-    return mu;
+    return qLn(mu);
+
 }
 ////
 
-double UC_plot::U_get_pixel_data_18(int thl, int x, int y) { //UTE_PT_cnt1_corr_cnt0
+double UC_plot::U_get_pixel_data_12(int thl, int x, int y) { //UTE_PT_cnt1_corr_cnt0
     return scan->U_get_corrected_cnt1(thl, x, y);
 }
 
-double UC_plot::U_get_pixel_data_19(int thl, int x, int y) { //UTE_PT_cnt1ff_corr_cnt0
-    return ff->U_get_corrected_cnt1(thl, x, y);
+double UC_plot::U_get_pixel_data_13(int thl, int x, int y) { //UTE_PT_diff_cnt1_corr_cnt0
+    return scan->U_get_corrected_cnt1(thl, x, y) - scan->U_get_corrected_cnt1(thl + 1, x, y);
 }
 
-double UC_plot::U_get_pixel_data_20(int thl, int x, int y) { //UTE_PT_cnt1df_corr_cnt0
-    return df->U_get_corrected_cnt1(thl, x, y);
-}
-
-double UC_plot::U_get_pixel_data_21(int thl_index, int x, int y) { //UTE_PT_diff_cnt1_corr_cnt0
-//    if (thl_index == (n_thl - 1)) return 0;
-//    if (thl_index == 0) return 0;
-//    double d = U_get_pixel_data_18(thl_index - 1, x, y) - U_get_pixel_data_18(thl_index + 1, x, y);
-//    d /= 2;
-//    return d;
-    return U_get_pixel_data_18(thl_index, x, y) - U_get_pixel_data_18(thl_index + 1, x, y);
-}
-
-double UC_plot::U_get_pixel_data_22(int thl_index, int x, int y) { //UTE_PT_diff_cnt1ff_corr_cnt0
-//    if (thl_index == (n_thl - 1)) return 0;
-//    if (thl_index == 0) return 0;
-//    double d = U_get_pixel_data_19(thl_index - 1, x, y) - U_get_pixel_data_19(thl_index + 1, x, y);
-//    d /= 2;
-//    return d;
-    return U_get_pixel_data_19(thl_index, x, y) - U_get_pixel_data_19(thl_index + 1, x, y);
-}
-
-double UC_plot::U_get_pixel_data_23(int thl_index, int x, int y) { //UTE_PT_diff_cnt1df_corr_cnt0
-//    if (thl_index == (n_thl - 1)) return 0;
-//    if (thl_index == 0) return 0;
-//    double d = U_get_pixel_data_20(thl_index - 1, x, y) - U_get_pixel_data_20(thl_index + 1, x, y);
-//    d /= 2;
-//    return d;
-    return U_get_pixel_data_20(thl_index, x, y) - U_get_pixel_data_20(thl_index + 1, x, y);
-}
-
-double UC_plot::U_get_pixel_data_24(int thl, int x, int y) { //UTE_PT_ffc_corr_cnt0
+double UC_plot::U_get_pixel_data_14(int thl, int x, int y) { //UTE_PT_ffc_corr_cnt0
     if (!ff_enable) return 0;
     double cnt1df;
     if (df_enable) {
@@ -452,7 +402,7 @@ double UC_plot::U_get_pixel_data_24(int thl, int x, int y) { //UTE_PT_ffc_corr_c
     return ffc;
 }
 
-double UC_plot::U_get_pixel_data_25(int thl, int x, int y) { //UTE_PT_mu_corr_cnt0
+double UC_plot::U_get_pixel_data_15(int thl, int x, int y) { //UTE_PT_mu_corr_cnt0
     if (!ff_enable) return 0;
     double cnt1df;
     if (df_enable) {
@@ -465,21 +415,56 @@ double UC_plot::U_get_pixel_data_25(int thl, int x, int y) { //UTE_PT_mu_corr_cn
     double mu = ff->U_get_corrected_cnt1_scaled(thl, x, y) - cnt1df;
     mu /= denom;
     if (mu < 0) return 0;
-    return (mu);
+    return qLn(mu);
 }
 
-
-double UC_plot::U_get_pixel_data_26(int thl, int x, int y) { //UTE_PT_diff_ffc_corr_cnt0
-    return U_get_pixel_data_24(thl + 1, x, y) - U_get_pixel_data_24(thl, x, y);
+double UC_plot::U_get_pixel_data_16(int thl, int x, int y) { //UTE_PT_diff_ffc_corr_cnt0
+    if (!ff_enable) return 0;
+    double cnt1df;
+    double cnt1df_1;
+    if (df_enable) {
+        cnt1df = df->U_get_corrected_cnt1_scaled(thl, x, y);
+        cnt1df_1 = df->U_get_corrected_cnt1_scaled(thl + 1, x, y);
+    } else {
+        cnt1df = 0;
+        cnt1df_1 = 0;
+    }
+    double denom =  ff->U_get_corrected_cnt1_scaled(thl, x, y) - cnt1df;
+    if (qAbs(denom) < 1e-10) return 0;
+    double denom_1 = ff->U_get_corrected_cnt1_scaled(thl + 1, x, y) - cnt1df_1;
+    if (qAbs(denom_1) < 1e-10) return 0;
+    double ffc = scan->U_get_corrected_cnt1_scaled(thl, x, y) - cnt1df;
+    ffc /= denom;
+    double ffc_1 = scan->U_get_corrected_cnt1_scaled(thl + 1, x, y) - cnt1df_1;
+    ffc_1 /= denom_1;
+    return ffc_1 - ffc;
 }
 
-double UC_plot::U_get_pixel_data_27(int thl, int x, int y) { //UTE_PT_diff_mu_corr_cnt0
-    double mu = U_get_pixel_data_25(thl + 1, x, y) - U_get_pixel_data_25(thl, x, y);
-    if (mu < 1e-10) return 0;
-    return (mu);
+double UC_plot::U_get_pixel_data_17(int thl, int x, int y) { //UTE_PT_diff_mu_corr_cnt0
+    if (!ff_enable) return 0;
+    double cnt1df;
+    double cnt1df_1;
+    if (df_enable) {
+        cnt1df = df->U_get_corrected_cnt1_scaled(thl, x, y);
+        cnt1df_1 = df->U_get_corrected_cnt1_scaled(thl + 1, x, y);
+    } else {
+        cnt1df = 0;
+        cnt1df_1 = 0;
+    }
+    double denom = scan->U_get_corrected_cnt1_scaled(thl, x, y) - cnt1df;
+    if (qAbs(denom) < 1e-10) return 0;
+    double denom_1 = scan->U_get_corrected_cnt1_scaled(thl + 1, x, y) - cnt1df_1;
+    if (qAbs(denom_1) < 1e-10) return 0;
+    double mu = ff->U_get_corrected_cnt1_scaled(thl, x, y) - cnt1df;
+    mu /= denom;
+    if (mu < 0) return 0;
+    double mu_1 = ff->U_get_corrected_cnt1_scaled(thl + 1, x, y) - cnt1df_1;
+    mu_1 /= denom_1;
+    if (mu_1 < 0) return 0;
+    return qLn(mu_1) - qLn(mu);
 }
 
-double UC_plot::U_get_pixel_data_28(int thl, int x, int y) { //UTE_PT_ffc_diff_corr_cnt0
+double UC_plot::U_get_pixel_data_18(int thl, int x, int y) { //UTE_PT_ffc_diff_corr_cnt0
     if (!ff_enable) return 0;
     double delta_cnt1df;
     if (df_enable) {
@@ -494,7 +479,7 @@ double UC_plot::U_get_pixel_data_28(int thl, int x, int y) { //UTE_PT_ffc_diff_c
     return ffc;
 }
 
-double UC_plot::U_get_pixel_data_29(int thl, int x, int y) { //UTE_PT_mu_diff_corr_cnt0
+double UC_plot::U_get_pixel_data_19(int thl, int x, int y) { //UTE_PT_mu_diff_corr_cnt0
     if (!ff_enable) return 0;
     double delta_cnt1df;
     if (df_enable) {
@@ -510,34 +495,7 @@ double UC_plot::U_get_pixel_data_29(int thl, int x, int y) { //UTE_PT_mu_diff_co
     return qLn(mu);
 }
 ///
-int UC_plot::U_get_pixel_data_30(int thl, int x, int y) { //UTE_PT_mu_max
-    double z0 = U_get_pixel_data_15(thl - 2, x, y);
-    double z1 = U_get_pixel_data_15(thl - 1, x, y);
-    double z2 = U_get_pixel_data_15(thl, x, y);
-    double z3 = U_get_pixel_data_15(thl + 1, x, y);
-    double z4 = U_get_pixel_data_15(thl + 2, x, y);
-    if ((z2 > z0) && (z2 > z1) && (z2 > z3) && (z2 > z4)) return 1;
-    return 0;
-}
-
-int UC_plot::U_get_pixel_data_31(int thl, int x, int y) { //UTE_PT_ffc_min
-    double z0 = U_get_pixel_data_16(thl - 2, x, y);
-    double z1 = U_get_pixel_data_16(thl - 1, x, y);
-    double z2 = U_get_pixel_data_16(thl, x, y);
-    double z3 = U_get_pixel_data_16(thl + 1, x, y);
-    double z4 = U_get_pixel_data_16(thl + 2, x, y);
-    if ((z2 < z0) && (z2 < z1) && (z2 < z3) && (z2 < z4)) return 1;
-    return 0;
-}
-
-int UC_plot::U_get_pixel_data_32(int thl, int x, int y) { //UTE_PT_noise_edge
-    double z0 = U_get_pixel_data_2(thl, x, y);
-    double z1 = U_get_pixel_data_2(thl + 1, x, y);
-    if ((z0 > 10) && (z1 < 10)) return 1;
-    return 0;
-}
-
-double UC_plot::U_get_pixel_data_33(int thl, int x, int y) { //UTE_PT_ffc_non_xray
+double UC_plot::U_get_pixel_data_20(int thl, int x, int y) { //UTE_PT_ffc_non_xray
     if (!ff_enable) return 0;
     double cnt1df;
     if (df_enable) {
@@ -554,68 +512,78 @@ double UC_plot::U_get_pixel_data_33(int thl, int x, int y) { //UTE_PT_ffc_non_xr
     return ffc;
 }
 
-double UC_plot::U_get_pixel_data_34(int thl, int x, int y) { //UTE_PT_cnt0_deviation
+double UC_plot::U_get_pixel_data_21(int thl, int x, int y) { //UTE_PT_cnt0_deviation
     double denom = scan->U_get_corrected_cnt1(thl, x, y);
     if (qAbs(denom) < 1e-10) return 0;
     return scan->U_get_data(thl, x, y, 1) / denom;
 }
 
-double UC_plot::U_get_pixel_data_35(int thl, int x, int y) { //UTE_PT_cnt0ff_deviation
-    double denom = ff->U_get_corrected_cnt1(thl, x, y);
+int UC_plot::U_get_pixel_data_22(int thl, int x, int y) { //UTE_PT_cnt1_act
+    if (scan->U_get_data(thl, x, y, 1) > threshold_level) {
+        return 1;
+    } else {
+        return 0;
+    }
+}
+
+int UC_plot::U_get_pixel_data_23(int thl, int x, int y) { //UTE_PT_cnt0_act
+    if (scan->U_get_data(thl, x, y, 0) > threshold_level) {
+        return 1;
+    } else {
+        return 0;
+    }
+}
+
+int UC_plot::U_get_pixel_data_24(int thl, int x, int y) { //UTE_PT_cnt1_rejected
+    bool act0 = scan->U_get_data(thl, x, y, 0) > threshold_level;
+    bool act1 = scan->U_get_data(thl, x, y, 1) > threshold_level;
+    if (act0 && (!act1))  {
+        return 1;
+    } else {
+        return 0;
+    }
+}
+
+int UC_plot::U_get_pixel_data_25(int thl, int x, int y) { //UTE_PT_diff_cnt1_rejected
+
+    bool act0 = scan->U_get_data(thl, x, y, 0) > threshold_level;
+    bool act1 = scan->U_get_data(thl, x, y, 1) > threshold_level;
+    bool act0_1 = scan->U_get_data(thl - 1, x, y, 0) > threshold_level;
+    bool act1_1 = scan->U_get_data(thl - 1, x, y, 1) > threshold_level;
+    int cnt0 = 0;
+    if (act0 && (!act1))  {
+        cnt0 =  1;
+    } else {
+        cnt0 =  0;
+    }
+    int cnt1 = 0;
+    if (act0_1 && (!act1_1))  {
+        cnt1 =  1;
+    } else {
+        cnt1 =  0;
+    }
+    return cnt0 - cnt1;
+}
+
+double UC_plot::U_get_pixel_data_26(int thl, int x, int y) { //UTE_PT_cnt1ffc_div_cnt0ffc
+    if (!ff_enable) return 0;
+    int cnt0 = scan->U_get_data(thl, x, y, 0);
+    int cnt1 = scan->U_get_data(thl, x, y, 1);
+    int cnt0ff = ff->U_get_data(thl, x, y, 0);
+    int cnt1ff = ff->U_get_data(thl, x, y, 1);
+    int denom = cnt0 * cnt1ff;
+    if (denom == 0) return 0;
+    return static_cast<double>(cnt1 * cnt0ff) / denom;
+}
+
+double UC_plot::U_get_pixel_data_27(int thl, int x, int y) { //UTE_PT_smoothing_mu_diff
+    return scan->U_get_data_additional(thl, x, y);
+}
+
+double UC_plot::U_get_pixel_data_28(int thl, int x, int y) { //UTE_PT_GA_request
+    double denom = U_get_pixel_data_6(thl, x, y);
     if (qAbs(denom) < 1e-10) return 0;
-    return ff->U_get_data(thl, x, y, 1) / denom;
-}
-
-double UC_plot::U_get_pixel_data_36(int thl, int x, int y) { //UTE_PT_cnt0df_deviation
-    double denom = df->U_get_corrected_cnt1(thl, x, y);
-    if (qAbs(denom) < 1e-10) return 0;
-    return df->U_get_data(thl, x, y, 1) / denom;
-}
-
-double UC_plot::U_get_pixel_data_37(int thl, int x, int y) { //UTE_PT_int2
-    if (thl == thl_start) return 0;
-    if (thl == thl_finish) return 0;
-    double thl_mean_1 = 0, thl_mean_2 = 0;
-    for (int thl_c = thl_start; thl_c < thl; thl_c++) {
-        thl_mean_1 += U_get_pixel_data_12(thl_c, x, y);
-    }
-    thl_mean_1 /= (thl - thl_start);
-    for (int thl_c = thl + 1; thl_c < thl_finish; thl_c++) {
-        thl_mean_2 += U_get_pixel_data_12(thl_c, x, y);
-    }
-    if (qAbs(thl_mean_2) < 1e-10) return 0;
-    thl_mean_2 /= (thl_finish - thl - 1);
-    return thl_mean_1 / thl_mean_2;
-}
-
-int UC_plot::U_get_pixel_data_38(int thl, int x, int y) { //UTE_PT_cnt1_act
-    if (U_get_pixel_data_2(thl, x, y) < 10) {
-        return 0;
-    } else {
-        return 1;
-    }
-}
-
-int UC_plot::U_get_pixel_data_39(int thl, int x, int y) { //UTE_PT_cnt0_act
-    if (U_get_pixel_data_1(thl, x, y) < 10) {
-        return 0;
-    } else {
-        return 1;
-    }
-}
-
-int UC_plot::U_get_pixel_data_40(int thl, int x, int y) { //UTE_PT_cnt1_rejected
-    int cnt0 = U_get_pixel_data_39(thl, x, y);
-    int cnt1 = U_get_pixel_data_38(thl, x, y);
-    if ((cnt0 == 1) && (cnt1 == 0))  {
-        return 1;
-    } else {
-        return 0;
-    }
-}
-
-int UC_plot::U_get_pixel_data_41(int thl, int x, int y) { //UTE_PT_diff_cnt1_rejected
-    return U_get_pixel_data_40(thl, x, y) - U_get_pixel_data_40(thl - 1, x, y);
+    return U_get_pixel_data_6(38, x, y) / denom;
 }
 /////////////////////////////////////////////////////////////////////////////////
 double UC_plot::U_get_frame_data(UTE_frame_type type_spectra, UTE_pixel_type type_pixel, int thl) {
@@ -745,12 +713,12 @@ int UC_plot::U_get_frame_data_7(int thl) { //UTE_FT_overflowed
     overflow_df = df->U_get_count() * 4095;
     for (int x = x_min; x < x_max; x++) {
         for (int y = y_min; y < y_max; y++) {
-            cnt0 = U_get_pixel_data_1(thl, x, y);
-            cnt1 = U_get_pixel_data_2(thl, x, y);
-            cnt0ff = U_get_pixel_data_3(thl, x, y);
-            cnt1ff = U_get_pixel_data_4(thl, x, y);
-            cnt0df = U_get_pixel_data_5(thl, x, y);
-            cnt1df = U_get_pixel_data_6(thl, x, y);
+            cnt0 = scan->U_get_data(thl, x, y, 0);
+            cnt1 = scan->U_get_data(thl, x, y, 1);
+            cnt0ff = ff->U_get_data(thl, x, y, 0);
+            cnt1ff = ff->U_get_data(thl, x, y, 1);
+            cnt0df = df->U_get_data(thl, x, y, 0);
+            cnt1df = df->U_get_data(thl, x, y, 1);
             overflowed = (cnt0 == overflow) | (cnt1 == overflow);
             overflowed |= (cnt0ff == overflow_ff) | (cnt1ff == overflow_ff);
             overflowed |= (cnt0df == overflow_df) | (cnt1df == overflow_df);
@@ -946,12 +914,12 @@ int UC_plot::U_get_frame_data_energy_7(double e_min, double e_max) { //UTE_FT_ov
         thl_max = U_get_thl_from_energy(x, e_max);
         for (int thl = thl_min; thl < thl_max; thl++) {
             for (int y = y_min; y < y_max; y++) {
-                cnt0 = U_get_pixel_data_1(thl, x, y);
-                cnt1 = U_get_pixel_data_2(thl, x, y);
-                cnt0ff = U_get_pixel_data_3(thl, x, y);
-                cnt1ff = U_get_pixel_data_4(thl, x, y);
-                cnt0df = U_get_pixel_data_5(thl, x, y);
-                cnt1df = U_get_pixel_data_6(thl, x, y);
+                cnt0 = scan->U_get_data(thl, x, y, 0);
+                cnt1 = scan->U_get_data(thl, x, y, 1);
+                cnt0ff = ff->U_get_data(thl, x, y, 0);
+                cnt1ff = ff->U_get_data(thl, x, y, 1);
+                cnt0df = df->U_get_data(thl, x, y, 0);
+                cnt1df = df->U_get_data(thl, x, y, 1);
                 overflowed = (cnt0 == overflow) | (cnt1 == overflow);
                 overflowed |= (cnt0ff == overflow_ff) | (cnt1ff == overflow_ff);
                 overflowed |= (cnt0df == overflow_df) | (cnt1df == overflow_df);
@@ -993,31 +961,6 @@ double UC_plot::U_get_frame_data_energy_9(UTE_pixel_type type_pixel, double e_mi
 }
 
 //
-double UC_plot::U_get_identification_data(UTE_identification_type type, int thl, int x, int y) {
-    switch (type) {
-        case UTE_IT_no_identification : {
-            return U_get_pixel_data(pixel_type, thl, x, y);
-        }
-        case UTE_IT_1 : {
-            return U_get_identification_data_1(x, y);
-        }
-    }
-    return 0;
-}
-
-double UC_plot::U_get_identification_data_1(int x, int y) { //UTE_PT_cnt0
-    double data_1 = 0;
-    for (int thl = thl_id_1; thl <= thl_id_2; thl++) {
-        data_1 += U_get_pixel_data(pixel_type, thl, x, y);
-    }
-    double data_2 = 0;
-    for (int thl = thl_id_3; thl <= thl_id_4; thl++) {
-        data_2 += U_get_pixel_data(pixel_type, thl, x, y);
-    }
-    if (qAbs(data_2) < 1e-10) return 0;
-    return (data_1 / data_2);
-}
-
 ///////////////////////////////////////////////////////////////////////////////////////
 void UC_plot::U_find_thl_range() {
     int max, min;
@@ -1031,18 +974,292 @@ void UC_plot::U_find_thl_range() {
     }
     emit US_thl_range(thl_min, thl_max);
 }
+//
+void UC_plot::U_identification_roi_1() {    //UTE_IT_GA_method
+    UTStr_id_GA_data result;
+    int current = 0;
+    int total = thl_id_2 - thl_id_1 + thl_id_4 - thl_id_3;
+    for (int thl = thl_id_1; thl <= thl_id_2; thl++) {
+        result.sum_1_window += U_get_frame_data(frame_type, pixel_type, thl);
+        current++;
+        US_renew_progress_bar(current, total);
+    }
+    for (int thl = thl_id_3; thl <= thl_id_4; thl++) {
+        result.sum_2_window += U_get_frame_data(frame_type, pixel_type, thl);
+        current++;
+        US_renew_progress_bar(current, total);
+    }
+    if (qAbs(result.sum_2_window) > 1e-10) result.id_data = result.sum_1_window / result.sum_2_window;
+        else result.id_data = 0;
+    result.thl_1_window_left    =   thl_id_1;
+    result.thl_1_window_right   =   thl_id_2;
+    result.thl_2_window_left    =   thl_id_3;
+    result.thl_2_window_right   =   thl_id_4;
+    result.frame_type           =   frame_type;
+    result.pixel_type           =   pixel_type;
+    emit US_id_roi_GA_data(result);
+}
 
-///
-//Double_t UC_plot::U_fit_function(Double_t *x, Double_t *par) {
-//    if (x[0] < par[0]) {
-//        return 0;
-//    } else {
-//        return par[1] * TMath::Exp( - par[2] * x[0] + par[3]);
-//    }
-//}
+//
 
-///////////////////////////////////////////////////////////////////////////////////////
+QVector<double> UC_plot::U_calculating_samples_value(UC_data_container * scan, QVector<int> thl_samples) {
+    UC_data_container * scan_reserved, * ff;
+    scan_reserved = this->scan;
+    ff = &scans_list[scan->U_get_settings().ff_int];
 
+    QVector<double> data_y_scan(thl_finish - thl_start + 1);
+    QVector<double> data_y_ff(thl_finish - thl_start + 1);
+    QVector<double> data_thl(thl_finish - thl_start + 1);
+    QVector<double> result;
+
+    this->scan = ff;
+    for (int thl = thl_start; thl <= thl_finish; thl++) {
+        data_y_ff[thl - thl_start] = U_get_frame_data(frame_type, pixel_type, thl);
+        data_thl[thl - thl_start] = thl;
+    }
+    data_y_ff = U_smooth(data_thl, data_y_ff, smoothing);
+    data_y_ff = U_diff(data_thl, data_y_ff);
+    data_y_ff = U_vector_minus(data_y_ff);
+    data_y_ff = U_smooth(data_thl, data_y_ff, smoothing);
+    this->scan = scan;
+    for (int thl = thl_start; thl <= thl_finish; thl++) {
+        data_y_scan[thl - thl_start] = U_get_frame_data(frame_type, pixel_type, thl);
+    }
+    data_y_scan = U_smooth(data_thl, data_y_scan, smoothing);
+    data_y_scan = U_diff(data_thl, data_y_scan);
+    data_y_scan = U_vector_minus(data_y_scan);
+    data_y_scan = U_smooth(data_thl, data_y_scan, smoothing);
+    data_y_scan = U_vector_divide(data_y_ff, data_y_scan);
+    data_y_scan = U_smooth(data_thl, data_y_scan, smoothing);
+    data_y_scan = U_vector_log(data_y_scan);
+
+    for (int i = 0; i < thl_samples.size(); i++) {
+        result << data_y_scan[data_thl.indexOf(thl_samples[i])];
+    }
+
+    this->scan = scan_reserved;
+    return result;
+}
+
+void UC_plot::U_identification_roi_2() {    //UTE_IT_linear_combination
+    int current = 0;
+    int total = 0;
+
+    int n_scans = scans_list.size();
+    int number_of_samples = 0;
+    UTStr_id_LC_data result;
+    UC_data_container * current_scan;
+    for (int scan_i = 0; scan_i < n_scans; scan_i++) {
+        current_scan = &(scans_list[scan_i]);
+        UC_data_container::UTStr_data_container_settings settings = current_scan->U_get_settings();
+        if (!settings.sample_of_element) continue;
+        number_of_samples++;
+        result.thl_samples << settings.thl_sample;
+        result.elements << settings.name;
+    }
+    result.number_of_samples = number_of_samples;
+    result.frame_type = frame_type;
+    result.pixel_type = pixel_type;
+    total = number_of_samples + 2;
+
+
+    TMatrixD eqv_matr(number_of_samples, number_of_samples);
+    TVectorD scan_thl_data(number_of_samples);
+
+    QVector<double> data_scan = U_calculating_samples_value(scan, result.thl_samples);
+    current++;
+    US_renew_progress_bar(current, total);
+    for (int i = 0; i < number_of_samples; i++) {
+        scan_thl_data[i] = data_scan[i];
+        result.data << data_scan[i];
+    }
+
+    result.matrix.resize(number_of_samples);
+    for (int index = 0; index < number_of_samples; index++) {
+        result.matrix[index].resize(number_of_samples);
+    }
+
+    int sample_index = 0;
+    for (int scan_i = 0; scan_i < n_scans; scan_i++) {
+        current_scan = &(scans_list[scan_i]);
+        if (!current_scan->U_get_sample_of_element()) continue;
+        QVector<double> data_samples = U_calculating_samples_value(current_scan, result.thl_samples);
+        current++;
+        US_renew_progress_bar(current, total);
+        for (int thl_index = 0; thl_index < number_of_samples; thl_index++) {
+            eqv_matr[thl_index][sample_index] = data_samples[thl_index];
+            result.matrix[thl_index][sample_index] = data_samples[thl_index];
+        }
+        sample_index++;
+    }
+
+    TDecompLU decomp(eqv_matr);
+    Bool_t ok;
+    TVectorD result_vector = decomp.Solve(scan_thl_data, ok);
+    int nr = 0;
+    while (!ok) {
+        decomp.SetMatrix(eqv_matr);
+        decomp.SetTol(0.1 * decomp.GetTol());
+        if (nr++ > 10) break;
+        result_vector = decomp.Solve(scan_thl_data, ok);
+    }
+    current++;
+    US_renew_progress_bar(current, total);
+
+    sample_index = 0;
+    for (int scan_i = 0; scan_i < n_scans; scan_i++) {
+        current_scan = &(scans_list[scan_i]);
+        if (!current_scan->U_get_sample_of_element()) continue;
+        result.id_values << result_vector[sample_index];
+        sample_index++;
+    }
+    emit US_id_roi_LC_data(result);
+}
+
+void UC_plot::U_calculating_xmu(UC_data_container * scan, int i, int j, int rebin_x, int rebin_y, int rebin_thl) {
+    UC_data_container * scan_reserved, * ff;
+    scan_reserved = this->scan;
+    ff = &scans_list[scan->U_get_settings().ff_int];
+
+    int x_min_roi = this->x_min;
+    int x_max_roi = this->x_max;
+    int y_min_roi = this->y_min;
+    int y_max_roi = this->y_max;
+
+    this->x_min = i * rebin_x + x_min_roi;
+    this->y_min = j * rebin_y + y_min_roi;
+    this->x_max = this->x_min + rebin_x;
+    this->y_max = this->y_min + rebin_y;
+    if (this->x_max > 3840) {
+        this->x_max = 3840;
+    }
+    if (this->y_max > 256) {
+        this->y_max = 256;
+    }
+    int squar = (x_max - x_min) * (y_max - y_min);
+
+    QVector<double> data_y_scan;
+    QVector<double> data_y_ff;
+    QVector<double> data_thl;
+
+    int n = static_cast<int>(ceil(static_cast<double>(thl_finish - thl_start + 1) / rebin_thl));
+
+    double value;
+    this->scan = ff;
+
+    for (int index = 0; index < n; index++) {
+        int thl_start = index * rebin_thl + this->thl_start;
+        int thl_finish = thl_start + rebin_thl - 1;
+        if (thl_finish > this->thl_finish) {
+            thl_finish = this->thl_finish;
+        }
+        value = 0;
+        for (int thl = thl_start; thl <= thl_finish; thl++) {
+            value += U_get_frame_data(frame_type, pixel_type, thl);
+        }
+        value /= squar * (thl_finish - thl_start + 1);
+        data_y_ff << value;
+        data_thl << (thl_start + thl_finish) / 2;
+    }
+
+    data_y_ff = U_smooth(data_thl, data_y_ff, smoothing);
+    data_y_ff = U_diff(data_thl, data_y_ff);
+    data_y_ff = U_vector_minus(data_y_ff);
+    data_y_ff = U_smooth(data_thl, data_y_ff, smoothing);
+
+    this->scan = scan;
+
+    for (int index = 0; index < n; index++) {
+        int thl_start = index * rebin_thl + this->thl_start;
+        int thl_finish = thl_start + rebin_thl - 1;
+        if (thl_finish > this->thl_finish) {
+            thl_finish = this->thl_finish;
+        }
+        value = 0;
+        for (int thl = thl_start; thl <= thl_finish; thl++) {
+            value += U_get_frame_data(frame_type, pixel_type, thl);
+        }
+        value /= squar * (thl_finish - thl_start + 1);
+        data_y_scan << value;
+    }
+
+    data_y_scan = U_smooth(data_thl, data_y_scan, smoothing);
+    data_y_scan = U_diff(data_thl, data_y_scan);
+    data_y_scan = U_vector_minus(data_y_scan);
+    data_y_scan = U_smooth(data_thl, data_y_scan, smoothing);
+    data_y_scan = U_vector_divide(data_y_ff, data_y_scan);
+    data_y_scan = U_smooth(data_thl, data_y_scan, smoothing);
+    data_y_scan = U_vector_log(data_y_scan);
+
+    scan->U_create_data_additional();
+    for (int x = x_min; x < x_max; x++) {
+        for (int y = y_min; y < y_max; y++) {
+            for (int index = 0; index < n; index++) {
+                int thl_start = index * rebin_thl + this->thl_start;
+                int thl_finish = thl_start + rebin_thl - 1;
+                if (thl_finish > this->thl_finish) {
+                    thl_finish = this->thl_finish;
+                }
+                for (int thl = thl_start; thl <= thl_finish; thl++) {
+                    scan->U_set_data_additional(thl, x, y, data_y_scan[index]);
+                }
+            }
+        }
+    }
+
+    this->scan = scan_reserved;
+    this->x_min = x_min_roi;
+    this->x_max = x_max_roi;
+    this->y_min = y_min_roi;
+    this->y_max = y_max_roi;
+}
+
+void UC_plot::U_calculating_id(UC_data_container * scan, QList<UC_data_container *> id_samples) {
+    int current = 0;
+    int total = 0;
+
+    int number_of_samples = id_samples.size();
+
+    QVector<int> thl_samples(number_of_samples);
+    for (int i = 0; i < number_of_samples; i++) {
+        thl_samples[i] = id_samples[i]->U_get_thl_sample();
+    }
+
+    total = (x_max - x_min) * (y_max - y_min);
+    for (int x = x_min; x < x_max; x += rebin_x) {
+        for (int y = y_min; y < y_max; y += rebin_y) {
+            TMatrixD eqv_matr(number_of_samples, number_of_samples);
+            TVectorD scan_thl_data(number_of_samples);
+            for (int sample_index = 0; sample_index < number_of_samples; sample_index++) {
+                for (int thl_index = 0; thl_index < number_of_samples; thl_index++) {
+                    eqv_matr[thl_index][sample_index] = id_samples[sample_index]->U_get_data_additional(thl_samples[thl_index], x, y);
+                }
+            }
+            for (int thl_index = 0; thl_index < number_of_samples; thl_index++) {
+                scan_thl_data[thl_index] = scan->U_get_data_additional(thl_samples[thl_index], x, y);
+            }
+            TDecompLU decomp(eqv_matr);
+            Bool_t ok;
+            TVectorD result_vector = decomp.Solve(scan_thl_data, ok);
+            int nr = 0;
+            while (!ok) {
+                decomp.SetMatrix(eqv_matr);
+                decomp.SetTol(0.1 * decomp.GetTol());
+                if (nr++ > 10) break;
+                result_vector = decomp.Solve(scan_thl_data, ok);
+            }
+            for (int ix = 0; ix < rebin_x; ix++) {
+                for (int iy = 0; iy < rebin_y; iy++) {
+                    for (int i = 0; i < number_of_samples; i++) {
+                        scan->U_set_id_data(x + ix, y + iy, result_vector[i]);
+                    }
+                }
+            }
+            current++;
+            emit US_renew_progress_bar(current, total);
+        }
+    }
+}
 
 ////////////////////////////!!!!!!!!!!SLOTS!!!!!!!!!!!///////////////////////////////////////////////////////////////////////////
 
@@ -1131,6 +1348,7 @@ void UC_plot::U_set_data(UC_data_container::UTStr_data_container_settings settin
             }
         }
     }
+
     scans_list << *data_container;
     if (scan_enable == false) {
         scan = &(scans_list[scans_list.length() - 1]);
@@ -1142,8 +1360,6 @@ void UC_plot::U_set_data(UC_data_container::UTStr_data_container_settings settin
 
 void UC_plot::U_reset_data() {
     scans_list.clear();
-    ff_enable = false;
-    df_enable = false;
 
     thl_min = 512;
     thl_max = 0;
@@ -1154,17 +1370,28 @@ void UC_plot::U_reset_data() {
 void UC_plot::U_delete_scan(int index) {
     if (index == -1) {
         scan_enable = false;
-        ff_enable = false;
-        df_enable = false;
         return;
     }
+    for (int i = 0; i < scans_list.size(); i++) {
+        UC_data_container::UTStr_data_container_settings settings = scans_list[i].U_get_settings();
+        if (settings.ff_int == index) {
+            settings.ff_int = -1;
+            scans_list[i].U_set_settings(settings);
+        }
+        if (settings.ff_int > index) {
+            settings.ff_int--;
+            scans_list[i].U_set_settings(settings);
+        }
+        if (settings.df_int == index) {
+            settings.df_int = -1;
+            scans_list[i].U_set_settings(settings);
+        }
+        if (settings.df_int > index) {
+            settings.df_int--;
+            scans_list[i].U_set_settings(settings);
+        }
+    }
     UC_data_container * scan_ptr = &(scans_list[index]);
-    if (scan_ptr == ff) {
-        ff_enable = false;
-    }
-    if (scan_ptr == df) {
-        df_enable = false;
-    }
     if (scan_ptr == scan) {
         if (scans_list.size() == 1) {
             scan_enable = false;
@@ -1186,17 +1413,42 @@ void UC_plot::U_set_scan(int index) {
     } else {
         scan = &(scans_list[index]);
         scan_enable = true;
+        if (scan->U_get_settings().ff_int == -1) {
+            ff_enable = false;
+        } else {
+            ff_enable = true;
+            ff = &scans_list[scan->U_get_settings().ff_int];
+        }
+        if (scan->U_get_settings().df_int == -1) {
+            df_enable = false;
+        } else {
+            df_enable = true;
+            df = &scans_list[scan->U_get_settings().df_int];
+        }
     }
 }
 
-void UC_plot::U_set_ff(int index) {
-    ff = &(scans_list[index]);
-    ff_enable = true;
+void UC_plot::U_set_settings(int index, UC_data_container::UTStr_data_container_settings settings) {
+    if (index == -1) return;
+    scans_list[index].U_set_settings(settings);
+    if (&(scans_list[index]) == scan) {
+        if (scan->U_get_settings().ff_int == -1) {
+            ff_enable = false;
+        } else {
+            ff_enable = true;
+            ff = &scans_list[scan->U_get_settings().ff_int];
+        }
+        if (scan->U_get_settings().df_int == -1) {
+            df_enable = false;
+        } else {
+            df_enable = true;
+            df = &scans_list[scan->U_get_settings().df_int];
+        }
+    }
 }
 
-void UC_plot::U_set_df(int index) {
-    df = &(scans_list[index]);
-    df_enable = true;
+void UC_plot::U_get_settings(int index) {
+    if (index != -1) emit US_scan_settings(scans_list[index].U_get_settings());
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1233,7 +1485,7 @@ void UC_plot::U_generate_frame(int thl) {
             if (U_get_mask(x, y)) {
                 emit US_frame_data(x, y, 0);
             } else {
-                z = U_get_identification_data(identification_type, thl, x, y);
+                z = U_get_pixel_data(pixel_type, thl, x, y);
                 emit US_frame_data(x, y, z);
             }
         }
@@ -1249,7 +1501,7 @@ void UC_plot::U_generate_frame(double energy) {
             if (U_get_mask(x, y)) {
                 emit US_frame_data(x, y, 0);
             } else {
-                z = U_get_identification_data(identification_type, thl, x, y);
+                z = U_get_pixel_data(pixel_type, thl, x, y);
                 emit US_frame_data(x, y, z);
             }
         }
@@ -1301,25 +1553,25 @@ void UC_plot::U_generate_table(int thl) {
         for (int y = 0; y < 256; y++) {
             for (int x = 0; x < 256; x++) {
                 x_widepix = U_get_coord_x_chip(chip, x);
-                z = U_get_identification_data(identification_type, thl, x_widepix, y);
+                z = U_get_pixel_data(pixel_type, thl, x_widepix, y);
 
                 widepix.U_add_pixel_1(z);
                 chip_info[chip]->U_add_pixel_1(z);
 
                 mask = U_get_mask(x_widepix, y);
                 in_roi = (x_widepix >= x_min) & (x_widepix < x_max) & (y >= y_min) & (y < y_max);
-                cnt0 = U_get_pixel_data_1(thl, x_widepix, y);
-                cnt1 = U_get_pixel_data_2(thl, x_widepix, y);
+                cnt0 = scan->U_get_data(thl, x_widepix, y, 0);
+                cnt1 = scan->U_get_data(thl, x_widepix, y, 1);
                 if (ff_enable) {
-                    cnt0ff = U_get_pixel_data_3(thl, x_widepix, y);
-                    cnt1ff = U_get_pixel_data_4(thl, x_widepix, y);
+                    cnt0ff = ff->U_get_data(thl, x_widepix, y, 0);
+                    cnt1ff = ff->U_get_data(thl, x_widepix, y, 1);
                 } else {
                     cnt0ff = 0;
                     cnt1ff = 0;
                 }
                 if (df_enable) {
-                    cnt0df = U_get_pixel_data_5(thl, x_widepix, y);
-                    cnt1df = U_get_pixel_data_6(thl, x_widepix, y);
+                    cnt0df = df->U_get_data(thl, x_widepix, y, 0);
+                    cnt1df = df->U_get_data(thl, x_widepix, y, 1);
                 } else {
                     cnt0df = 0;
                     cnt1df = 0;
@@ -1373,25 +1625,25 @@ void UC_plot::U_generate_table(int thl) {
             for (int y = 0; y < 256; y++) {
                 for (int x = 0; x < 256; x++) {
                     x_widepix = U_get_coord_x_chip(chip, x);
-                    z = U_get_identification_data(identification_type, thl, x_widepix, y);
+                    z = U_get_pixel_data(pixel_type, thl, x_widepix, y);
 
                     widepix.U_add_pixel_2(z);
                     chip_info[chip]->U_add_pixel_2(z);
 
                     mask = U_get_mask(x_widepix, y);
                     in_roi = (x_widepix >= x_min) & (x_widepix < x_max) & (y >= y_min) & (y < y_max);
-                    cnt0 = U_get_pixel_data_1(thl, x_widepix, y);
-                    cnt1 = U_get_pixel_data_2(thl, x_widepix, y);
+                    cnt0 = scan->U_get_data(thl, x_widepix, y, 0);
+                    cnt1 = scan->U_get_data(thl, x_widepix, y, 1);
                     if (ff_enable) {
-                        cnt0ff = U_get_pixel_data_3(thl, x_widepix, y);
-                        cnt1ff = U_get_pixel_data_4(thl, x_widepix, y);
+                        cnt0ff = ff->U_get_data(thl, x_widepix, y, 0);
+                        cnt1ff = ff->U_get_data(thl, x_widepix, y, 1);
                     } else {
                         cnt0ff = 0;
                         cnt1ff = 0;
                     }
                     if (df_enable) {
-                        cnt0df = U_get_pixel_data_5(thl, x_widepix, y);
-                        cnt1df = U_get_pixel_data_6(thl, x_widepix, y);
+                        cnt0df = df->U_get_data(thl, x_widepix, y, 0);
+                        cnt1df = df->U_get_data(thl, x_widepix, y, 1);
                     } else {
                         cnt0df = 0;
                         cnt1df = 0;
@@ -1486,25 +1738,25 @@ void UC_plot::U_generate_table(double energy) {
         for (int y = 0; y < 256; y++) {
             for (int x = 0; x < 256; x++) {
                 x_widepix = U_get_coord_x_chip(chip, x);
-                z = U_get_identification_data(identification_type, thl, x_widepix, y);
+                z = U_get_pixel_data(pixel_type, thl, x_widepix, y);
 
                 widepix.U_add_pixel_1(z);
                 chip_info[chip]->U_add_pixel_1(z);
 
                 mask = U_get_mask(x_widepix, y);
                 in_roi = (x_widepix >= x_min) & (x_widepix < x_max) & (y >= y_min) & (y < y_max);
-                cnt0 = U_get_pixel_data_1(thl, x_widepix, y);
-                cnt1 = U_get_pixel_data_2(thl, x_widepix, y);
+                cnt0 = scan->U_get_data(thl, x_widepix, y, 0);
+                cnt1 = scan->U_get_data(thl, x_widepix, y, 1);
                 if (ff_enable) {
-                    cnt0ff = U_get_pixel_data_3(thl, x_widepix, y);
-                    cnt1ff = U_get_pixel_data_4(thl, x_widepix, y);
+                    cnt0ff = ff->U_get_data(thl, x_widepix, y, 0);
+                    cnt1ff = ff->U_get_data(thl, x_widepix, y, 1);
                 } else {
                     cnt0ff = 0;
                     cnt1ff = 0;
                 }
                 if (df_enable) {
-                    cnt0df = U_get_pixel_data_5(thl, x_widepix, y);
-                    cnt1df = U_get_pixel_data_6(thl, x_widepix, y);
+                    cnt0df = df->U_get_data(thl, x_widepix, y, 0);
+                    cnt1df = df->U_get_data(thl, x_widepix, y, 1);
                 } else {
                     cnt0df = 0;
                     cnt1df = 0;
@@ -1559,25 +1811,26 @@ void UC_plot::U_generate_table(double energy) {
             for (int y = 0; y < 256; y++) {
                 for (int x = 0; x < 256; x++) {
                     x_widepix = U_get_coord_x_chip(chip, x);
-                    z = U_get_identification_data(identification_type, thl, x_widepix, y);
+                    z = U_get_pixel_data(pixel_type, thl, x_widepix, y);
 
                     widepix.U_add_pixel_2(z);
                     chip_info[chip]->U_add_pixel_2(z);
 
                     mask = U_get_mask(x_widepix, y);
                     in_roi = (x_widepix >= x_min) & (x_widepix < x_max) & (y >= y_min) & (y < y_max);
-                    cnt0 = U_get_pixel_data_1(thl, x_widepix, y);
-                    cnt1 = U_get_pixel_data_2(thl, x_widepix, y);
+
+                    cnt0 = scan->U_get_data(thl, x_widepix, y, 0);
+                    cnt1 = scan->U_get_data(thl, x_widepix, y, 1);
                     if (ff_enable) {
-                        cnt0ff = U_get_pixel_data_3(thl, x_widepix, y);
-                        cnt1ff = U_get_pixel_data_4(thl, x_widepix, y);
+                        cnt0ff = ff->U_get_data(thl, x_widepix, y, 0);
+                        cnt1ff = ff->U_get_data(thl, x_widepix, y, 1);
                     } else {
                         cnt0ff = 0;
                         cnt1ff = 0;
                     }
                     if (df_enable) {
-                        cnt0df = U_get_pixel_data_5(thl, x_widepix, y);
-                        cnt1df = U_get_pixel_data_6(thl, x_widepix, y);
+                        cnt0df = df->U_get_data(thl, x_widepix, y, 0);
+                        cnt1df = df->U_get_data(thl, x_widepix, y, 1);
                     } else {
                         cnt0df = 0;
                         cnt1df = 0;
@@ -1690,18 +1943,18 @@ void UC_plot::U_generate_table() {
                     in_roi = (x_widepix >= x_min) & (x_widepix < x_max) & (y >= y_min) & (y < y_max);
                     in_thl1_d = (thl >= thl_id_1) & (thl <= thl_id_2);
                     in_thl2_d = (thl >= thl_id_3) & (thl <= thl_id_4);
-                    cnt0 = U_get_pixel_data_1(thl, x_widepix, y);
-                    cnt1 = U_get_pixel_data_2(thl, x_widepix, y);
+                    cnt0 = scan->U_get_data(thl, x_widepix, y, 0);
+                    cnt1 = scan->U_get_data(thl, x_widepix, y, 1);
                     if (ff_enable) {
-                        cnt0ff = U_get_pixel_data_3(thl, x_widepix, y);
-                        cnt1ff = U_get_pixel_data_4(thl, x_widepix, y);
+                        cnt0ff = ff->U_get_data(thl, x_widepix, y, 0);
+                        cnt1ff = ff->U_get_data(thl, x_widepix, y, 1);
                     } else {
                         cnt0ff = 0;
                         cnt1ff = 0;
                     }
                     if (df_enable) {
-                        cnt0df = U_get_pixel_data_5(thl, x_widepix, y);
-                        cnt1df = U_get_pixel_data_6(thl, x_widepix, y);
+                        cnt0df = df->U_get_data(thl, x_widepix, y, 0);
+                        cnt1df = df->U_get_data(thl, x_widepix, y, 1);
                     } else {
                         cnt0df = 0;
                         cnt1df = 0;
@@ -1804,18 +2057,18 @@ void UC_plot::U_generate_table() {
                         in_roi = (x_widepix >= x_min) & (x_widepix < x_max) & (y >= y_min) & (y < y_max);
                         in_thl1_d = (thl >= thl_id_1) & (thl <= thl_id_2);
                         in_thl2_d = (thl >= thl_id_3) & (thl <= thl_id_4);
-                        cnt0 = U_get_pixel_data_1(thl, x_widepix, y);
-                        cnt1 = U_get_pixel_data_2(thl, x_widepix, y);
+                        cnt0 = scan->U_get_data(thl, x_widepix, y, 0);
+                        cnt1 = scan->U_get_data(thl, x_widepix, y, 1);
                         if (ff_enable) {
-                            cnt0ff = U_get_pixel_data_3(thl, x_widepix, y);
-                            cnt1ff = U_get_pixel_data_4(thl, x_widepix, y);
+                            cnt0ff = ff->U_get_data(thl, x_widepix, y, 0);
+                            cnt1ff = ff->U_get_data(thl, x_widepix, y, 1);
                         } else {
                             cnt0ff = 0;
                             cnt1ff = 0;
                         }
                         if (df_enable) {
-                            cnt0df = U_get_pixel_data_5(thl, x_widepix, y);
-                            cnt1df = U_get_pixel_data_6(thl, x_widepix, y);
+                            cnt0df = df->U_get_data(thl, x_widepix, y, 0);
+                            cnt1df = df->U_get_data(thl, x_widepix, y, 1);
                         } else {
                             cnt0df = 0;
                             cnt1df = 0;
@@ -1929,7 +2182,7 @@ void UC_plot::U_generate_frame_distribution(int n_bins, double min, double max, 
             pixel++;
             emit US_renew_progress_bar(pixel, total);
             if (U_get_mask(x, y)) continue;
-            z = U_get_identification_data(identification_type, thl, x, y);
+            z = U_get_pixel_data(pixel_type, thl, x, y);
             if (bounds[0] > z) continue;
             for (int j = 1; j < (n_bins + 1); j++) {
                 if (bounds[j] > z) {
@@ -1937,9 +2190,6 @@ void UC_plot::U_generate_frame_distribution(int n_bins, double min, double max, 
                     break;
                 }
             }
-
-
-
         }
     }
     for (int i = 0; i < n_bins; i++){
@@ -2122,48 +2372,78 @@ void UC_plot::U_generate_calibration() {
 //    using_calibration = true;
 }
 
-void UC_plot::U_generate_identification() {
-    if (!ff) return;
-    double data_y = 0;
-    int n = thl_finish - thl_start;
-    int total = n * 3;
-    int current = 1;
-    QVector<double> y_vector, y_vector_ff, x_vector;
-    for (int thl = thl_start; thl <= thl_finish; thl++) {
-        data_y = U_get_frame_data(frame_type, UTE_PT_cnt1, thl);
-        y_vector << data_y;
-        x_vector << thl;
-        data_y = U_get_frame_data(frame_type, UTE_PT_cnt1ff, thl);
-        y_vector_ff << data_y;
-        data_y = U_get_frame_data(frame_type, UTE_PT_mu_diff, thl);
-        //data_y = U_get_frame_data(frame_type, UTE_PT_diff_cnt1, thl);
-        emit US_identification_data(thl, data_y, false);
-        emit US_renew_progress_bar(current++, total);
+
+void UC_plot::U_generate_identification_roi() {
+    switch (identification_type) {
+        case UTE_IT_GA_method : {
+            U_identification_roi_1();
+            return;
+        }
+        case UTE_IT_linear_combination : {
+            U_identification_roi_2();
+            return;
+        }
     }
-    y_vector = U_smooth(x_vector, y_vector);
-    y_vector = U_diff(x_vector, y_vector);
-    y_vector = U_vector_minus(x_vector, y_vector);
-    y_vector = U_smooth(x_vector, y_vector);
-    y_vector_ff = U_smooth(x_vector, y_vector_ff);
-    y_vector_ff = U_diff(x_vector, y_vector_ff);
-    y_vector_ff = U_vector_minus(x_vector, y_vector_ff);
-    y_vector_ff = U_smooth(x_vector, y_vector_ff);
-    for (int i = 0; i < x_vector.size() - 1; i++) {
-        if (qAbs(y_vector[i]) > 1e-10) emit US_identification_data(x_vector[i], y_vector_ff[i] / y_vector[i], true);
-            else emit US_identification_data(x_vector[i], 0, true);
-//        emit US_identification_data(x_vector[i], y_vector[i], true);
-        emit US_renew_progress_bar(current++, total);
-    }
-    emit US_replot_identificaton();
-    //delete h;
 }
+
+void UC_plot::U_generate_additional_data() {
+    int nx = static_cast<int>(ceil(static_cast<double>(this->x_max - this->x_min) / rebin_x));
+    int ny = static_cast<int>(ceil(static_cast<double>(this->y_max - this->y_min) / rebin_y));
+    int current = 0;
+    int total = nx * ny;
+    for (int x = 0; x < nx; x++) {
+        for (int y = 0; y < ny; y++) {
+            U_calculating_xmu(scan, x, y, rebin_x, rebin_y, rebin_thl);
+            current++;
+            emit US_renew_progress_bar(current, total);
+        }
+    }
+}
+
+void UC_plot::U_generate_identification_data() {
+    QList<UC_data_container *> id_samples;
+    QList<QString> elements;
+
+    scan->U_clean_id_data(x_min, x_max, y_min, y_max);
+    U_generate_additional_data();
+
+    UC_data_container * scan_reserved = scan;
+    for (int i = 0; i < scans_list.size(); i++) {
+        if (scans_list[i].U_get_sample_of_element()) {
+            id_samples << &(scans_list[i]);
+            scan = &(scans_list[i]);
+            U_generate_additional_data();
+            elements << scan->U_get_name();
+        }
+    }
+    scan = scan_reserved;
+
+    U_calculating_id(scan, id_samples);
+    emit US_identification_scan_list(elements);
+}
+
+void UC_plot::U_generate_identification_frame(int element_index) {
+    double z;
+    for (int x = x_min; x < x_max; x++) {
+        for (int y = y_min; y < y_max; y++) {
+            if (U_get_mask(x, y)) {
+                emit US_identification_frame_data(x, y, 0);
+            } else {
+                z = scan->U_get_id_data(x, y, element_index);
+                emit US_identification_frame_data(x, y, z);
+            }
+        }
+    }
+    emit US_replot_identificaton_frame();
+}
+
 
 void UC_plot::U_generate_range(int thl) {
     double z, max = -9999999999999, min = 9999999999999999;
     for (int x = x_min; x < x_max; x++) {
         for (int y = y_min; y < y_max; y++) {
             if (U_get_mask(x, y)) continue;
-            z = U_get_identification_data(identification_type, thl, x, y);
+            z = U_get_pixel_data(pixel_type, thl, x, y);
             if (z > max) max = z;
             if (z < min) min = z;
         }
@@ -2189,6 +2469,10 @@ void UC_plot::U_generate_range() {
     }
     emit US_range_data(min, max);
 }
+///
+
+
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
@@ -2211,6 +2495,12 @@ void UC_plot::U_set_roi(int x_min, int x_max, int y_min, int y_max) {
     this->y_max = y_max;
 }
 
+void UC_plot::U_set_rebin(int rebin_x, int rebin_y, int rebin_thl) {
+    this->rebin_x   = rebin_x;
+    this->rebin_y   = rebin_y;
+    this->rebin_thl = rebin_thl;
+}
+
 void UC_plot::U_set_thresholds(int thl_id_1, int thl_id_2, int thl_id_3, int thl_id_4) {
     this->thl_id_1 = thl_id_1;
     this->thl_id_2 = thl_id_2;
@@ -2231,8 +2521,12 @@ void UC_plot::U_set_using_calibraion(bool enable) {
     using_calibration = enable;
 }
 
-void UC_plot::U_set_threshold_level(double level) {
+void UC_plot::U_set_threshold_level(int level) {
     this->threshold_level = level;
+}
+
+void UC_plot::U_set_smoothing(int smoothing) {
+    this->smoothing = smoothing;
 }
 
 void UC_plot::U_save_calibration(QString file_name) {
@@ -2275,7 +2569,7 @@ void UC_plot::U_set_mask(bool mask, bool more, double value, bool in_roi, int th
 
     for (int x = x_min; x < x_max; x++) {
         for (int y = y_min; y < y_max; y++) {
-            data = U_get_identification_data(identification_type, thl, x, y);
+            data = U_get_pixel_data(pixel_type, thl, x, y);
             if (more) {
                 if (data > value) {
                     U_set_mask(x, y, mask);
@@ -2335,12 +2629,22 @@ void UC_plot::U_set_mask_overflowed(bool in_roi, int thl) {
 
     for (int x = x_min; x < x_max; x++) {
         for (int y = y_min; y < y_max; y++) {
-            cnt0 = U_get_pixel_data_1(thl, x, y);
-            cnt1 = U_get_pixel_data_2(thl, x, y);
-            cnt0ff = U_get_pixel_data_3(thl, x, y);
-            cnt1ff = U_get_pixel_data_4(thl, x, y);
-            cnt0df = U_get_pixel_data_5(thl, x, y);
-            cnt1df = U_get_pixel_data_6(thl, x, y);
+            cnt0 = scan->U_get_data(thl, x, y, 0);
+            cnt1 = scan->U_get_data(thl, x, y, 1);
+            if (ff_enable) {
+                cnt0ff = ff->U_get_data(thl, x, y, 0);
+                cnt1ff = ff->U_get_data(thl, x, y, 1);
+            } else {
+                cnt0ff = 0;
+                cnt1ff = 0;
+            }
+            if (df_enable) {
+                cnt0df = df->U_get_data(thl, x, y, 0);
+                cnt1df = df->U_get_data(thl, x, y, 1);
+            } else {
+                cnt0df = 0;
+                cnt1df = 0;
+            }
             overflowed = (cnt0 == overflow) | (cnt1 == overflow);
             overflowed |= (cnt0ff == overflow_ff) | (cnt1ff == overflow_ff);
             overflowed |= (cnt0df == overflow_df) | (cnt1df == overflow_df);
@@ -2386,7 +2690,7 @@ void UC_plot::U_mask_selected_value(double value_min, double value_max, bool in_
         for (int x = x_min; x < x_max; x++) {
             for (int y = y_min; y < y_max; y++) {
 
-                data = U_get_identification_data(identification_type, thl, x, y);
+                data = U_get_pixel_data(pixel_type, thl, x, y);
                 if ((data < value_max) && (value_min < data)) {
                     U_set_mask(x, y, true);
                 }
@@ -2410,7 +2714,7 @@ void UC_plot::U_mask_selected_value_thl(double value_min, double value_max, bool
 
     for (int x = x_min; x < x_max; x++) {
         for (int y = y_min; y < y_max; y++) {
-            data = U_get_identification_data(identification_type, thl, x, y);
+            data = U_get_pixel_data(pixel_type, thl, x, y);
             if ((data < value_max) && (value_min < data)) {
                 U_set_mask(x, y, true);
             }
@@ -2419,4 +2723,337 @@ void UC_plot::U_mask_selected_value_thl(double value_min, double value_max, bool
 }
 //////////////////////////////////////////////////////////////////////////////////////
 
+//    element_vector.clear();
+//    U_preoperating(scan);
 
+//    int n_scans = scans_list.size();
+//    int number_of_samples = 0;
+//    UC_data_container * current_scan_i, * current_scan_j;
+//    for (int scan_i = 0; scan_i < n_scans; scan_i++) {
+//        current_scan_i = &(scans_list[scan_i]);
+//        if (current_scan_i->U_get_sample_of_element()) {
+//            number_of_samples++;
+//            U_preoperating(current_scan_i);
+//            element_vector << current_scan_i->U_get_settings().element;
+//    }}
+
+//    TMatrixD eqv_matr(number_of_samples, number_of_samples);
+//    TVectorD scan_thl_data(number_of_samples);
+
+//    int index_scan_i = 0, index_scan_j = 0;
+
+//    for (int x = x_min; x < x_max; x++) {
+//        for (int y = y_min; y < y_max; y++) {
+//            for (int scan_i = 0; scan_i < n_scans; scan_i++) {
+//                current_scan_i = &(scans_list[scan_i]);
+//                if (!current_scan_i->U_get_sample_of_element()) continue;
+//                index_scan_j = 0;
+//                int thl = current_scan_i->U_get_thl_sample();
+//                for (int scan_j = 0; scan_j < n_scans; scan_j++) {
+//                    current_scan_j = &(scans_list[scan_j]);
+//                    if (!current_scan_j->U_get_sample_of_element()) continue;
+//                    double data = current_scan_j->U_get_data_additional(thl, x, y);
+//                    eqv_matr[index_scan_i][index_scan_j] = data;
+//                    index_scan_j++;
+//                }
+//                double data = scan->U_get_data_additional(thl, x, y);
+//                scan_thl_data[index_scan_i] = data;
+//                index_scan_i++;
+//            }
+
+//            TDecompLU decomp(eqv_matr);
+//            Bool_t ok;
+//            TVectorD result = decomp.Solve(scan_thl_data, ok);
+//            int nr = 0;
+//            while (!ok) {
+//                decomp.SetMatrix(eqv_matr);
+//                decomp.SetTol(0.1 * decomp.GetTol());
+//                if (nr++ > 10) break;
+//                result = decomp.Solve(scan_thl_data, ok);
+//            }
+//            for (int i = 0; i < number_of_samples; i++) {
+//                scan->U_set_id_data(x, y, result[i]);
+//            }
+//        }
+//    }
+//    for (int x = x_min; x < x_max; x++) {
+//        for (int y = y_min; y < y_max; y++) {
+//            for (int scan_i = 0; scan_i < n_scans; scan_i++) {
+//                current_scan_i = &(scans_list[scan_i]);
+//                if (!current_scan_i->U_get_sample_of_element()) continue;
+//                index_scan_j = 0;
+//                int thl = current_scan_i->U_get_thl_sample();
+//                for (int scan_j = 0; scan_j < n_scans; scan_j++) {
+//                    current_scan_j = &(scans_list[scan_j]);
+//                    if (!current_scan_j->U_get_sample_of_element()) continue;
+//                    double data = current_scan_j->U_get_data_additional(thl, x, y);
+//                    eqv_matr[index_scan_i][index_scan_j] = data;
+//                    index_scan_j++;
+//                }
+//                double data = scan->U_get_data_additional(thl, x, y);
+//                scan_thl_data[index_scan_i] = data;
+//                index_scan_i++;
+//            }
+
+//            TDecompLU decomp(eqv_matr);
+//            Bool_t ok;
+//            TVectorD result = decomp.Solve(scan_thl_data, ok);
+//            int nr = 0;
+//            while (!ok) {
+//                decomp.SetMatrix(eqv_matr);
+//                decomp.SetTol(0.1 * decomp.GetTol());
+//                if (nr++ > 10) break;
+//                result = decomp.Solve(scan_thl_data, ok);
+//            }
+//            for (int i = 0; i < number_of_samples; i++) {
+//                scan->U_set_id_data(x, y, result[i]);
+//            }
+//        }
+//    }
+
+//    int n_scans = scans_list.size();
+//    int number_of_samples = 0;
+//    for (int scan_i = 0; scan_i < n_scans; scan_i++) {
+//        if (scans_list[scan_i].U_get_sample_of_element()) number_of_samples++;
+//    }
+
+//    UC_data_container * scan;
+//    scan = this->scan;
+
+
+//    QVector<double> data_y_scan(thl_finish - thl_start);
+//    QVector<double> data_y_ff(thl_finish - thl_start);
+//    QVector<double> data_thl(thl_finish - thl_start);
+
+//    UC_data_container * ff = &scans_list[scan->U_get_settings().ff_int];
+//    this->scan = ff;
+//    for (int thl_index = thl_start; thl_index < thl_finish; thl_index++) {
+//        data_y_ff[thl_index - thl_start] = U_get_frame_data(frame_type, pixel_type, thl_index);
+//        data_thl[thl_index - thl_start] = thl_index;
+//    }
+//    data_y_ff = U_smooth(data_thl, data_y_ff);
+//    data_y_ff = U_diff(data_thl, data_y_ff);
+//    data_y_ff = U_vector_minus(data_y_ff);
+//    data_y_ff = U_smooth(data_thl, data_y_ff);
+//    this->scan = scan;
+//    for (int thl_index = thl_start; thl_index < thl_finish; thl_index++) {
+//        data_y_scan[thl_index - thl_start] = U_get_frame_data(frame_type, pixel_type, thl_index);
+//    }
+//    data_y_scan = U_smooth(data_thl, data_y_scan);
+//    data_y_scan = U_diff(data_thl, data_y_scan);
+//    data_y_scan = U_vector_minus(data_y_scan);
+//    data_y_scan = U_smooth(data_thl, data_y_scan);
+//    data_y_scan = U_vector_divide(data_y_ff, data_y_scan);
+//    data_y_scan = U_smooth(data_thl, data_y_scan);
+//    data_y_scan = U_vector_log(data_y_scan);
+
+//    TMatrixD eqv_matr(number_of_samples, number_of_samples);
+//    TVectorD scan_thl_data(number_of_samples);
+
+//    QVector<double> * data_y_samples[number_of_samples];
+//    int current_scan = 0;
+//    for (int scan_i = 0; scan_i < n_scans; scan_i++) {
+//        scan = &(scans_list[scan_i]);
+//        if (!scan->U_get_sample_of_element()) continue;
+//        QVector<double> data_y_scan(thl_finish - thl_start);
+//        QVector<double> data_y_ff(thl_finish - thl_start);
+//        UC_data_container * ff = &scans_list[scan->U_get_settings().ff_int];
+//        this->scan = ff;
+//        for (int thl_index = thl_start; thl_index < thl_finish; thl_index++) {
+//            data_y_ff[thl_index - thl_start] = U_get_frame_data(frame_type, pixel_type, thl_index);
+//        }
+//        data_y_ff = U_smooth(data_thl, data_y_ff);
+//        data_y_ff = U_diff(data_thl, data_y_ff);
+//        data_y_ff = U_vector_minus(data_y_ff);
+//        data_y_ff = U_smooth(data_thl, data_y_ff);
+//        this->scan = scan;
+//        for (int thl_index = thl_start; thl_index < thl_finish; thl_index++) {
+//            data_y_scan[thl_index - thl_start] = U_get_frame_data(frame_type, pixel_type, thl_index);
+//        }
+//        data_y_scan = U_smooth(data_thl, data_y_scan);
+//        data_y_scan = U_diff(data_thl, data_y_scan);
+//        data_y_scan = U_vector_minus(data_y_scan);
+//        data_y_scan = U_smooth(data_thl, data_y_scan);
+//        data_y_scan = U_vector_divide(data_y_ff, data_y_scan);
+//        data_y_scan = U_smooth(data_thl, data_y_scan);
+//        data_y_scan = U_vector_log(data_y_scan);
+//        data_y_samples[current_scan] = new QVector<double>(data_y_scan);
+//    }
+
+//    int index_scan_i = 0, index_scan_j = 0;
+//    UC_data_container * current_scan_i, * current_scan_j;
+//    for (int scan_i = 0; scan_i < n_scans; scan_i++) {
+//        current_scan_i = &(scans_list[scan_i]);
+//        if (!current_scan_i->U_get_sample_of_element()) continue;
+//        index_scan_j = 0;
+//        int index = data_thl.indexOf(current_scan_i->U_get_thl_sample());
+//        for (int scan_j = 0; scan_j < n_scans; scan_j++) {
+//            current_scan_j = &(scans_list[scan_j]);
+//            if (!current_scan_j->U_get_sample_of_element()) continue;
+//            double data = (data_y_samples[index_scan_j]->at(index));
+//            eqv_matr[index_scan_i][index_scan_j] = data;
+//            index_scan_j++;
+//        }
+//        double data = data_y_scan[index];
+//        scan_thl_data[index_scan_i] = data;
+//        index_scan_i++;
+//    }
+//    TDecompLU decomp(eqv_matr);
+//    Bool_t ok;
+//    TVectorD result = decomp.Solve(scan_thl_data, ok);
+//    int nr = 0;
+//    while (!ok) {
+//        decomp.SetMatrix(eqv_matr);
+//        decomp.SetTol(0.1 * decomp.GetTol());
+//        if (nr++ > 10) break;
+//        result = decomp.Solve(scan_thl_data, ok);
+//    }
+//    US_identification_data(result[0], result[1]);
+//    this->scan = scan;
+
+//void UC_plot::U_generate_muxes(int rebin_xy, int rebin_thl) {
+////    //id.U_generate_muxes(scan, ff, rebin_xy, rebin_thl);
+////    //U_preoperating();
+////    element_vector.clear();
+////    U_preoperating(scan);
+
+////    int n_scans = scans_list.size();
+////    int number_of_samples = 0;
+////    UC_data_container * current_scan_i, * current_scan_j;
+////    for (int scan_i = 0; scan_i < n_scans; scan_i++) {
+////        current_scan_i = &(scans_list[scan_i]);
+////        if (current_scan_i->U_get_sample_of_element()) {
+////            number_of_samples++;
+////            U_preoperating(current_scan_i);
+////            element_vector << current_scan_i->U_get_settings().element;
+////        }
+////    }
+
+////    TMatrixD eqv_matr(number_of_samples, number_of_samples);
+////    TVectorD scan_thl_data(number_of_samples);
+
+////    int index_scan_i = 0, index_scan_j = 0;
+
+////    for (int x = x_min; x < x_max; x++) {
+////        for (int y = y_min; y < y_max; y++) {
+////            if (U_get_mask(x, y)) continue;
+////            for (int scan_i = 0; scan_i < n_scans; scan_i++) {
+////                current_scan_i = &(scans_list[scan_i]);
+////                if (!current_scan_i->U_get_sample_of_element()) continue;
+////                index_scan_j = 0;
+////                int thl = current_scan_i->U_get_thl_sample();
+////                for (int scan_j = 0; scan_j < n_scans; scan_j++) {
+////                    current_scan_j = &(scans_list[scan_j]);
+////                    if (!current_scan_j->U_get_sample_of_element()) continue;
+////                    double data = current_scan_j->U_get_data_additional(thl, x, y);
+////                    eqv_matr[index_scan_i][index_scan_j] = data;
+////                    index_scan_j++;
+////                }
+////                double data = scan->U_get_data_additional(thl, x, y);
+////                scan_thl_data[index_scan_i] = data;
+////                index_scan_i++;
+////            }
+
+////            TDecompLU decomp(eqv_matr);
+////            Bool_t ok;
+////            TVectorD result = decomp.Solve(scan_thl_data, ok);
+////            int nr = 0;
+////            while (!ok) {
+////                decomp.SetMatrix(eqv_matr);
+////                decomp.SetTol(0.1 * decomp.GetTol());
+////                if (nr++ > 10) break;
+////                result = decomp.Solve(scan_thl_data, ok);
+////            }
+////            for (int i = 0; i < number_of_samples; i++) {
+////                scan->U_set_id_data(x, y, result[i]);
+////            }
+////        }
+////    }
+//}
+
+
+//void UC_plot::U_generate_identification_frame(int element_index) {
+////    int current_element_index = element_vector.indexOf(element_index);
+////    double z;
+////    for (int x = x_min; x < x_max; x++) {
+////        for (int y = y_min; y < y_max; y++) {
+////            if (U_get_mask(x, y)) {
+////                emit US_identification_frame_data(x, y, 0);
+////            } else {
+////                z = scan->U_get_id_data(x, y, current_element_index);
+////                emit US_identification_frame_data(x, y, z);
+////            }
+////        }
+////    }
+////    emit US_replot_identificaton_frame();
+//}
+
+////void UC_plot::U_generate_identification() {
+////    if (!ff) return;
+////    double data_y = 0;
+////    int n = thl_finish - thl_start;
+////    int total = n * 2;
+////    int current = 1;
+////    QVector<double> y_vector, y_vector_ff, x_vector;
+////    for (int thl = thl_start; thl <= thl_finish; thl++) {
+////        data_y = U_get_frame_data(frame_type, UTE_PT_cnt1, thl);
+////        y_vector << data_y;
+////        x_vector << thl;
+////        //data_y = U_get_frame_data(frame_type, UTE_PT_cnt1ff, thl);
+////        y_vector_ff << data_y;
+////        data_y = U_get_frame_data(frame_type, UTE_PT_mu_diff, thl);
+////        //data_y = U_get_frame_data(frame_type, UTE_PT_diff_cnt1ff, thl);
+////        emit US_identification_data(thl, data_y, false);
+////        emit US_renew_progress_bar(current++, total);
+////    }
+////    y_vector = U_smooth(x_vector, y_vector);
+////    y_vector = U_diff(x_vector, y_vector);
+////    y_vector = U_vector_minus(y_vector);
+////    y_vector = U_smooth(x_vector, y_vector);
+////    y_vector_ff = U_smooth(x_vector, y_vector_ff);
+////    y_vector_ff = U_diff(x_vector, y_vector_ff);
+////    y_vector_ff = U_vector_minus(y_vector_ff);
+////    y_vector_ff = U_smooth(x_vector, y_vector_ff);
+////    for (int i = 0; i < x_vector.size() - 1; i++) {
+////        if (qAbs(y_vector[i]) > 1e-10) y_vector[i] = y_vector_ff[i] / y_vector[i];
+////            else y_vector[i] = 0;
+////    }
+////    for (int i = 0; i < x_vector.size() - 1; i++) {
+////        if (y_vector[i] > 1e-10) y_vector[i] = qLn(y_vector[i]);
+////            else y_vector[i] = 0;
+////    }
+////    for (int i = 0; i < x_vector.size() - 1; i++) {
+////        emit US_identification_data(x_vector[i], y_vector[i], true);
+//////        emit US_identification_data(x_vector[i], y_vector_ff[i], true);
+////        emit US_renew_progress_bar(current++, total);
+////    }
+////    emit US_replot_identificaton();
+////    //delete h;
+////}
+
+////void UC_plot::U_generate_identification_frame(int thl) {
+////    if (scan->U_get_settings().ff_int == -1) {
+////        ff_enable = false;
+////    } else {
+////        ff_enable = true;
+////        ff = &scans_list[scan->U_get_settings().ff_int];
+////    }
+////    if (scan->U_get_settings().df_int == -1) {
+////        df_enable = false;
+////    } else {
+////        df_enable = true;
+////        df = &scans_list[scan->U_get_settings().df_int];
+////    }
+////    double z;
+////    for (int x = 0; x < (15 * 256); x++) {
+////        for (int y = 0; y < 256; y++) {
+////            if (U_get_mask(x, y)) {
+////                emit US_identification_frame_data(x, y, 0);
+////            } else {
+////                //z = scan->U_get_muxes(thl, x, y);
+////                emit US_identification_frame_data(x, y, z);
+////            }
+////        }
+////    }
+////    emit US_replot_identificaton_frame();
+////}
