@@ -381,7 +381,7 @@ void widepix_analyser_2::on_pushButton_8_clicked()
     } else {
         roi = "other";
     }
-    ui->label_3->setNum(ui->spinBox_5->value());
+    ui->label_2->setNum(ui->spinBox_5->value());
     ui->label_20->setNum(ui->spinBox_4->value());
     ui->label_21->setNum(ui->spinBox_6->value());
     ui->label_22->setNum(ui->spinBox_7->value());
@@ -1162,4 +1162,9 @@ void widepix_analyser_2::on_pushButton_68_clicked()
 void widepix_analyser_2::on_spinBox_12_valueChanged(int arg1)
 {
     wai->U_set_smoothing(arg1);
+}
+
+void widepix_analyser_2::on_checkBox_17_toggled(bool checked)
+{
+    wai->U_set_renew_roi_ranges(checked);
 }

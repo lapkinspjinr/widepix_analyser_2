@@ -16,8 +16,6 @@ UC_data_container::UC_data_container(UTStr_data_container_settings settings)
         }
     }
 
-    settings.thl_max = 0;
-    settings.thl_min = 512;
     this->settings = settings;
     data_additional_using = false;
 }
@@ -27,11 +25,8 @@ UC_data_container::~UC_data_container()
     if (settings.both_counters) {
         data_counter_0->~QHash();
         data_counter_1->~QHash();
-//        delete data_counter_0;
-//        delete data_counter_1;
     } else {
         data_counter_1->~QHash();
-//        delete data_counter_1;
     }
     if (data_additional_using) {
         data_additional->~QHash();
@@ -40,37 +35,60 @@ UC_data_container::~UC_data_container()
 /////
 
 void UC_data_container::U_set_data(int thl, int x, int y, int data, int counter) {
-    if (!(data_counter_1->contains(thl))) {
-        UTStr_frame frame;
-        for (int y = 0; y < 256; y++) {
-            for (int x = 0; x < (15 * 256); x++) {
-                frame.pixel[x][y] = 0;
+    if (settings.both_counters) {
+        if (!(data_counter_1->contains(thl))) {
+            UTStr_frame frame;
+            for (int y = 0; y < 256; y++) {
+                for (int x = 0; x < (15 * 256); x++) {
+                    frame.pixel[x][y] = 0;
+                }
             }
-        }
-        if (settings.both_counters) {
             (*data_counter_0).insert(thl, frame);
             (*data_counter_1).insert(thl, frame);
+        }
+        if (counter == 0) {
+            (*data_counter_0)[thl].pixel[x][y] = data;
+            data_cnt0_mean[x][y] += data;
         } else {
+            (*data_counter_1)[thl].pixel[x][y] = data;
+        }
+    } else {
+        if (counter == 0) return;
+        if (!(data_counter_1->contains(thl))) {
+            UTStr_frame frame;
+            for (int y = 0; y < 256; y++) {
+                for (int x = 0; x < (15 * 256); x++) {
+                    frame.pixel[x][y] = 0;
+                }
+            }
             (*data_counter_1).insert(thl, frame);
         }
-    }
-    if (counter == 0) {
-        (*data_counter_0)[thl].pixel[x][y] = data;
-        data_cnt0_mean[x][y] += data;
-    } else {
         (*data_counter_1)[thl].pixel[x][y] = data;
     }
-    if (thl > settings.thl_max) {
-        settings.thl_max = thl;
-    }
-    if (thl < settings.thl_min) {
-        settings.thl_min = thl;
+}
+
+void UC_data_container::U_set_data(int thl, UTStr_frame &data, int counter) {
+    if (settings.both_counters) {
+        if (counter == 0) {
+            (*data_counter_0).insert(thl, data);
+            for (int x = 0; x < (15 * 256); x++) {
+                for (int y = 0; y < 256; y++) {
+                    data_cnt0_mean[x][y] += data.pixel[x][y];
+                }
+            }
+        } else {
+            (*data_counter_1).insert(thl, data);
+        }
+    } else {
+        if (counter == 0) return;
+        (*data_counter_1).insert(thl, data);
     }
 }
 
 int UC_data_container::U_get_data(int thl, int x, int y, int counter) {
     if (!(data_counter_1->contains(thl))) return 0;
     if (counter == 0) {
+        if (!settings.both_counters) return 0;
         return (*data_counter_0)[thl].pixel[x][y];
     } else {
         return (*data_counter_1)[thl].pixel[x][y];
@@ -81,6 +99,7 @@ double UC_data_container::U_get_data_scaled(int thl, int x, int y, int counter, 
     if (!(data_counter_1->contains(thl))) return 0;
     double data;
     if (counter == 0) {
+        if (!settings.both_counters) return 0;
         data = (*data_counter_0)[thl].pixel[x][y];
     } else {
         data = (*data_counter_1)[thl].pixel[x][y];

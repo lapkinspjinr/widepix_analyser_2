@@ -21,7 +21,7 @@
        <enum>QTabWidget::West</enum>
       </property>
       <property name="currentIndex">
-       <number>0</number>
+       <number>2</number>
       </property>
       <widget class="QWidget" name="tab">
        <attribute name="title">
@@ -1015,11 +1015,15 @@
            </layout>
           </item>
           <item>
-           <widget class="QPushButton" name="pushButton_47">
-            <property name="text">
-             <string>Frame by energy</string>
-            </property>
-           </widget>
+           <layout class="QVBoxLayout" name="verticalLayout">
+            <item>
+             <widget class="QPushButton" name="pushButton_47">
+              <property name="text">
+               <string>Frame by energy</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
           </item>
          </layout>
         </item>
@@ -3206,14 +3210,28 @@
              </widget>
             </item>
             <item>
-             <widget class="QCheckBox" name="checkBox_13">
-              <property name="text">
-               <string>renew ranges</string>
-              </property>
-              <property name="checked">
-               <bool>true</bool>
-              </property>
-             </widget>
+             <layout class="QHBoxLayout" name="horizontalLayout_52">
+              <item>
+               <widget class="QCheckBox" name="checkBox_17">
+                <property name="text">
+                 <string>renew roi range</string>
+                </property>
+                <property name="checked">
+                 <bool>true</bool>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QCheckBox" name="checkBox_13">
+                <property name="text">
+                 <string>renew ranges</string>
+                </property>
+                <property name="checked">
+                 <bool>true</bool>
+                </property>
+               </widget>
+              </item>
+             </layout>
             </item>
            </layout>
           </item>

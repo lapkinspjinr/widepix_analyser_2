@@ -89,17 +89,17 @@ UC_wai::UC_wai(QObject *parent) : QObject(parent)
     connect(plot, SIGNAL(US_id_roi_LC_data(UC_plot::UTStr_id_LC_data)),         this, SLOT(U_add_id_roi_LC_data(UC_plot::UTStr_id_LC_data)),            Qt::DirectConnection);
     connect(plot, SIGNAL(US_identification_frame_data(double, double, double)), this, SLOT(U_add_identification_frame_data(double, double, double)),    Qt::DirectConnection);
 
-    connect(plot, SIGNAL(US_replot_spectra()),                                      this, SLOT(U_replot_spectra()), Qt::DirectConnection);
-    connect(plot, SIGNAL(US_replot_frame()),                                        this, SLOT(U_replot_frame()), Qt::DirectConnection);
-    connect(plot, SIGNAL(US_rewrite_table()),                                       this, SLOT(U_rewrite_table()), Qt::DirectConnection);
-    connect(plot, SIGNAL(US_replot_distribution()),                                 this, SLOT(U_replot_distribution()), Qt::DirectConnection);
-    connect(plot, SIGNAL(US_replot_calibration_chip()),                             this, SLOT(U_replot_calibration_chip()), Qt::DirectConnection);
-    connect(plot, SIGNAL(US_replot_calibration()),                                  this, SLOT(U_replot_calibration()), Qt::DirectConnection);
-    connect(plot, SIGNAL(US_replot_identificaton()),                                this, SLOT(U_replot_identification()), Qt::DirectConnection);
-    connect(plot, SIGNAL(US_replot_identificaton_frame()),                          this, SLOT(U_replot_identification_frame()), Qt::DirectConnection);
+    connect(plot, SIGNAL(US_replot_spectra(QVector<double>, QVector<double>)),                  this, SLOT(U_replot_spectra(QVector<double>, QVector<double>)),                 Qt::DirectConnection);
+    connect(plot, SIGNAL(US_replot_frame()),                                                    this, SLOT(U_replot_frame()),                                                   Qt::DirectConnection);
+    connect(plot, SIGNAL(US_rewrite_table()),                                                   this, SLOT(U_rewrite_table()),                                                  Qt::DirectConnection);
+    connect(plot, SIGNAL(US_replot_distribution(QVector<double>, QVector<double>)),             this, SLOT(U_replot_distribution(QVector<double>, QVector<double>)),            Qt::DirectConnection);
+    connect(plot, SIGNAL(US_replot_calibration_chip(QVector<double>, QVector<double>, bool)),   this, SLOT(U_replot_calibration_chip(QVector<double>, QVector<double>, bool)),  Qt::DirectConnection);
+    connect(plot, SIGNAL(US_replot_calibration(QVector<double>, QVector<double>, int, bool)),   this, SLOT(U_replot_calibration(QVector<double>, QVector<double>, int, bool)),  Qt::DirectConnection);
+    connect(plot, SIGNAL(US_replot_identificaton()),                                            this, SLOT(U_replot_identification()),                                          Qt::DirectConnection);
+    connect(plot, SIGNAL(US_replot_identificaton_frame()),                                      this, SLOT(U_replot_identification_frame()),                                    Qt::DirectConnection);
 
     connect(plot, SIGNAL(US_new_thl(int)),                                          this, SLOT(U_new_thl(int)), Qt::DirectConnection);
-    connect(plot, SIGNAL(US_new_thl(int)),                                          this, SLOT(U_new_thl(int)), Qt::DirectConnection);
+    //connect(plot, SIGNAL(US_new_thl(int)),                                          this, SLOT(U_new_thl(int)), Qt::DirectConnection);
 
     connect(this, SIGNAL(US_generate_muxes(int, int)),                              plot, SLOT(U_generate_muxes(int, int)), Qt::DirectConnection);
 
@@ -187,8 +187,8 @@ void UC_wai::U_set_qcp(QCustomPlot * qcp, QCustomPlot * qcp_2, QCustomPlot * qcp
 
 
     this->qcp_3 = qcp_3;
-    qcp->xAxis->setLabel("value");
-    qcp->yAxis->setLabel("pixels");
+    qcp_3->xAxis->setLabel("value");
+    qcp_3->yAxis->setLabel("pixels");
     qcp_3->setInteractions(QCP::iRangeDrag|QCP::iRangeZoom);
 
     qcp_sr_distribution = new QCPSelectionRect(qcp_3);
@@ -484,7 +484,7 @@ void UC_wai::U_generate_distribution(int n_bins, double min, double max, QString
     qcp_3->addGraph();
     qcp_3->graph()->setName(graph_name);
     qcp_3->graph()->setPen(pens[qcp_3->graphCount() % 16]);
-    qcp_3->graph()->setLineStyle(QCPGraph::lsStepLeft);
+    qcp_3->graph()->setLineStyle(QCPGraph::lsStepCenter);
 
     emit US_generate_distribution(n_bins, min, max);
 }
@@ -753,6 +753,10 @@ void UC_wai::U_set_y_axis_type(bool view) {
 
 void UC_wai::U_set_renew_ranges(bool enable) {
     renew_renges = enable;
+}
+
+void UC_wai::U_set_renew_roi_ranges(bool enable) {
+    renew_roi_renges = enable;
 }
 
 void UC_wai::U_set_smoothing(int smoothing) {
@@ -1468,8 +1472,6 @@ void UC_wai::U_add_table_data(UC_pixels_info pixels_info) {
     table_model->setData(table_index, pixels_info.U_get_std_dev());
     table_index = table_model->index(11, column_index);
     table_model->setData(table_index, pixels_info.U_get_snr());
-    table_index = table_model->index(12, column_index);
-    table_model->setData(table_index, pixels_info.U_get_id_1_data());
 }
 
 void UC_wai::U_add_distibution_data(double x, double y) {
@@ -1578,15 +1580,16 @@ void UC_wai::U_add_identification_frame_data(double x, double y, double z) {
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void UC_wai::U_replot_frame() {
-    if (renew_renges) qcp_2->xAxis->setRange(x_min, x_max);
-    if (renew_renges) qcp_2->yAxis->setRange(y_min, y_max);
+    if (renew_roi_renges) qcp_2->xAxis->setRange(x_min, x_max);
+    if (renew_roi_renges) qcp_2->yAxis->setRange(y_min, y_max);
     if (renew_renges) U_rescale_frame();
     qcp_2->replot(QCustomPlot::rpQueuedReplot);
     connect(qcp_2, SIGNAL(mouseMove(QMouseEvent*)), this, SLOT(U_mouse_move_frame(QMouseEvent*)));
     emit US_set_distribution_range(qcp_color_scale->axis()->range().lower, qcp_color_scale->axis()->range().upper);
 }
 
-void UC_wai::U_replot_spectra() {
+void UC_wai::U_replot_spectra(QVector<double> x , QVector<double> y) {
+    qcp->graph()->setData(x, y);
     qcp->legend->setVisible(true);
     if (renew_renges) qcp->rescaleAxes(true);
     qcp->replot(QCustomPlot::rpQueuedReplot);
@@ -1598,21 +1601,37 @@ void UC_wai::U_rewrite_table() {
 
 }
 
-void UC_wai::U_replot_distribution() {
+void UC_wai::U_replot_distribution(QVector<double> x, QVector<double> y) {
+    qcp_3->graph()->setData(x, y);
     qcp_3->legend->setVisible(true);
     if (renew_renges) qcp_3->rescaleAxes(true);
     qcp_3->replot(QCustomPlot::rpQueuedReplot);
     connect(qcp_3, SIGNAL(mouseMove(QMouseEvent*)), this, SLOT(U_mouse_move_distribution(QMouseEvent*)));
 }
 
-void UC_wai::U_replot_calibration_chip() {
+void UC_wai::U_replot_calibration_chip(QVector<double> x, QVector<double> y, bool fit) {
+    if (fit) {
+        chip_fit_qcp->graph(chip_fit_qcp->graphCount() - 1)->setData(x, y);
+    } else {
+        chip_fit_qcp->graph(chip_fit_qcp->graphCount() - 2)->setData(x, y);
+    }
     chip_fit_qcp->legend->setVisible(true);
     if (renew_renges) chip_fit_qcp->rescaleAxes(true);
     chip_fit_qcp->replot(QCustomPlot::rpQueuedReplot);
     //connect(qcp_3, SIGNAL(mouseMove(QMouseEvent*)), this, SLOT(U_mouse_move_distribution(QMouseEvent*)));
 }
 
-void UC_wai::U_replot_calibration() {
+void UC_wai::U_replot_calibration(QVector<double> x, QVector<double> y, int chip, bool fit) {
+    if (fit) {
+        calibration_qcp->graph(chip * 2 + 1)->setData(x, y);
+    } else {
+        calibration_qcp->graph(chip * 2)->setData(x, y);
+    }
+//    if (fit) {
+//        calibration_qcp->graph(chip_fit_qcp->graphCount() - 1)->setData(x, y);
+//    } else {
+//        chip_fit_qcp->graph(chip_fit_qcp->graphCount() - 2)->setData(x, y);
+//    }
     calibration_qcp->legend->setVisible(true);
     if (renew_renges) calibration_qcp->rescaleAxes(true);
     calibration_qcp->replot(QCustomPlot::rpQueuedReplot);

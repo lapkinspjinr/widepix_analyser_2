@@ -267,6 +267,8 @@ private slots:
 
     void on_spinBox_12_valueChanged(int arg1);
 
+    void on_checkBox_17_toggled(bool checked);
+
 private:
     Ui::widepix_analyser_2 *ui;
 };

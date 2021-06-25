@@ -26,9 +26,6 @@ public :
         int df_int;
     } UTStr_data_container_settings;
 
-
-
-private :
     typedef struct {
         int pixel[15 * 256][256];
     } UTStr_frame;
@@ -36,6 +33,8 @@ private :
     typedef struct {
         double pixel_double[15 * 256][256];
     } UTStr_frame_double;
+
+private :
 
     UTStr_data_container_settings settings;
 
@@ -54,6 +53,7 @@ public:
     ~UC_data_container();
     /////
     void U_set_data(int thl, int x, int y, int data, int counter);
+    void U_set_data(int thl, UTStr_frame &data, int counter);
     int U_get_data(int thl, int x, int y, int counter = 1);
     double U_get_data_scaled(int thl, int x, int y, int counter, double scale = 1);
     /////

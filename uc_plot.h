@@ -36,23 +36,28 @@
  */
 class UC_plot : public QObject
 {
+    ///RoI
     int x_min;              ///< Левая граница области интереса.
     int x_max;              ///< Правая граница области интереса.
     int y_min;              ///< Нижняя граница области интереса.
     int y_max;              ///< Верхняя граница области интереса.
+    int thl_min;            ///< Минимальный порог области интереса по порогам.
+    int thl_max;            ///< Максимальный порог области интереса по порогам.
+    double energy_min;
+    double energy_max;
+
     int thl_id_1;           ///< Нижний порог левого оокна для идентификации веществ по методу Шелкова.
     int thl_id_2;           ///< Верхний порог левого оокна для идентификации веществ по методу Шелкова.
     int thl_id_3;           ///< Нижний порог правого оокна для идентификации веществ по методу Шелкова.
     int thl_id_4;           ///< Верхний порог правого оокна для идентификации веществ по методу Шелкова.
-    int thl_start;          ///< Нижний порог области интереса по порогам.
-    int thl_finish;         ///< Верхний порог области интереса по порогам.
-    int thl_min;            ///< Минимальный порог области интереса по порогам.
-    int thl_max;            ///< Максимальный порог области интереса по порогам.
+
     int threshold_level;    ///< Уровень порога активности пикселя.
     int rebin_x;
     int rebin_y;
     int rebin_thl;
     int smoothing;
+    int total_progress_bar;
+    int current_progress_bar;
 
     bool using_calibration;     ///< Использование калибровки.
     bool scan_enable;           ///< Наличие активного скана.
@@ -94,6 +99,11 @@ public :
         UTE_IT_linear_combination,
     } UTE_identification_type;
 
+    typedef enum {
+        UTE_CT_with_fit,
+        UTE_CT_without_fit,
+    } UTE_calibration_type;
+
     ///Методы расчета пикселя.
     typedef enum {
         UTE_PT_cnt0,                        ///< Значение нулевого счетчика при сканировании с образцом.
@@ -124,7 +134,7 @@ public :
         UTE_PT_cnt1_rejected,               ///< подавление активности пикселя порогом.
         UTE_PT_diff_cnt1_rejected,          ///< Порог подавления активности пикселя.
         UTE_PT_cnt1ffc_div_cnt0ffc,         ///< Отношение коррекции чистого поля 1-го счетчика к коррекции плоского поля для 2-го счетчика.
-        UTE_PT_additional_data,             ///< Дополнительные данные.
+        UTE_PT_smoothing_mu_diff,             ///< Дополнительные данные.
         UTE_PT_GA_request
     } UTE_pixel_type;
 
@@ -156,7 +166,7 @@ private :
     UTE_frame_type frame_type;                      ///< Текущий метод расчета кадра.
     UTE_pixel_type pixel_type;                      ///< Текущий метод расчета пикселей.
     UTE_identification_type identification_type;    ///< Текущий метод идентификации.
-
+    UTE_calibration_type calibration_type;
 
     Q_OBJECT
 public:
@@ -200,6 +210,18 @@ public:
 /////////////////////////////////////////////////////////////////////////////////
     void U_set_mask(int x, int y, bool value);
     bool U_get_mask(int x, int y);
+    //
+    void U_set_total_progress_bar(int total);
+    void U_renew_progress_bar();
+    //
+    void U_add_pixel_table(int thl, int chip, int x, int y, UC_pixels_info *pi_array[]);
+    //
+    void U_get_calibration_chip_spectra(QVector<double> * x, QVector<double> * y, int chip);
+    TF1 U_get_calibration_fit(QVector<double> * x, QVector<double> * y);
+    void U_get_calibration_chip_fit(QVector<double> * x, QVector<double> * y);
+    double U_get_calibration_data_1(QVector<double> * x, QVector<double> * y);
+    double U_get_calibration_data_2(QVector<double> * x, QVector<double> * y);
+
 ///////////////////////////////////////////////////////////////////////////////
     double U_get_pixel_data(UTE_pixel_type type, int thl, int x, int y);
     int U_get_pixel_data_1(int thl, int x, int y); //UTE_PT_cnt0
@@ -238,32 +260,22 @@ public:
     double U_get_pixel_data_28(int thl, int x, int y); //UTE_PT_GA_request
 ////////////////////////////////////////////////////////////////////////////////
     double U_get_frame_data(UTE_frame_type type_spectra, UTE_pixel_type type_pixel, int thl);
-    double U_get_frame_data_1(UTE_pixel_type type, int thl); //UTE_FT_average
-    double U_get_frame_data_2(UTE_pixel_type type, int thl); //UTE_FT_sum
-    double U_get_frame_data_3(UTE_pixel_type type, int thl); //UTE_FT_median
-    double U_get_frame_data_4(UTE_pixel_type type, int thl); //UTE_FT_max
-    double U_get_frame_data_5(UTE_pixel_type type, int thl); //UTE_FT_min
-    int U_get_frame_data_6(UTE_pixel_type type, int thl); //UTE_FT_zeros
-    int U_get_frame_data_7(int thl); //UTE_FT_overflowed
-    double U_get_frame_data_8(UTE_pixel_type type, int thl); //UTE_FT_standart_deviation
-    double U_get_frame_data_9(UTE_pixel_type type, int thl); //UTE_FT_signal_to_noise_resolution
-////////////////////////////////////////////////////////////////////////////////
     double U_get_frame_data_energy(UTE_frame_type type_spectra, UTE_pixel_type type_pixel, double e_min, double e_max);
-    double U_get_frame_data_energy_1(UTE_pixel_type type_pixel, double e_min, double e_max); //UTE_FT_average
-    double U_get_frame_data_energy_2(UTE_pixel_type type_pixel, double e_min, double e_max); //UTE_FT_sum
-    double U_get_frame_data_energy_3(UTE_pixel_type type_pixel, double e_min, double e_max); //UTE_FT_median
-    double U_get_frame_data_energy_4(UTE_pixel_type type_pixel, double e_min, double e_max); //UTE_FT_max
-    double U_get_frame_data_energy_5(UTE_pixel_type type_pixel, double e_min, double e_max); //UTE_FT_min
-    int U_get_frame_data_energy_6(UTE_pixel_type type_pixel, double e_min, double e_max); //UTE_FT_zeros
-    int U_get_frame_data_energy_7(double e_min, double e_max); //UTE_FT_overflowed
-    double U_get_frame_data_energy_8(UTE_pixel_type type_pixel, double e_min, double e_max); //UTE_FT_standart_deviation
-    double U_get_frame_data_energy_9(UTE_pixel_type type_pixel, double e_min, double e_max); //UTE_FT_signal_to_noise_resolution
+    double U_get_frame_data_1(QVector<double> data); //UTE_FT_average
+    double U_get_frame_data_2(QVector<double> data); //UTE_FT_sum
+    double U_get_frame_data_3(QVector<double> data); //UTE_FT_median
+    double U_get_frame_data_4(QVector<double> data); //UTE_FT_max
+    double U_get_frame_data_5(QVector<double> data); //UTE_FT_min
+    int U_get_frame_data_6(QVector<double> data); //UTE_FT_zeros
+    int U_get_frame_data_7(QVector<double> data); //UTE_FT_overflowed
+    double U_get_frame_data_8(QVector<double> data); //UTE_FT_standart_deviation
+    double U_get_frame_data_9(QVector<double> data); //UTE_FT_signal_to_noise_resolution
 ////////////////////////////////////////////////////////////////////////////////////
 
 
 
 ///////////////////////////////////////////////////////////////////////////////////
-    void U_find_thl_range();
+
 //
 
     void U_identification_roi_1();
@@ -290,18 +302,20 @@ signals:
     void US_identification_data(double x, double y);
     ///////////////////////////////////////////////////////////////////////////////////
 
-    void US_replot_spectra();
+    void US_replot_spectra(QVector<double> x, QVector<double> y);
     void US_replot_frame();
     void US_rewrite_table();
-    void US_replot_distribution();
-    void US_replot_calibration();
-    void US_replot_calibration_chip();
+    void US_replot_distribution(QVector<double> x, QVector<double> y);
+    void US_replot_calibration(QVector<double> x, QVector<double> y, int chip, bool fit);
+    void US_replot_calibration_chip(QVector<double> x, QVector<double> y, bool fit);
     void US_replot_identificaton();
     void US_replot_identificaton_frame();
     /////////////////////////////////////////////////////////////////////////////
     void US_new_thl(int thl);
     void US_count_mask(int n);
+    //
     void US_thl_range(int thl_min, int thl_max);
+    void US_energy_range(double energy_min, double energy_max);
     ////////////////////////////////////////////////////////////////////////
     void US_file_found(QString file_name);
     void US_n_files(int n);
@@ -320,7 +334,7 @@ public slots:
     void U_get_settings(int index);
 //////////////////////////////////////////////////////////////////////////////////
     void U_generate_spectra();
-    void U_generate_spectra(double energy_min, double energy_max, int n);
+    void U_generate_spectra(int n);
     void U_generate_frame(int thl);
     void U_generate_frame(double energy);
     void U_generate_table(int thl);
@@ -353,6 +367,11 @@ public slots:
     //
     void U_save_calibration(QString file_name);
     void U_load_calibration(QString file_name);
+    //
+    void U_get_max_thl_range();
+    void U_get_common_thl_range();
+    void U_get_max_energy_range();
+    void U_get_common_energy_range();
 //////////////////////////////////////////////////////////////////////
     void U_set_mask(bool mask, bool more, double value, bool in_roi, int thl);
     void U_count_mask(bool more, double value, bool in_roi, int thl);
@@ -370,29 +389,4 @@ public slots:
 
 
 #endif // UC_PLOT_H
-
-//    double * ff_minus_df_mean;                  ///< Динамический массив средних значений обоих счетчиков для сканирования без образца.
-//    /// Функции преобразования координат.
-//    /*!
-//     * Преобразование координаты x в определенном чипе и номера чипа в координату детектора.
-//     * \brief U_get_coord_x_chip Преобразование координаты x в определенном чипе и номера чипа в координату детектора.
-//     * \param[in] chip Номер чипа.
-//     * \param[in] x Координта х в чипе.
-//     * \return Координата х в детекторе.
-//     */
-//    int U_get_coord_x_chip(int chip, int x);
-//    /*!
-//     * Преобразование координаты x в номер соответствующего чипа.
-//     * \brief U_get_chip_coord_x Преобразование координаты x в номер соответствующего чипа.
-//     * \param[in] x Координата х в детекторе.
-//     * \return Номер чипа.
-//     */
-//    int U_get_chip_coord_x(int x);
-//    /*!
-//     * Преобразование координаты x в детекторе в координату х в чипе.
-//     * \brief U_get_coord_x_in_chip Преобразование координаты x в детекторе в координату х в чипе.
-//     * \param[in] x Координата х в детекторе.
-//     * \return Координта х в чипе.
-//     */
-//    int U_get_coord_x_in_chip(int x);
 //

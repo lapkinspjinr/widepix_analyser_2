@@ -49,6 +49,7 @@ class UC_wai : public QObject
     int scan_index, ff_index, df_index, n_scans;
     bool select;
     bool renew_renges;
+    bool renew_roi_renges;
     int smoothing;
 
     double value_min;
@@ -153,6 +154,7 @@ public:
     void U_set_x_axis_type(bool view);
     void U_set_y_axis_type(bool view);
     void U_set_renew_ranges(bool enable);
+    void U_set_renew_roi_ranges(bool enable);
     void U_set_smoothing(int smoothing);
 ////////////////////////////////////////////////////////////////////////
     void U_resize_spectra();
@@ -303,12 +305,12 @@ public slots:
 //    void U_add_identification_data(double x, double y, bool is_fit);
 //
 //////////////////////////////////////////////////////////////////////
-    void U_replot_spectra();
+    void U_replot_spectra(QVector<double> x, QVector<double> y);
     void U_replot_frame();
     void U_rewrite_table();
-    void U_replot_distribution();
-    void U_replot_calibration_chip();
-    void U_replot_calibration();
+    void U_replot_distribution(QVector<double> x, QVector<double> y);
+    void U_replot_calibration_chip(QVector<double> x, QVector<double> y, bool fit);
+    void U_replot_calibration(QVector<double> x, QVector<double> y, int chip, bool fit);
     void U_replot_identification_frame();
     /////////////////////////////////////////////////
     void U_set_spectra_x_axis_range(QCPRange range);
