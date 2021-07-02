@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1797</width>
-    <height>1052</height>
+    <height>1078</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -21,7 +21,7 @@
        <enum>QTabWidget::West</enum>
       </property>
       <property name="currentIndex">
-       <number>2</number>
+       <number>0</number>
       </property>
       <widget class="QWidget" name="tab">
        <attribute name="title">
@@ -33,20 +33,9 @@
           <property name="minimumSize">
            <size>
             <width>0</width>
-            <height>421</height>
+            <height>400</height>
            </size>
           </property>
-          <widget class="QWidget" name="layoutWidget">
-           <property name="geometry">
-            <rect>
-             <x>1310</x>
-             <y>200</y>
-             <width>132</width>
-             <height>120</height>
-            </rect>
-           </property>
-           <layout class="QVBoxLayout" name="verticalLayout_85"/>
-          </widget>
          </widget>
         </item>
         <item>
@@ -57,6 +46,12 @@
              <layout class="QHBoxLayout" name="horizontalLayout_45">
               <item>
                <widget class="QGroupBox" name="groupBox_12">
+                <property name="maximumSize">
+                 <size>
+                  <width>16777215</width>
+                  <height>70</height>
+                 </size>
+                </property>
                 <property name="title">
                  <string>y max</string>
                 </property>
@@ -79,6 +74,12 @@
               </item>
               <item>
                <widget class="QGroupBox" name="groupBox_13">
+                <property name="maximumSize">
+                 <size>
+                  <width>16777215</width>
+                  <height>70</height>
+                 </size>
+                </property>
                 <property name="title">
                  <string>y min</string>
                 </property>
@@ -101,6 +102,12 @@
               </item>
               <item>
                <widget class="QGroupBox" name="groupBox_14">
+                <property name="maximumSize">
+                 <size>
+                  <width>16777215</width>
+                  <height>70</height>
+                 </size>
+                </property>
                 <property name="title">
                  <string>x min</string>
                 </property>
@@ -123,6 +130,12 @@
               </item>
               <item>
                <widget class="QGroupBox" name="groupBox_15">
+                <property name="maximumSize">
+                 <size>
+                  <width>16777215</width>
+                  <height>70</height>
+                 </size>
+                </property>
                 <property name="title">
                  <string>x max</string>
                 </property>
@@ -152,7 +165,7 @@
                 <property name="maximumSize">
                  <size>
                   <width>100</width>
-                  <height>16777215</height>
+                  <height>70</height>
                  </size>
                 </property>
                 <property name="title">
@@ -174,6 +187,12 @@
               </item>
               <item>
                <widget class="QGroupBox" name="groupBox_57">
+                <property name="maximumSize">
+                 <size>
+                  <width>16777215</width>
+                  <height>69</height>
+                 </size>
+                </property>
                 <property name="title">
                  <string>Spectra name</string>
                 </property>
@@ -189,7 +208,7 @@
            </layout>
           </item>
           <item>
-           <layout class="QVBoxLayout" name="verticalLayout_21">
+           <layout class="QVBoxLayout" name="verticalLayout_53">
             <item>
              <widget class="QPushButton" name="pushButton">
               <property name="text">
@@ -198,6 +217,17 @@
              </widget>
             </item>
             <item>
+             <widget class="QPushButton" name="pushButton_46">
+              <property name="text">
+               <string>Add graph by energy</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <layout class="QVBoxLayout" name="verticalLayout_21">
+            <item>
              <widget class="QPushButton" name="pushButton_22">
               <property name="text">
                <string>Reset</string>
@@ -205,9 +235,9 @@
              </widget>
             </item>
             <item>
-             <widget class="QPushButton" name="pushButton_46">
+             <widget class="QPushButton" name="pushButton_26">
               <property name="text">
-               <string>Add graph by energy</string>
+               <string>Delete last graph</string>
               </property>
              </widget>
             </item>
@@ -223,16 +253,9 @@
              </widget>
             </item>
             <item>
-             <widget class="QPushButton" name="pushButton_26">
+             <widget class="QPushButton" name="pushButton_37">
               <property name="text">
-               <string>Delete last graph</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QPushButton" name="pushButton_54">
-              <property name="text">
-               <string>Automatic save by chip</string>
+               <string>Load txt</string>
               </property>
              </widget>
             </item>
@@ -279,17 +302,17 @@
               </item>
              </widget>
             </item>
-            <item>
-             <widget class="QPushButton" name="pushButton_37">
-              <property name="text">
-               <string>Load txt</string>
-              </property>
-             </widget>
-            </item>
            </layout>
           </item>
           <item>
            <layout class="QVBoxLayout" name="verticalLayout_62">
+            <item>
+             <widget class="QPushButton" name="pushButton_54">
+              <property name="text">
+               <string>Automatic save by chip</string>
+              </property>
+             </widget>
+            </item>
             <item>
              <widget class="QPushButton" name="pushButton_41">
               <property name="text">
@@ -297,24 +320,16 @@
               </property>
              </widget>
             </item>
-            <item>
-             <widget class="QPushButton" name="pushButton_14">
-              <property name="text">
-               <string>diff</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QPushButton" name="pushButton_30">
-              <property name="text">
-               <string>smooth</string>
-              </property>
-             </widget>
-            </item>
            </layout>
           </item>
           <item>
            <widget class="QGroupBox" name="groupBox_56">
+            <property name="maximumSize">
+             <size>
+              <width>16777215</width>
+              <height>101</height>
+             </size>
+            </property>
             <property name="title">
              <string>Calculating</string>
             </property>
@@ -351,6 +366,16 @@
                  <item>
                   <property name="text">
                    <string>Divide</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>Smooth</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>Diff</string>
                   </property>
                  </item>
                 </widget>
@@ -393,7 +418,7 @@
                 <property name="maximumSize">
                  <size>
                   <width>67</width>
-                  <height>33</height>
+                  <height>25</height>
                  </size>
                 </property>
                 <property name="text">
@@ -402,10 +427,23 @@
                </widget>
               </item>
               <item>
-               <widget class="QLineEdit" name="lineEdit_3"/>
+               <widget class="QLineEdit" name="lineEdit_3">
+                <property name="maximumSize">
+                 <size>
+                  <width>16777215</width>
+                  <height>25</height>
+                 </size>
+                </property>
+               </widget>
               </item>
               <item>
                <widget class="QPushButton" name="pushButton_4">
+                <property name="maximumSize">
+                 <size>
+                  <width>16777215</width>
+                  <height>25</height>
+                 </size>
+                </property>
                 <property name="text">
                  <string>Browse</string>
                 </property>
@@ -426,7 +464,7 @@
                 <property name="maximumSize">
                  <size>
                   <width>67</width>
-                  <height>33</height>
+                  <height>25</height>
                  </size>
                 </property>
                 <property name="text">
@@ -435,7 +473,14 @@
                </widget>
               </item>
               <item>
-               <widget class="QLineEdit" name="lineEdit_4"/>
+               <widget class="QLineEdit" name="lineEdit_4">
+                <property name="maximumSize">
+                 <size>
+                  <width>16777215</width>
+                  <height>25</height>
+                 </size>
+                </property>
+               </widget>
               </item>
              </layout>
             </item>
@@ -443,6 +488,12 @@
              <layout class="QHBoxLayout" name="horizontalLayout_41">
               <item>
                <widget class="QGroupBox" name="groupBox_51">
+                <property name="maximumSize">
+                 <size>
+                  <width>16777215</width>
+                  <height>70</height>
+                 </size>
+                </property>
                 <property name="title">
                  <string>Sample for identification</string>
                 </property>
@@ -494,6 +545,12 @@
               </item>
               <item>
                <widget class="QGroupBox" name="groupBox_50">
+                <property name="maximumSize">
+                 <size>
+                  <width>16777215</width>
+                  <height>70</height>
+                 </size>
+                </property>
                 <property name="title">
                  <string>Calibration</string>
                 </property>
@@ -540,6 +597,12 @@
               </item>
               <item>
                <widget class="QCheckBox" name="checkBox_2">
+                <property name="maximumSize">
+                 <size>
+                  <width>16777215</width>
+                  <height>23</height>
+                 </size>
+                </property>
                 <property name="text">
                  <string>both counters</string>
                 </property>
@@ -556,6 +619,12 @@
                   <height>17</height>
                  </size>
                 </property>
+                <property name="maximumSize">
+                 <size>
+                  <width>16777215</width>
+                  <height>70</height>
+                 </size>
+                </property>
                 <property name="text">
                  <string>Name of operating file</string>
                 </property>
@@ -569,6 +638,12 @@
                   <height>17</height>
                  </size>
                 </property>
+                <property name="maximumSize">
+                 <size>
+                  <width>16777215</width>
+                  <height>70</height>
+                 </size>
+                </property>
                 <property name="text">
                  <string>Number of files have been found</string>
                 </property>
@@ -576,6 +651,12 @@
               </item>
               <item>
                <widget class="QGroupBox" name="groupBox_52">
+                <property name="maximumSize">
+                 <size>
+                  <width>16777215</width>
+                  <height>70</height>
+                 </size>
+                </property>
                 <property name="title">
                  <string>Count</string>
                 </property>
@@ -595,6 +676,12 @@
               </item>
               <item>
                <widget class="QGroupBox" name="groupBox_53">
+                <property name="maximumSize">
+                 <size>
+                  <width>16777215</width>
+                  <height>70</height>
+                 </size>
+                </property>
                 <property name="title">
                  <string>Time</string>
                 </property>
@@ -621,6 +708,12 @@
              <layout class="QHBoxLayout" name="horizontalLayout_42">
               <item>
                <widget class="QGroupBox" name="groupBox_48">
+                <property name="maximumSize">
+                 <size>
+                  <width>16777215</width>
+                  <height>70</height>
+                 </size>
+                </property>
                 <property name="title">
                  <string>Flat Field</string>
                 </property>
@@ -655,6 +748,12 @@
               </item>
               <item>
                <widget class="QGroupBox" name="groupBox_49">
+                <property name="maximumSize">
+                 <size>
+                  <width>16777215</width>
+                  <height>70</height>
+                 </size>
+                </property>
                 <property name="title">
                  <string>Dark Field</string>
                 </property>
@@ -737,6 +836,12 @@
         </item>
         <item>
          <widget class="QLabel" name="label">
+          <property name="maximumSize">
+           <size>
+            <width>16777215</width>
+            <height>17</height>
+           </size>
+          </property>
           <property name="text">
            <string>Current scan</string>
           </property>
@@ -766,7 +871,7 @@
             <property name="maximumSize">
              <size>
               <width>101</width>
-              <height>9999</height>
+              <height>70</height>
              </size>
             </property>
             <property name="title">
@@ -797,7 +902,7 @@
             <property name="maximumSize">
              <size>
               <width>100</width>
-              <height>16777215</height>
+              <height>70</height>
              </size>
             </property>
             <property name="title">
@@ -825,7 +930,7 @@
             <property name="maximumSize">
              <size>
               <width>100</width>
-              <height>16777215</height>
+              <height>70</height>
              </size>
             </property>
             <property name="title">
@@ -853,7 +958,7 @@
             <property name="maximumSize">
              <size>
               <width>100</width>
-              <height>16777215</height>
+              <height>70</height>
              </size>
             </property>
             <property name="title">
@@ -884,7 +989,7 @@
             <property name="maximumSize">
              <size>
               <width>100</width>
-              <height>16777215</height>
+              <height>70</height>
              </size>
             </property>
             <property name="title">
@@ -912,7 +1017,7 @@
             <property name="maximumSize">
              <size>
               <width>100</width>
-              <height>16777215</height>
+              <height>70</height>
              </size>
             </property>
             <property name="title">
@@ -939,6 +1044,12 @@
            <layout class="QVBoxLayout" name="verticalLayout_27">
             <item>
              <widget class="QPushButton" name="pushButton_6">
+              <property name="maximumSize">
+               <size>
+                <width>16777215</width>
+                <height>25</height>
+               </size>
+              </property>
               <property name="text">
                <string>Show frame</string>
               </property>
@@ -946,6 +1057,12 @@
             </item>
             <item>
              <widget class="QPushButton" name="pushButton_38">
+              <property name="maximumSize">
+               <size>
+                <width>16777215</width>
+                <height>25</height>
+               </size>
+              </property>
               <property name="text">
                <string>Load txt</string>
               </property>
@@ -957,6 +1074,12 @@
            <layout class="QVBoxLayout" name="verticalLayout_28">
             <item>
              <widget class="QPushButton" name="pushButton_10">
+              <property name="maximumSize">
+               <size>
+                <width>16777215</width>
+                <height>25</height>
+               </size>
+              </property>
               <property name="text">
                <string>Rescale</string>
               </property>
@@ -964,6 +1087,12 @@
             </item>
             <item>
              <widget class="QPushButton" name="pushButton_11">
+              <property name="maximumSize">
+               <size>
+                <width>16777215</width>
+                <height>25</height>
+               </size>
+              </property>
               <property name="text">
                <string>Resize</string>
               </property>
@@ -975,6 +1104,12 @@
            <layout class="QVBoxLayout" name="verticalLayout_29">
             <item>
              <widget class="QPushButton" name="pushButton_12">
+              <property name="maximumSize">
+               <size>
+                <width>16777215</width>
+                <height>25</height>
+               </size>
+              </property>
               <property name="text">
                <string>Save</string>
               </property>
@@ -982,6 +1117,12 @@
             </item>
             <item>
              <widget class="QComboBox" name="comboBox_7">
+              <property name="maximumSize">
+               <size>
+                <width>16777215</width>
+                <height>25</height>
+               </size>
+              </property>
               <property name="currentIndex">
                <number>0</number>
               </property>
@@ -1018,6 +1159,12 @@
            <layout class="QVBoxLayout" name="verticalLayout">
             <item>
              <widget class="QPushButton" name="pushButton_47">
+              <property name="maximumSize">
+               <size>
+                <width>16777215</width>
+                <height>25</height>
+               </size>
+              </property>
               <property name="text">
                <string>Frame by energy</string>
               </property>
@@ -1038,114 +1185,15 @@
          <widget class="QTableView" name="tableView"/>
         </item>
         <item>
-         <widget class="QGroupBox" name="groupBox_32">
-          <property name="maximumSize">
-           <size>
-            <width>16777215</width>
-            <height>67</height>
-           </size>
-          </property>
-          <property name="title">
-           <string>Data types</string>
-          </property>
-          <layout class="QHBoxLayout" name="horizontalLayout_14">
-           <item>
-            <widget class="QCheckBox" name="checkBox_8">
-             <property name="text">
-              <string>min</string>
-             </property>
-             <property name="checked">
-              <bool>true</bool>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QCheckBox" name="checkBox_10">
-             <property name="text">
-              <string>max</string>
-             </property>
-             <property name="checked">
-              <bool>true</bool>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QCheckBox" name="checkBox_5">
-             <property name="text">
-              <string>sum</string>
-             </property>
-             <property name="checked">
-              <bool>true</bool>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QCheckBox" name="checkBox_9">
-             <property name="text">
-              <string>mean</string>
-             </property>
-             <property name="checked">
-              <bool>true</bool>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QCheckBox" name="checkBox_4">
-             <property name="text">
-              <string>median</string>
-             </property>
-             <property name="checked">
-              <bool>true</bool>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QCheckBox" name="checkBox_11">
-             <property name="text">
-              <string>zeros</string>
-             </property>
-             <property name="checked">
-              <bool>true</bool>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QCheckBox" name="checkBox_7">
-             <property name="text">
-              <string>standard deviation</string>
-             </property>
-             <property name="checked">
-              <bool>true</bool>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QCheckBox" name="checkBox_6">
-             <property name="text">
-              <string>signal to noise resolution</string>
-             </property>
-             <property name="checked">
-              <bool>true</bool>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QCheckBox" name="checkBox_12">
-             <property name="text">
-              <string>identification 1</string>
-             </property>
-             <property name="checked">
-              <bool>true</bool>
-             </property>
-            </widget>
-           </item>
-          </layout>
-         </widget>
-        </item>
-        <item>
          <layout class="QHBoxLayout" name="horizontalLayout_21">
           <item>
            <widget class="QPushButton" name="pushButton_7">
+            <property name="maximumSize">
+             <size>
+              <width>16777215</width>
+              <height>25</height>
+             </size>
+            </property>
             <property name="text">
              <string>Reload table for 1 frame</string>
             </property>
@@ -1153,6 +1201,12 @@
           </item>
           <item>
            <widget class="QPushButton" name="pushButton_48">
+            <property name="maximumSize">
+             <size>
+              <width>16777215</width>
+              <height>25</height>
+             </size>
+            </property>
             <property name="text">
              <string>Reload table for energy</string>
             </property>
@@ -1160,6 +1214,12 @@
           </item>
           <item>
            <widget class="QPushButton" name="pushButton_40">
+            <property name="maximumSize">
+             <size>
+              <width>16777215</width>
+              <height>25</height>
+             </size>
+            </property>
             <property name="text">
              <string>Reload table all frames</string>
             </property>
@@ -1167,6 +1227,12 @@
           </item>
           <item>
            <widget class="QComboBox" name="comboBox_10">
+            <property name="maximumSize">
+             <size>
+              <width>16777215</width>
+              <height>25</height>
+             </size>
+            </property>
             <property name="currentIndex">
              <number>0</number>
             </property>
@@ -1184,6 +1250,12 @@
           </item>
           <item>
            <widget class="QPushButton" name="pushButton_25">
+            <property name="maximumSize">
+             <size>
+              <width>16777215</width>
+              <height>25</height>
+             </size>
+            </property>
             <property name="text">
              <string>Save</string>
             </property>
@@ -1203,7 +1275,7 @@
           <property name="minimumSize">
            <size>
             <width>0</width>
-            <height>421</height>
+            <height>400</height>
            </size>
           </property>
          </widget>
@@ -1215,7 +1287,7 @@
             <property name="maximumSize">
              <size>
               <width>100</width>
-              <height>16777215</height>
+              <height>70</height>
              </size>
             </property>
             <property name="title">
@@ -1243,7 +1315,7 @@
             <property name="maximumSize">
              <size>
               <width>100</width>
-              <height>16777215</height>
+              <height>70</height>
              </size>
             </property>
             <property name="title">
@@ -1271,7 +1343,7 @@
             <property name="maximumSize">
              <size>
               <width>100</width>
-              <height>16777215</height>
+              <height>70</height>
              </size>
             </property>
             <property name="title">
@@ -1299,7 +1371,7 @@
             <property name="maximumSize">
              <size>
               <width>100</width>
-              <height>16777215</height>
+              <height>70</height>
              </size>
             </property>
             <property name="title">
@@ -1327,7 +1399,7 @@
             <property name="maximumSize">
              <size>
               <width>100</width>
-              <height>16777215</height>
+              <height>70</height>
              </size>
             </property>
             <property name="title">
@@ -1352,7 +1424,7 @@
             <property name="maximumSize">
              <size>
               <width>100</width>
-              <height>16777215</height>
+              <height>70</height>
              </size>
             </property>
             <property name="title">
@@ -1380,7 +1452,7 @@
             <property name="maximumSize">
              <size>
               <width>100</width>
-              <height>16777215</height>
+              <height>70</height>
              </size>
             </property>
             <property name="title">
@@ -1404,9 +1476,33 @@
            </widget>
           </item>
           <item>
+           <widget class="QGroupBox" name="groupBox_59">
+            <property name="maximumSize">
+             <size>
+              <width>16777215</width>
+              <height>70</height>
+             </size>
+            </property>
+            <property name="title">
+             <string>Name</string>
+            </property>
+            <layout class="QVBoxLayout" name="verticalLayout_2">
+             <item>
+              <widget class="QLineEdit" name="lineEdit_6"/>
+             </item>
+            </layout>
+           </widget>
+          </item>
+          <item>
            <layout class="QVBoxLayout" name="verticalLayout_36">
             <item>
              <widget class="QPushButton" name="pushButton_33">
+              <property name="maximumSize">
+               <size>
+                <width>16777215</width>
+                <height>25</height>
+               </size>
+              </property>
               <property name="text">
                <string>Set range 1 frame</string>
               </property>
@@ -1414,6 +1510,12 @@
             </item>
             <item>
              <widget class="QPushButton" name="pushButton_32">
+              <property name="maximumSize">
+               <size>
+                <width>16777215</width>
+                <height>25</height>
+               </size>
+              </property>
               <property name="text">
                <string>Set range all frames</string>
               </property>
@@ -1431,6 +1533,12 @@
                 <height>25</height>
                </size>
               </property>
+              <property name="maximumSize">
+               <size>
+                <width>16777215</width>
+                <height>25</height>
+               </size>
+              </property>
               <property name="text">
                <string>Distribution 1 frame</string>
               </property>
@@ -1441,6 +1549,12 @@
               <property name="minimumSize">
                <size>
                 <width>161</width>
+                <height>25</height>
+               </size>
+              </property>
+              <property name="maximumSize">
+               <size>
+                <width>16777215</width>
                 <height>25</height>
                </size>
               </property>
@@ -1455,6 +1569,12 @@
            <layout class="QVBoxLayout" name="verticalLayout_38">
             <item>
              <widget class="QPushButton" name="pushButton_28">
+              <property name="maximumSize">
+               <size>
+                <width>16777215</width>
+                <height>25</height>
+               </size>
+              </property>
               <property name="text">
                <string>Reset</string>
               </property>
@@ -1462,6 +1582,12 @@
             </item>
             <item>
              <widget class="QPushButton" name="pushButton_27">
+              <property name="maximumSize">
+               <size>
+                <width>16777215</width>
+                <height>25</height>
+               </size>
+              </property>
               <property name="text">
                <string>Delete last graph</string>
               </property>
@@ -1480,6 +1606,12 @@
             </item>
             <item>
              <widget class="QComboBox" name="comboBox_9">
+              <property name="maximumSize">
+               <size>
+                <width>16777215</width>
+                <height>25</height>
+               </size>
+              </property>
               <property name="currentIndex">
                <number>0</number>
               </property>
@@ -1516,6 +1648,12 @@
            <layout class="QVBoxLayout" name="verticalLayout_40">
             <item>
              <widget class="QPushButton" name="pushButton_39">
+              <property name="maximumSize">
+               <size>
+                <width>16777215</width>
+                <height>25</height>
+               </size>
+              </property>
               <property name="text">
                <string>Load txt</string>
               </property>
@@ -1523,6 +1661,12 @@
             </item>
             <item>
              <widget class="QPushButton" name="pushButton_18">
+              <property name="maximumSize">
+               <size>
+                <width>16777215</width>
+                <height>25</height>
+               </size>
+              </property>
               <property name="text">
                <string>Resize</string>
               </property>
@@ -2427,271 +2571,264 @@
       <item>
        <layout class="QVBoxLayout" name="verticalLayout_14">
         <item>
-         <layout class="QHBoxLayout" name="horizontalLayout_8">
-          <item>
-           <widget class="QGroupBox" name="groupBox_9">
-            <property name="title">
-             <string>Frame count type</string>
-            </property>
-            <layout class="QVBoxLayout" name="verticalLayout_8">
-             <item>
-              <widget class="QComboBox" name="comboBox_2">
-               <property name="minimumSize">
-                <size>
-                 <width>271</width>
-                 <height>25</height>
-                </size>
-               </property>
-               <property name="currentIndex">
-                <number>0</number>
-               </property>
-               <item>
-                <property name="text">
-                 <string>average</string>
-                </property>
-               </item>
-               <item>
-                <property name="text">
-                 <string>sum</string>
-                </property>
-               </item>
-               <item>
-                <property name="text">
-                 <string>median</string>
-                </property>
-               </item>
-               <item>
-                <property name="text">
-                 <string>max</string>
-                </property>
-               </item>
-               <item>
-                <property name="text">
-                 <string>min</string>
-                </property>
-               </item>
-               <item>
-                <property name="text">
-                 <string>zeros</string>
-                </property>
-               </item>
-               <item>
-                <property name="text">
-                 <string>overflow</string>
-                </property>
-               </item>
-               <item>
-                <property name="text">
-                 <string>standart deviation</string>
-                </property>
-               </item>
-               <item>
-                <property name="text">
-                 <string>signal to noise resolution</string>
-                </property>
-               </item>
-              </widget>
-             </item>
-            </layout>
-           </widget>
-          </item>
-          <item>
-           <widget class="QGroupBox" name="groupBox_8">
-            <property name="title">
-             <string>Pixel count type</string>
-            </property>
-            <layout class="QVBoxLayout" name="verticalLayout_7">
-             <item>
-              <widget class="QComboBox" name="comboBox_3">
-               <property name="minimumSize">
-                <size>
-                 <width>241</width>
-                 <height>25</height>
-                </size>
-               </property>
-               <property name="currentIndex">
-                <number>0</number>
-               </property>
-               <item>
-                <property name="text">
-                 <string>counter 0</string>
-                </property>
-               </item>
-               <item>
-                <property name="text">
-                 <string>counter 1</string>
-                </property>
-               </item>
-               <item>
-                <property name="text">
-                 <string>counter 1 divide on counter 0</string>
-                </property>
-               </item>
-               <item>
-                <property name="text">
-                 <string>counter 1 subtract from counter 0</string>
-                </property>
-               </item>
-               <item>
-                <property name="text">
-                 <string>differantial counter 1</string>
-                </property>
-               </item>
-               <item>
-                <property name="text">
-                 <string>ffc</string>
-                </property>
-               </item>
-               <item>
-                <property name="text">
-                 <string>mu</string>
-                </property>
-               </item>
-               <item>
-                <property name="text">
-                 <string>differential ffc</string>
-                </property>
-               </item>
-               <item>
-                <property name="text">
-                 <string>differential mu</string>
-                </property>
-               </item>
-               <item>
-                <property name="text">
-                 <string>ffc differential</string>
-                </property>
-               </item>
-               <item>
-                <property name="text">
-                 <string>mu differential</string>
-                </property>
-               </item>
-               <item>
-                <property name="text">
-                 <string>counter 1 corrected</string>
-                </property>
-               </item>
-               <item>
-                <property name="text">
-                 <string>differential counter 1 corrected</string>
-                </property>
-               </item>
-               <item>
-                <property name="text">
-                 <string>corrected ffc</string>
-                </property>
-               </item>
-               <item>
-                <property name="text">
-                 <string>corrected mu</string>
-                </property>
-               </item>
-               <item>
-                <property name="text">
-                 <string>differential corrected ffc</string>
-                </property>
-               </item>
-               <item>
-                <property name="text">
-                 <string>differential corrected mu</string>
-                </property>
-               </item>
-               <item>
-                <property name="text">
-                 <string>corrected ffc differential</string>
-                </property>
-               </item>
-               <item>
-                <property name="text">
-                 <string>corrected mu differential</string>
-                </property>
-               </item>
-               <item>
-                <property name="text">
-                 <string>imaging ffc</string>
-                </property>
-               </item>
-               <item>
-                <property name="text">
-                 <string>counter 0 deviation</string>
-                </property>
-               </item>
-               <item>
-                <property name="text">
-                 <string>cnt1 active</string>
-                </property>
-               </item>
-               <item>
-                <property name="text">
-                 <string>cnt0 active</string>
-                </property>
-               </item>
-               <item>
-                <property name="text">
-                 <string>cnt0 active and cnt1 rejected</string>
-                </property>
-               </item>
-               <item>
-                <property name="text">
-                 <string>diff cnt0 active and cnt1 rejected</string>
-                </property>
-               </item>
-               <item>
-                <property name="text">
-                 <string>cnt1ffc/cnt0ffc</string>
-                </property>
-               </item>
-               <item>
-                <property name="text">
-                 <string>additional data</string>
-                </property>
-               </item>
-               <item>
-                <property name="text">
-                 <string>GA request</string>
-                </property>
-               </item>
-              </widget>
-             </item>
-            </layout>
-           </widget>
-          </item>
-          <item>
-           <widget class="QGroupBox" name="groupBox_55">
-            <property name="maximumSize">
-             <size>
-              <width>100</width>
-              <height>16777215</height>
-             </size>
-            </property>
-            <property name="title">
-             <string>Smoothing</string>
-            </property>
-            <layout class="QVBoxLayout" name="verticalLayout_59">
-             <item>
-              <widget class="QSpinBox" name="spinBox_12">
-               <property name="maximum">
-                <number>10000</number>
-               </property>
-               <property name="value">
-                <number>1</number>
-               </property>
-              </widget>
-             </item>
-            </layout>
-           </widget>
-          </item>
-         </layout>
-        </item>
-        <item>
          <layout class="QHBoxLayout" name="horizontalLayout_9">
           <item>
            <layout class="QVBoxLayout" name="verticalLayout_61">
             <item>
+             <layout class="QHBoxLayout" name="horizontalLayout_8">
+              <item>
+               <widget class="QGroupBox" name="groupBox_9">
+                <property name="maximumSize">
+                 <size>
+                  <width>16777215</width>
+                  <height>70</height>
+                 </size>
+                </property>
+                <property name="title">
+                 <string>Frame count type</string>
+                </property>
+                <layout class="QVBoxLayout" name="verticalLayout_8">
+                 <item>
+                  <widget class="QComboBox" name="comboBox_2">
+                   <property name="minimumSize">
+                    <size>
+                     <width>271</width>
+                     <height>25</height>
+                    </size>
+                   </property>
+                   <property name="currentIndex">
+                    <number>0</number>
+                   </property>
+                   <item>
+                    <property name="text">
+                     <string>average</string>
+                    </property>
+                   </item>
+                   <item>
+                    <property name="text">
+                     <string>sum</string>
+                    </property>
+                   </item>
+                   <item>
+                    <property name="text">
+                     <string>median</string>
+                    </property>
+                   </item>
+                   <item>
+                    <property name="text">
+                     <string>max</string>
+                    </property>
+                   </item>
+                   <item>
+                    <property name="text">
+                     <string>min</string>
+                    </property>
+                   </item>
+                   <item>
+                    <property name="text">
+                     <string>zeros</string>
+                    </property>
+                   </item>
+                   <item>
+                    <property name="text">
+                     <string>overflow</string>
+                    </property>
+                   </item>
+                   <item>
+                    <property name="text">
+                     <string>standart deviation</string>
+                    </property>
+                   </item>
+                   <item>
+                    <property name="text">
+                     <string>signal to noise resolution</string>
+                    </property>
+                   </item>
+                  </widget>
+                 </item>
+                </layout>
+               </widget>
+              </item>
+              <item>
+               <widget class="QGroupBox" name="groupBox_8">
+                <property name="maximumSize">
+                 <size>
+                  <width>16777215</width>
+                  <height>70</height>
+                 </size>
+                </property>
+                <property name="title">
+                 <string>Pixel count type</string>
+                </property>
+                <layout class="QVBoxLayout" name="verticalLayout_7">
+                 <item>
+                  <widget class="QComboBox" name="comboBox_3">
+                   <property name="minimumSize">
+                    <size>
+                     <width>241</width>
+                     <height>25</height>
+                    </size>
+                   </property>
+                   <property name="currentIndex">
+                    <number>0</number>
+                   </property>
+                   <item>
+                    <property name="text">
+                     <string>counter 0</string>
+                    </property>
+                   </item>
+                   <item>
+                    <property name="text">
+                     <string>counter 1</string>
+                    </property>
+                   </item>
+                   <item>
+                    <property name="text">
+                     <string>counter 1 divide on counter 0</string>
+                    </property>
+                   </item>
+                   <item>
+                    <property name="text">
+                     <string>counter 1 subtract from counter 0</string>
+                    </property>
+                   </item>
+                   <item>
+                    <property name="text">
+                     <string>differantial counter 1</string>
+                    </property>
+                   </item>
+                   <item>
+                    <property name="text">
+                     <string>ffc</string>
+                    </property>
+                   </item>
+                   <item>
+                    <property name="text">
+                     <string>mu</string>
+                    </property>
+                   </item>
+                   <item>
+                    <property name="text">
+                     <string>differential ffc</string>
+                    </property>
+                   </item>
+                   <item>
+                    <property name="text">
+                     <string>differential mu</string>
+                    </property>
+                   </item>
+                   <item>
+                    <property name="text">
+                     <string>ffc differential</string>
+                    </property>
+                   </item>
+                   <item>
+                    <property name="text">
+                     <string>mu differential</string>
+                    </property>
+                   </item>
+                   <item>
+                    <property name="text">
+                     <string>counter 1 corrected</string>
+                    </property>
+                   </item>
+                   <item>
+                    <property name="text">
+                     <string>differential counter 1 corrected</string>
+                    </property>
+                   </item>
+                   <item>
+                    <property name="text">
+                     <string>corrected ffc</string>
+                    </property>
+                   </item>
+                   <item>
+                    <property name="text">
+                     <string>corrected mu</string>
+                    </property>
+                   </item>
+                   <item>
+                    <property name="text">
+                     <string>differential corrected ffc</string>
+                    </property>
+                   </item>
+                   <item>
+                    <property name="text">
+                     <string>differential corrected mu</string>
+                    </property>
+                   </item>
+                   <item>
+                    <property name="text">
+                     <string>corrected ffc differential</string>
+                    </property>
+                   </item>
+                   <item>
+                    <property name="text">
+                     <string>corrected mu differential</string>
+                    </property>
+                   </item>
+                   <item>
+                    <property name="text">
+                     <string>imaging ffc</string>
+                    </property>
+                   </item>
+                   <item>
+                    <property name="text">
+                     <string>counter 0 deviation</string>
+                    </property>
+                   </item>
+                   <item>
+                    <property name="text">
+                     <string>cnt1 active</string>
+                    </property>
+                   </item>
+                   <item>
+                    <property name="text">
+                     <string>cnt0 active</string>
+                    </property>
+                   </item>
+                   <item>
+                    <property name="text">
+                     <string>cnt0 active and cnt1 rejected</string>
+                    </property>
+                   </item>
+                   <item>
+                    <property name="text">
+                     <string>diff cnt0 active and cnt1 rejected</string>
+                    </property>
+                   </item>
+                   <item>
+                    <property name="text">
+                     <string>cnt1ffc/cnt0ffc</string>
+                    </property>
+                   </item>
+                   <item>
+                    <property name="text">
+                     <string>additional data</string>
+                    </property>
+                   </item>
+                   <item>
+                    <property name="text">
+                     <string>GA request</string>
+                    </property>
+                   </item>
+                  </widget>
+                 </item>
+                </layout>
+               </widget>
+              </item>
+             </layout>
+            </item>
+            <item>
              <layout class="QHBoxLayout" name="horizontalLayout_34">
               <item>
                <widget class="QGroupBox" name="groupBox_31">
+                <property name="maximumSize">
+                 <size>
+                  <width>16777215</width>
+                  <height>70</height>
+                 </size>
+                </property>
                 <property name="title">
                  <string>Scan</string>
                 </property>
@@ -2703,24 +2840,24 @@
                </widget>
               </item>
               <item>
-               <widget class="QGroupBox" name="groupBox_39">
+               <widget class="QGroupBox" name="groupBox_55">
                 <property name="maximumSize">
                  <size>
-                  <width>90</width>
-                  <height>16777215</height>
+                  <width>100</width>
+                  <height>70</height>
                  </size>
                 </property>
                 <property name="title">
-                 <string>Energy</string>
+                 <string>Smoothing</string>
                 </property>
-                <layout class="QVBoxLayout" name="verticalLayout_66">
+                <layout class="QVBoxLayout" name="verticalLayout_59">
                  <item>
-                  <widget class="QDoubleSpinBox" name="doubleSpinBox_22">
-                   <property name="minimum">
-                    <double>5.000000000000000</double>
-                   </property>
+                  <widget class="QSpinBox" name="spinBox_12">
                    <property name="maximum">
-                    <double>120.000000000000000</double>
+                    <number>10000</number>
+                   </property>
+                   <property name="value">
+                    <number>1</number>
                    </property>
                   </widget>
                  </item>
@@ -2734,7 +2871,13 @@
               <property name="minimumSize">
                <size>
                 <width>451</width>
-                <height>111</height>
+                <height>148</height>
+               </size>
+              </property>
+              <property name="maximumSize">
+               <size>
+                <width>16777215</width>
+                <height>148</height>
                </size>
               </property>
               <property name="title">
@@ -2744,17 +2887,7 @@
                <item>
                 <layout class="QHBoxLayout" name="horizontalLayout_2">
                  <item>
-                  <widget class="QLineEdit" name="lineEdit">
-                   <property name="maximumSize">
-                    <size>
-                     <width>300</width>
-                     <height>16777215</height>
-                    </size>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QComboBox" name="comboBox_21"/>
+                  <widget class="QLineEdit" name="lineEdit"/>
                  </item>
                 </layout>
                </item>
@@ -2965,8 +3098,13 @@
                    <item>
                     <widget class="QComboBox" name="comboBox_6">
                      <property name="currentIndex">
-                      <number>15</number>
+                      <number>0</number>
                      </property>
+                     <item>
+                      <property name="text">
+                       <string>widepix</string>
+                      </property>
+                     </item>
                      <item>
                       <property name="text">
                        <string>chip 1</string>
@@ -3042,16 +3180,6 @@
                        <string>chip 15</string>
                       </property>
                      </item>
-                     <item>
-                      <property name="text">
-                       <string>all chips</string>
-                      </property>
-                     </item>
-                     <item>
-                      <property name="text">
-                       <string>other</string>
-                      </property>
-                     </item>
                     </widget>
                    </item>
                    <item>
@@ -3073,6 +3201,9 @@
                   <layout class="QVBoxLayout" name="verticalLayout_48">
                    <item>
                     <widget class="QPushButton" name="pushButton_66">
+                     <property name="enabled">
+                      <bool>false</bool>
+                     </property>
                      <property name="text">
                       <string>Delete RoI</string>
                      </property>
@@ -3082,6 +3213,24 @@
                     <widget class="QPushButton" name="pushButton_65">
                      <property name="text">
                       <string>Add RoI</string>
+                     </property>
+                    </widget>
+                   </item>
+                  </layout>
+                 </item>
+                 <item>
+                  <layout class="QVBoxLayout" name="verticalLayout_54">
+                   <item>
+                    <widget class="QPushButton" name="pushButton_2">
+                     <property name="text">
+                      <string>Save RoIs</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QPushButton" name="pushButton_14">
+                     <property name="text">
+                      <string>Load RoIs</string>
                      </property>
                     </widget>
                    </item>
@@ -3099,57 +3248,59 @@
             <item>
              <layout class="QHBoxLayout" name="horizontalLayout_24">
               <item>
-               <widget class="QGroupBox" name="groupBox_7">
-                <property name="title">
-                 <string>THL</string>
-                </property>
-                <layout class="QVBoxLayout" name="verticalLayout_6">
-                 <item>
-                  <widget class="QComboBox" name="comboBox">
-                   <property name="minimumSize">
-                    <size>
-                     <width>86</width>
-                     <height>25</height>
-                    </size>
-                   </property>
-                  </widget>
-                 </item>
-                </layout>
-               </widget>
-              </item>
-              <item>
                <widget class="QGroupBox" name="groupBox_30">
+                <property name="maximumSize">
+                 <size>
+                  <width>16777215</width>
+                  <height>118</height>
+                 </size>
+                </property>
                 <property name="title">
                  <string> THL range</string>
                 </property>
                 <layout class="QHBoxLayout" name="horizontalLayout_25">
                  <item>
-                  <layout class="QVBoxLayout" name="verticalLayout_53">
-                   <item>
-                    <widget class="QLabel" name="label_18">
-                     <property name="text">
-                      <string>min</string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item>
-                    <widget class="QComboBox" name="comboBox_5"/>
-                   </item>
-                  </layout>
+                  <widget class="QGroupBox" name="groupBox_7">
+                   <property name="title">
+                    <string>THL</string>
+                   </property>
+                   <layout class="QVBoxLayout" name="verticalLayout_6">
+                    <item>
+                     <widget class="QComboBox" name="comboBox">
+                      <property name="minimumSize">
+                       <size>
+                        <width>86</width>
+                        <height>25</height>
+                       </size>
+                      </property>
+                     </widget>
+                    </item>
+                   </layout>
+                  </widget>
                  </item>
                  <item>
-                  <layout class="QVBoxLayout" name="verticalLayout_54">
-                   <item>
-                    <widget class="QLabel" name="label_19">
-                     <property name="text">
-                      <string>max</string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item>
-                    <widget class="QComboBox" name="comboBox_11"/>
-                   </item>
-                  </layout>
+                  <widget class="QGroupBox" name="groupBox_60">
+                   <property name="title">
+                    <string>min</string>
+                   </property>
+                   <layout class="QVBoxLayout" name="verticalLayout_3">
+                    <item>
+                     <widget class="QSpinBox" name="spinBox_13"/>
+                    </item>
+                   </layout>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QGroupBox" name="groupBox_61">
+                   <property name="title">
+                    <string>max</string>
+                   </property>
+                   <layout class="QVBoxLayout" name="verticalLayout_4">
+                    <item>
+                     <widget class="QSpinBox" name="spinBox_14"/>
+                    </item>
+                   </layout>
+                  </widget>
                  </item>
                 </layout>
                </widget>
@@ -3158,10 +3309,41 @@
             </item>
             <item>
              <widget class="QGroupBox" name="groupBox_58">
+              <property name="maximumSize">
+               <size>
+                <width>16777215</width>
+                <height>118</height>
+               </size>
+              </property>
               <property name="title">
                <string>Energy range</string>
               </property>
               <layout class="QHBoxLayout" name="horizontalLayout_47">
+               <item>
+                <widget class="QGroupBox" name="groupBox_39">
+                 <property name="maximumSize">
+                  <size>
+                   <width>90</width>
+                   <height>16777215</height>
+                  </size>
+                 </property>
+                 <property name="title">
+                  <string>Energy</string>
+                 </property>
+                 <layout class="QVBoxLayout" name="verticalLayout_66">
+                  <item>
+                   <widget class="QDoubleSpinBox" name="doubleSpinBox_22">
+                    <property name="minimum">
+                     <double>5.000000000000000</double>
+                    </property>
+                    <property name="maximum">
+                     <double>120.000000000000000</double>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </widget>
+               </item>
                <item>
                 <widget class="QGroupBox" name="groupBox_36">
                  <property name="title">
@@ -3243,6 +3425,12 @@
        <layout class="QVBoxLayout" name="verticalLayout_58">
         <item>
          <widget class="QGroupBox" name="groupBox_2">
+          <property name="maximumSize">
+           <size>
+            <width>16777215</width>
+            <height>215</height>
+           </size>
+          </property>
           <property name="title">
            <string>Mask pixels</string>
           </property>
@@ -3281,6 +3469,18 @@
              </item>
              <item>
               <widget class="QGroupBox" name="groupBox_10">
+               <property name="minimumSize">
+                <size>
+                 <width>0</width>
+                 <height>50</height>
+                </size>
+               </property>
+               <property name="maximumSize">
+                <size>
+                 <width>16777215</width>
+                 <height>69</height>
+                </size>
+               </property>
                <property name="title">
                 <string>Value</string>
                </property>
@@ -3437,6 +3637,24 @@
                </item>
               </layout>
              </item>
+             <item>
+              <layout class="QHBoxLayout" name="horizontalLayout_14">
+               <item>
+                <widget class="QPushButton" name="pushButton_30">
+                 <property name="text">
+                  <string>Save mask</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QPushButton" name="pushButton_69">
+                 <property name="text">
+                  <string>Load mask</string>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </item>
             </layout>
            </item>
           </layout>
@@ -3446,6 +3664,12 @@
          <layout class="QHBoxLayout" name="horizontalLayout_30">
           <item>
            <widget class="QGroupBox" name="groupBox_33">
+            <property name="maximumSize">
+             <size>
+              <width>16777215</width>
+              <height>63</height>
+             </size>
+            </property>
             <property name="title">
              <string>Graphs interaction mode</string>
             </property>
@@ -3472,6 +3696,12 @@
           </item>
           <item>
            <widget class="QGroupBox" name="groupBox_34">
+            <property name="maximumSize">
+             <size>
+              <width>16777215</width>
+              <height>63</height>
+             </size>
+            </property>
             <property name="title">
              <string>x Axis</string>
             </property>
@@ -3501,6 +3731,12 @@
           </item>
           <item>
            <widget class="QGroupBox" name="groupBox_35">
+            <property name="maximumSize">
+             <size>
+              <width>16777215</width>
+              <height>63</height>
+             </size>
+            </property>
             <property name="title">
              <string>y Axis</string>
             </property>

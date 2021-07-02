@@ -28,6 +28,7 @@ UC_plot::UC_plot(QObject *parent) : QObject(parent) {
     scan_enable = false;
     ff_enable = false;
     df_enable = false;
+
     for (int i = 0; i < (256 * 256 * 15); i++) { /// Цикл для инициализации масок, индекс - i
         mask[i] = false;
     }
@@ -41,23 +42,17 @@ UC_plot::UC_plot(QObject *parent) : QObject(parent) {
 
     frame_type = UTE_FT_average;
     pixel_type = UTE_PT_cnt1;
-    identification_type = UTE_IT_GA_method;
+    id_type = UTE_IT_GA_method;
     calibration_type = UTE_CT_with_fit;
 
-
-
-
-    data_enable.id1_enable = true;
-    data_enable.min_enable = true;
-    data_enable.max_enable = true;
-    data_enable.sum_enable = true;
-    data_enable.mean_enable = true;
-    data_enable.median_enable = true;
-    data_enable.std_dev_enable = true;
-    data_enable.zeros_enable = true;
-    data_enable.snr_enable = true;
-
-
+    UC_pixels_info pixel_area("Widepix", 0, 0, 3840, 256);
+    pixels_areas << pixel_area;
+    for (int i = 1; i < 16; i++) {
+        QString name;
+        name = QString("Chip %1").arg(i);
+        UC_pixels_info pixel_area(name, 256 * (i - 1), 0, 256 * i, 256);
+        pixels_areas << pixel_area;
+    }
 
     U_reset_data();
 }
@@ -207,51 +202,25 @@ void UC_plot::U_renew_progress_bar() {
 
 //
 
-void UC_plot::U_add_pixel_table(int thl, int chip, int x, int y, UC_pixels_info* pi_array[]) {
+void UC_plot::U_add_pixel_table(int thl, int x, int y) {
     double z;
-    int cnt0, cnt1;
+    int cnt0;
+    int cnt1;
     int overflow;
-    int x_widepix;
-    bool in_roi;
+    int n;
     bool mask;
     bool overflowed;
 
     overflow = scan->U_get_count() * 4095;
-
-    x_widepix = U_get_coord_x_chip(chip, x);
-    z = U_get_pixel_data(pixel_type, thl, x_widepix, y);
-
-    pi_array[15]->U_add_pixel(z);                           //widepix
-    pi_array[chip]->U_add_pixel(z);
-
-    mask = U_get_mask(x_widepix, y);
-    in_roi = (x_widepix >= x_min) & (x_widepix < x_max) & (y >= y_min) & (y < y_max);
-    cnt0 = scan->U_get_data(thl, x_widepix, y, 0);
-    cnt1 = scan->U_get_data(thl, x_widepix, y, 1);
+    cnt0 = scan->U_get_data(thl, x, y, 0);
+    cnt1 = scan->U_get_data(thl, x, y, 1);
     overflowed = (cnt0 == overflow) | (cnt1 == overflow);
+    mask = U_get_mask(x, y);
+    z = U_get_pixel_data(pixel_type, thl, x, y);
+    n = pixels_areas.size();
 
-    if (mask) {
-        pi_array[15]->U_add_masked();                           //widepix
-        pi_array[chip]->U_add_masked();
-        pi_array[17]->U_add_pixel(z);                           //masked
-        pi_array[17]->U_add_masked();                           //masked
-        if (overflowed) pi_array[17]->U_add_overflow();         //masked
-    } else {
-        pi_array[18]->U_add_pixel(z);                           //unmasked
-        if (overflowed) pi_array[18]->U_add_overflow();         //unmasked
-    }
-    if (overflowed) {
-        pi_array[15]->U_add_overflow();                         //widepix
-        pi_array[chip]->U_add_overflow();
-    } else {
-        pi_array[19]->U_add_pixel(z);                           //not_overflow
-        if (mask) pi_array[19]->U_add_masked();                 //not_overflow
-    }
-    if (in_roi) {
-        pi_array[16]->U_add_pixel(z);                           //roi
-        if (mask) pi_array[16]->U_add_masked();                 //roi
-        if (overflowed) pi_array[16]->U_add_overflow();         //roi
-        if (!(overflowed | mask)) pi_array[20]->U_add_pixel(z); //roi_not_masked_not_ovf
+    for (int i = 0; i < n; i++) {
+        pixels_areas[i].U_add_pixel(z, x, y, mask, overflowed);
     }
 }
 
@@ -601,7 +570,7 @@ double UC_plot::U_get_pixel_data_15(int thl, int x, int y) { //UTE_PT_mu_corr_cn
     if (qAbs(denom) < 1e-10) return 0;
     double mu = ff->U_get_corrected_cnt1_scaled(thl, x, y) - cnt1df;
     mu /= denom;
-    if (mu < 0) return 0;
+    if (mu < 1e-10) return 0;
     return qLn(mu);
 }
 
@@ -644,10 +613,10 @@ double UC_plot::U_get_pixel_data_17(int thl, int x, int y) { //UTE_PT_diff_mu_co
     if (qAbs(denom_1) < 1e-10) return 0;
     double mu = ff->U_get_corrected_cnt1_scaled(thl, x, y) - cnt1df;
     mu /= denom;
-    if (mu < 0) return 0;
+    if (mu < 1e-10) return 0;
     double mu_1 = ff->U_get_corrected_cnt1_scaled(thl + 1, x, y) - cnt1df_1;
     mu_1 /= denom_1;
-    if (mu_1 < 0) return 0;
+    if (mu_1 < 1e-10) return 0;
     return qLn(mu_1) - qLn(mu);
 }
 
@@ -883,13 +852,13 @@ double UC_plot::U_get_frame_data_3(QVector<double> data) { //UTE_FT_median
     std::vector<double> z = data.toStdVector();
     int cnt = data.size();
     std::sort(z.begin(), z.end());
-    if ((cnt % 2) == 0) {
+    if ((cnt % 2) == 1) {
         cnt /= 2;
         return z[static_cast<unsigned long>(cnt)];
     } else {
         cnt /= 2;
-        double z1 = z[static_cast<unsigned long>(cnt)];
-        double z2 = z[static_cast<unsigned long>(cnt + 1)];
+        double z1 = z[static_cast<unsigned long>(cnt - 1)];
+        double z2 = z[static_cast<unsigned long>(cnt)];
         return (z1 + z2) / 2;
     }
 }
@@ -961,7 +930,7 @@ double UC_plot::U_get_frame_data_9(QVector<double> data) { //UTE_FT_signal_to_no
 ///////////////////////////////////////////////////////////////////////////////////////
 
 //
-void UC_plot::U_identification_roi_1() {    //UTE_IT_GA_method
+void UC_plot::U_id_roi_1() {    //UTE_IT_GA_method
     UTStr_id_GA_data result;
     int current = 0;
     int total = thl_id_2 - thl_id_1 + thl_id_4 - thl_id_3;
@@ -1027,7 +996,7 @@ QVector<double> UC_plot::U_calculating_samples_value(UC_data_container * scan, Q
     return result;
 }
 
-void UC_plot::U_identification_roi_2() {    //UTE_IT_linear_combination
+void UC_plot::U_id_roi_2() {    //UTE_IT_linear_combination
     int current = 0;
     int total = 0;
 
@@ -1258,6 +1227,13 @@ void UC_plot::U_set_data(UC_data_container::UTStr_data_container_settings settin
     QString name;
 
     int n = file_names.size();
+    if (n == 0) {
+        QMessageBox msgBox;
+        msgBox.setText("Files of scan have not been found.");
+        msgBox.exec();
+        //return;
+    }
+
     int i = 0;
     while (i < n) {
         name = file_names[i];
@@ -1282,8 +1258,10 @@ void UC_plot::U_set_data(UC_data_container::UTStr_data_container_settings settin
         }
     }
 
-    settings.thl_min = file_names[0].left(3).toInt();
-    settings.thl_max = file_names[file_names.size() - 1].left(3).toInt();
+    if (n != 0) {
+        settings.thl_min = file_names[0].left(3).toInt();
+        settings.thl_max = file_names[file_names.size() - 1].left(3).toInt();
+    }
 
     settings.n_thl = file_names.size();
     U_set_total_progress_bar(settings.n_thl);
@@ -1499,87 +1477,72 @@ void UC_plot::U_generate_frame(double energy) {
 }
 
 void UC_plot::U_generate_table(int thl) {
-    UC_pixels_info* pi_array[21];
-    for (int i = 0; i < 21; i++) {
-        pi_array[i] = new UC_pixels_info(static_cast<UC_pixels_info::UTE_pixels_area>(i));
-    }
-
+    const int n = pixels_areas.size();
     U_set_total_progress_bar(256 * 256 * 15);
 
-    for (int chip = 0; chip < 15; chip++) {
+    for (int i = 0; i < n; i++) {
+        pixels_areas[i].U_reset();
+    }
+
+    for (int x = 0; x < 3840; x++) {
         for (int y = 0; y < 256; y++) {
-            for (int x = 0; x < 256; x++) {
-                U_add_pixel_table(thl, chip, x, y, pi_array);
-                U_renew_progress_bar();
-            }
+            U_add_pixel_table(thl, x, y);
+            U_renew_progress_bar();
         }
     }
 
-    for (int i = 0; i < 21; i++) {
-        pi_array[i]->U_finalize();
-        emit US_chip_data(*(pi_array[i]));
+    for (int i = 0; i < n; i++) {
+        pixels_areas[i].U_finalize();
+        emit US_chip_data(pixels_areas[i]);
     }
     emit US_rewrite_table();
-    for (int i = 0; i < 21; i++) {
-        delete pi_array[i];
-    }
 }
 
 void UC_plot::U_generate_table(double energy) {
-    UC_pixels_info* pi_array[21];
-    for (int i = 0; i < 21; i++) {
-        pi_array[i] = new UC_pixels_info(static_cast<UC_pixels_info::UTE_pixels_area>(i));
-    }
-
+    const int n = pixels_areas.size();
     U_set_total_progress_bar(256 * 256 * 15);
 
-    for (int chip = 0; chip < 15; chip++) {
-        int thl = U_get_thl_from_energy_chip(chip, energy);
+    for (int i = 0; i < n; i++) {
+        pixels_areas[i].U_reset();
+    }
+
+    for (int x = 0; x < 3840; x++) {
+        int thl = U_get_thl_from_energy(x, energy);
         for (int y = 0; y < 256; y++) {
-            for (int x = 0; x < 256; x++) {
-                U_add_pixel_table(thl, chip, x, y, pi_array);
+            U_add_pixel_table(thl, x, y);
+            U_renew_progress_bar();
+        }
+    }
+
+    for (int i = 0; i < n; i++) {
+        pixels_areas[i].U_finalize();
+        emit US_chip_data(pixels_areas[i]);
+    }
+    emit US_rewrite_table();
+}
+
+void UC_plot::U_generate_table() {
+    const int n = pixels_areas.size();
+    U_set_total_progress_bar(256 * 256 * 15);
+
+    for (int i = 0; i < n; i++) {
+        pixels_areas[i].U_reset();
+    }
+
+    for (int thl = thl_min; thl <= thl_max; thl++) {
+        for (int x = 0; x < 3840; x++) {
+            for (int y = 0; y < 256; y++) {
+                U_add_pixel_table(thl, x, y);
                 U_renew_progress_bar();
             }
         }
     }
 
-    for (int i = 0; i < 21; i++) {
-        pi_array[i]->U_finalize();
-        emit US_chip_data(*(pi_array[i]));
+    for (int i = 0; i < n; i++) {
+        pixels_areas[i].U_finalize();
+        emit US_chip_data(pixels_areas[i]);
     }
     emit US_rewrite_table();
-    for (int i = 0; i < 21; i++) {
-        delete pi_array[i];
-    }
-}
-
-void UC_plot::U_generate_table() {
-    UC_pixels_info* pi_array[21];
-    for (int i = 0; i < 21; i++) {
-        pi_array[i] = new UC_pixels_info(static_cast<UC_pixels_info::UTE_pixels_area>(i));
-    }
-
-    U_set_total_progress_bar(256 * 256 * 15 * (thl_max - thl_min));
-
-    for (int thl = thl_min; thl <= thl_max; thl++) {
-        for (int chip = 0; chip < 15; chip++) {
-            for (int y = 0; y < 256; y++) {
-                for (int x = 0; x < 256; x++) {
-                    U_add_pixel_table(thl, chip, x, y, pi_array);
-                    U_renew_progress_bar();
-                }
-            }
-        }
-    }
-
-    for (int i = 0; i < 21; i++) {
-        pi_array[i]->U_finalize();
-        emit US_chip_data(*(pi_array[i]));
-    }
-    emit US_rewrite_table();
-    for (int i = 0; i < 21; i++) {
-        delete pi_array[i];
-    }
 }
 
 void UC_plot::U_generate_distribution(int n_bins, double min, double max) {
@@ -1606,6 +1569,7 @@ void UC_plot::U_generate_distribution(int n_bins, double min, double max) {
     }
 
     emit US_replot_distribution(x, y);
+    delete hist;
 }
 
 void UC_plot::U_generate_frame_distribution(int n_bins, double min, double max, int thl) {
@@ -1630,6 +1594,7 @@ void UC_plot::U_generate_frame_distribution(int n_bins, double min, double max, 
     }
 
     emit US_replot_distribution(x, y);
+    delete hist;
 }
 
 void UC_plot::U_generate_calibration(int chip) {
@@ -1728,14 +1693,14 @@ void UC_plot::U_generate_calibration() {
 }
 
 
-void UC_plot::U_generate_identification_roi() {
-    switch (identification_type) {
+void UC_plot::U_generate_id_roi() {
+    switch (id_type) {
         case UTE_IT_GA_method : {
-            U_identification_roi_1();
+            U_id_roi_1();
             return;
         }
         case UTE_IT_linear_combination : {
-            U_identification_roi_2();
+            U_id_roi_2();
             return;
         }
     }
@@ -1755,7 +1720,7 @@ void UC_plot::U_generate_additional_data() {
     }
 }
 
-void UC_plot::U_generate_identification_data() {
+void UC_plot::U_generate_id_data() {
     QList<UC_data_container *> id_samples;
     QList<QString> elements;
 
@@ -1774,27 +1739,29 @@ void UC_plot::U_generate_identification_data() {
     scan = scan_reserved;
 
     U_calculating_id(scan, id_samples);
-    emit US_identification_scan_list(elements);
+    emit US_id_scan_list(elements);
 }
 
-void UC_plot::U_generate_identification_frame(int element_index) {
+void UC_plot::U_generate_id_frame(int element_index) {
     double z;
     for (int x = x_min; x < x_max; x++) {
         for (int y = y_min; y < y_max; y++) {
             if (U_get_mask(x, y)) {
-                emit US_identification_frame_data(x, y, 0);
+                emit US_id_frame_data(x, y, 0);
             } else {
                 z = scan->U_get_id_data(x, y, element_index);
-                emit US_identification_frame_data(x, y, z);
+                emit US_id_frame_data(x, y, z);
             }
         }
     }
-    emit US_replot_identificaton_frame();
+    emit US_replot_id_frame();
 }
 
 
 void UC_plot::U_generate_range(int thl) {
-    double z, max = -9999999999999, min = 9999999999999999;
+    double z;
+    double max = -1e300;
+    double min = 1e300;
     for (int x = x_min; x < x_max; x++) {
         for (int y = y_min; y < y_max; y++) {
             if (U_get_mask(x, y)) continue;
@@ -1807,9 +1774,10 @@ void UC_plot::U_generate_range(int thl) {
 }
 
 void UC_plot::U_generate_range() {
-    double z, max = -9999999999999, min = 9999999999999999;
-    int i = 0;
-    int total = (x_max - x_min) * (y_max - y_min);
+    double z;
+    double max = -1e300;
+    double min = 1e300;
+    U_set_total_progress_bar((x_max - x_min) * (y_max - y_min) * (thl_max - thl_min));
     for (int thl = thl_min; thl <= thl_max; thl++) {
         for (int x = x_min; x < x_max; x++) {
             for (int y = y_min; y < y_max; y++) {
@@ -1817,8 +1785,7 @@ void UC_plot::U_generate_range() {
                 z = U_get_pixel_data(pixel_type, thl, x, y);
                 if (z > max) max = z;
                 if (z < min) min = z;
-                i++;
-                emit US_renew_progress_bar(i, total);
+                U_renew_progress_bar();
             }
         }
     }
@@ -1839,10 +1806,14 @@ void UC_plot::U_set_pixel_type(UTE_pixel_type pixel_type) {
     this->pixel_type = pixel_type;
 }
 
-void UC_plot::U_set_identification_type(UC_plot::UTE_identification_type identification_type) {
-    this->identification_type = identification_type;
+void UC_plot::U_set_id_type(UC_plot::UTE_id_type id_type) {
+    this->id_type = id_type;
 }
 
+void UC_plot::U_set_calibration_type(UC_plot::UTE_calibration_type calibration_type) {
+    this->calibration_type = calibration_type;
+}
+//
 void UC_plot::U_set_roi(int x_min, int x_max, int y_min, int y_max) {
     this->x_min = x_min;
     this->x_max = x_max;
@@ -1856,34 +1827,30 @@ void UC_plot::U_set_rebin(int rebin_x, int rebin_y, int rebin_thl) {
     this->rebin_thl = rebin_thl;
 }
 
-void UC_plot::U_set_thresholds(int thl_id_1, int thl_id_2, int thl_id_3, int thl_id_4) {
-    this->thl_id_1 = thl_id_1;
-    this->thl_id_2 = thl_id_2;
-    this->thl_id_3 = thl_id_3;
-    this->thl_id_4 = thl_id_4;
-}
-
 void UC_plot::U_set_threshold_range(int thl_min, int thl_max) {
     this->thl_min = thl_min;
     this->thl_max = thl_max;
 }
 
-void UC_plot::U_set_data_enable(UC_pixels_info::UTStr_data_enable data_enable) {
-    this->data_enable = data_enable;
+void UC_plot::U_set_id_thresholds(int thl_id_1, int thl_id_2, int thl_id_3, int thl_id_4) {
+    this->thl_id_1 = thl_id_1;
+    this->thl_id_2 = thl_id_2;
+    this->thl_id_3 = thl_id_3;
+    this->thl_id_4 = thl_id_4;
 }
-
+//
 void UC_plot::U_set_using_calibraion(bool enable) {
     using_calibration = enable;
 }
 
-void UC_plot::U_set_threshold_level(int level) {
+void UC_plot::U_set_threshold_level(double level) {
     this->threshold_level = level;
 }
 
 void UC_plot::U_set_smoothing(int smoothing) {
     this->smoothing = smoothing;
 }
-
+//
 void UC_plot::U_save_calibration(QString file_name) {
     QFile file(file_name);
     file.open(QFile::Truncate | QFile::WriteOnly);
@@ -1909,7 +1876,6 @@ void UC_plot::U_load_calibration(QString file_name) {
     file.close();
 }
 //
-
 void UC_plot::U_get_max_thl_range() {
     int max;
     int min;
@@ -2043,34 +2009,40 @@ void UC_plot::U_set_mask_overflowed(bool in_roi, int thl) {
         y_max = this->y_max;
     }
 
+    int cnt0 = 0;
+    int cnt1 = 0;
+    bool overflowed;
     int overflow = scan->U_get_count() * 4095;
-    int overflow_ff = ff->U_get_count() * 4095;
-    int overflow_df = df->U_get_count() * 4095;
-    int cnt0, cnt1, cnt0ff, cnt1ff, cnt0df, cnt1df;
-    bool overflowed = false;
-
     for (int x = x_min; x < x_max; x++) {
         for (int y = y_min; y < y_max; y++) {
             cnt0 = scan->U_get_data(thl, x, y, 0);
             cnt1 = scan->U_get_data(thl, x, y, 1);
-            if (ff_enable) {
-                cnt0ff = ff->U_get_data(thl, x, y, 0);
-                cnt1ff = ff->U_get_data(thl, x, y, 1);
-            } else {
-                cnt0ff = 0;
-                cnt1ff = 0;
-            }
-            if (df_enable) {
-                cnt0df = df->U_get_data(thl, x, y, 0);
-                cnt1df = df->U_get_data(thl, x, y, 1);
-            } else {
-                cnt0df = 0;
-                cnt1df = 0;
-            }
             overflowed = (cnt0 == overflow) | (cnt1 == overflow);
-            overflowed |= (cnt0ff == overflow_ff) | (cnt1ff == overflow_ff);
-            overflowed |= (cnt0df == overflow_df) | (cnt1df == overflow_df);
             if (overflowed) U_set_mask(x, y, true);
+        }
+    }
+
+    if (ff_enable) {
+        int overflow = ff->U_get_count() * 4095;
+        for (int x = x_min; x < x_max; x++) {
+            for (int y = y_min; y < y_max; y++) {
+                cnt0 = ff->U_get_data(thl, x, y, 0);
+                cnt1 = ff->U_get_data(thl, x, y, 1);
+                overflowed = (cnt0 == overflow) | (cnt1 == overflow);
+                if (overflowed) U_set_mask(x, y, true);
+            }
+        }
+    }
+
+    if (df_enable) {
+        int overflow = df->U_get_count() * 4095;
+        for (int x = x_min; x < x_max; x++) {
+            for (int y = y_min; y < y_max; y++) {
+                cnt0 = df->U_get_data(thl, x, y, 0);
+                cnt1 = df->U_get_data(thl, x, y, 1);
+                overflowed = (cnt0 == overflow) | (cnt1 == overflow);
+                if (overflowed) U_set_mask(x, y, true);
+            }
         }
     }
 }
@@ -2143,5 +2115,63 @@ void UC_plot::U_mask_selected_value_thl(double value_min, double value_max, bool
         }
     }
 }
+
+void UC_plot::U_save_mask(QString file_name) {
+    QFile file(file_name);
+    file.open(QFile::Truncate | QFile::WriteOnly);
+    QTextStream str(&file);
+    for (int y = 0; y < 255; y++) {
+        for (int x = 0; x < 3839; x++) {
+            if (U_get_mask(x, y)) {
+                str << "1 ";
+            } else {
+                str << "0 ";
+            }
+        }
+        if (U_get_mask(3839, y)) {
+            str << "1";
+        } else {
+            str << "0";
+        }
+        str << endl;
+    }
+    for (int x = 0; x < 3839; x++) {
+        if (U_get_mask(x, 255)) {
+            str << "1 ";
+        } else {
+            str << "0 ";
+        }
+    }
+    if (U_get_mask(3839, 255)) {
+        str << "1";
+    } else {
+        str << "0";
+    }
+    file.close();
+}
+
+void UC_plot::U_load_mask(QString file_name) {
+    QFile file(file_name);
+    file.open(QFile::ReadOnly);
+    QTextStream str(&file);
+    int z;
+    for (int y = 0; y < 256; y ++) {
+        for (int x = 0; x < (15 * 256); x++) {
+            str >> z;
+            U_set_mask(x, y, (z == 1));
+        }
+    }
+    file.close();
+}
 //////////////////////////////////////////////////////////////////////////////////////
+
+void UC_plot::U_add_roi(UC_roi roi) {
+    UC_pixels_info pixel_area(roi);
+    pixels_areas << pixel_area;
+}
+
+void UC_plot::U_delete_roi(int index) {
+    pixels_areas.removeAt(index);
+}
+
 

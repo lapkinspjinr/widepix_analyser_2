@@ -18,6 +18,7 @@
 #include <QVector>
 #include <QTextStream>
 #include <QtMath>
+#include <QMessageBox>
 
 #include <TGraph.h>
 #include <TF1.h>
@@ -36,35 +37,34 @@
  */
 class UC_plot : public QObject
 {
-    ///RoI
+    /// RoI
     int x_min;              ///< Левая граница области интереса.
     int x_max;              ///< Правая граница области интереса.
     int y_min;              ///< Нижняя граница области интереса.
     int y_max;              ///< Верхняя граница области интереса.
     int thl_min;            ///< Минимальный порог области интереса по порогам.
     int thl_max;            ///< Максимальный порог области интереса по порогам.
-    double energy_min;
-    double energy_max;
+    double energy_min;      ///< Максимальная энергии диапазона по энергии
+    double energy_max;      ///< Минимальная энергии диапазона по энергии
 
     int thl_id_1;           ///< Нижний порог левого оокна для идентификации веществ по методу Шелкова.
     int thl_id_2;           ///< Верхний порог левого оокна для идентификации веществ по методу Шелкова.
     int thl_id_3;           ///< Нижний порог правого оокна для идентификации веществ по методу Шелкова.
     int thl_id_4;           ///< Верхний порог правого оокна для идентификации веществ по методу Шелкова.
 
-    int threshold_level;    ///< Уровень порога активности пикселя.
-    int rebin_x;
-    int rebin_y;
-    int rebin_thl;
-    int smoothing;
-    int total_progress_bar;
-    int current_progress_bar;
+    double threshold_level;        ///< Уровень порога активности пикселя.
+    int rebin_x;                ///< Грппировка (ребининг) пикселей по направлению x.
+    int rebin_y;                ///< Грппировка (ребининг) пикселей по направлению y.
+    int rebin_thl;              ///< Грппировка (ребининг) значений при соседних порогах.
+    int smoothing;              ///< Показатель сглаживания.
+    int total_progress_bar;     ///< Переменная, хранящая общее число шагов при расчетах.
+    int current_progress_bar;   ///< Переменная, хранящая пройденное число шагов при расчетах.
 
     bool using_calibration;     ///< Использование калибровки.
     bool scan_enable;           ///< Наличие активного скана.
     bool ff_enable;             ///< Наличие активного скана плоского поля.
     bool df_enable;             ///< Наличие активного скана черного поля.
     bool mask[256 * 256 * 15];  ///< Массив масок. По одному значению на каждый пиксель.
-
 
     double calibration_p0[15];  ///< Нулевые коэффициенты калибровки по чипам.
     double calibration_p1[15];  ///< Первые коэффициенты калибровки по чипам.
@@ -76,12 +76,10 @@ class UC_plot : public QObject
     UC_data_container * ff;     ///< Указатель на активный скан плоского поля.
     UC_data_container * df;     ///< Указатель на активный скан черного поля.
 
-    UC_pixels_info::UTStr_data_enable data_enable; ///< Структура, показывающая расчитываемые статистические данные.
-
     QVector<int> element_vector;    ///< Вектор индексов эелементов.
 
 public :
-    ///Методы расчета кадра.
+    /// Методы расчета кадра.
     typedef enum {
         UTE_FT_average,                     ///< Среднее значение кадра.
         UTE_FT_sum,                         ///< Сумма значений в кадре.
@@ -94,17 +92,19 @@ public :
         UTE_FT_signal_to_noise_resolution,  ///< Отношение сигнал - шум для значений в кадре.
     } UTE_frame_type;
 
+    /// Методы идентификации веществ
     typedef enum {
-        UTE_IT_GA_method,
-        UTE_IT_linear_combination,
-    } UTE_identification_type;
+        UTE_IT_GA_method,           ///< Простейший математический критерий отбора одного элемента.
+        UTE_IT_linear_combination,  ///< Спектр рассматриваемого скана раскладывается как линейная комбинация на спектры элементов.
+    } UTE_id_type;
 
+    /// Методы калибровки
     typedef enum {
-        UTE_CT_with_fit,
-        UTE_CT_without_fit,
+        UTE_CT_with_fit,        ///< Значение порога при данном скане для данного чипа рассчитывается с фитированием.
+        UTE_CT_without_fit,     ///< Значение порога при данном скане для данного чипа рассчитывается без фитирования.
     } UTE_calibration_type;
 
-    ///Методы расчета пикселя.
+    /// Методы расчета пикселя.
     typedef enum {
         UTE_PT_cnt0,                        ///< Значение нулевого счетчика при сканировании с образцом.
         UTE_PT_cnt1,                        ///< Значение первого счетчика при сканировании с образцом.
@@ -165,41 +165,19 @@ private :
 
     UTE_frame_type frame_type;                      ///< Текущий метод расчета кадра.
     UTE_pixel_type pixel_type;                      ///< Текущий метод расчета пикселей.
-    UTE_identification_type identification_type;    ///< Текущий метод идентификации.
+    UTE_id_type id_type;    ///< Текущий метод идентификации.
     UTE_calibration_type calibration_type;
+
+    QList<UC_pixels_info> pixels_areas;
 
     Q_OBJECT
 public:
 
-    /*!
-     * Конструктор. Создает экземпляр класса и инициализирует его переменные. Подготаливает экземляр класса к использованию.
-     * \brief UC_plot Конструктор. Создает экземпляр класса и инициализирует его переменные.
-     * \param[in] parent Родительский объект.
-     */
     explicit UC_plot(QObject *parent = nullptr);
-    /*!
-     * Деструктор. Уничтожает экземпляр класса. Освобождает память динамических массивов.
-     * \brief ~UC_plot Деструктор. Уничтожает экземпляр класса.
-     */
     ~UC_plot();
 
     /// Функции калибровки
-
-    /*!
-     * Возвращает значение энергии по координате и порогу.
-     * \brief U_get_energy_from_thl Возвращает значение энергии по координате и порогу.
-     * \param[in] x Координата х пикселя.
-     * \param[in] thl Значение порог.
-     * \return Занчение энергии.
-     */
     double U_get_energy_from_thl(int x, int thl);
-    /*!
-     * Возвращает значение энергии по номеру чипа и порогу.
-     * \brief U_get_energy_from_thl Возвращает значение энергии по координате и порогу.
-     * \param[in] chip Номер чипа.
-     * \param[in] thl Значение порог.
-     * \return Занчение энергии.
-     */
     double U_get_energy_from_thl_chip(int chip, int thl);
     int U_get_thl_from_energy(int x, double energy);
     int U_get_thl_from_energy_chip(int chip, double energy);
@@ -214,7 +192,7 @@ public:
     void U_set_total_progress_bar(int total);
     void U_renew_progress_bar();
     //
-    void U_add_pixel_table(int thl, int chip, int x, int y, UC_pixels_info *pi_array[]);
+    void U_add_pixel_table(int thl, int x, int y);
     //
     void U_get_calibration_chip_spectra(QVector<double> * x, QVector<double> * y, int chip);
     TF1 U_get_calibration_fit(QVector<double> * x, QVector<double> * y);
@@ -271,17 +249,10 @@ public:
     double U_get_frame_data_8(QVector<double> data); //UTE_FT_standart_deviation
     double U_get_frame_data_9(QVector<double> data); //UTE_FT_signal_to_noise_resolution
 ////////////////////////////////////////////////////////////////////////////////////
-
-
-
-///////////////////////////////////////////////////////////////////////////////////
-
-//
-
-    void U_identification_roi_1();
+    void U_id_roi_1();
 
     QVector<double> U_calculating_samples_value(UC_data_container * scan, QVector<int> thl_samples);
-    void U_identification_roi_2();
+    void U_id_roi_2();
     //
     void U_calculating_xmu(UC_data_container * scan, int i, int j, int rebin_x, int rebin_y, int rebin_thl);
     void U_calculating_id(UC_data_container * scan, QList<UC_data_container *> id_samples);
@@ -296,10 +267,10 @@ signals:
     void US_calibration_data(double x, double y, int chip, bool is_fit);
     void US_id_roi_GA_data(UC_plot::UTStr_id_GA_data data);
     void US_id_roi_LC_data(UC_plot::UTStr_id_LC_data data);
-    void US_identification_data();
-    void US_identification_frame_data(double x, double y, double z);
-    void US_identification_data(int x, int y, double value);
-    void US_identification_data(double x, double y);
+    void US_id_data();
+    void US_id_frame_data(double x, double y, double z);
+    void US_id_data(int x, int y, double value);
+    void US_id_data(double x, double y);
     ///////////////////////////////////////////////////////////////////////////////////
 
     void US_replot_spectra(QVector<double> x, QVector<double> y);
@@ -308,8 +279,8 @@ signals:
     void US_replot_distribution(QVector<double> x, QVector<double> y);
     void US_replot_calibration(QVector<double> x, QVector<double> y, int chip, bool fit);
     void US_replot_calibration_chip(QVector<double> x, QVector<double> y, bool fit);
-    void US_replot_identificaton();
-    void US_replot_identificaton_frame();
+    void US_replot_id();
+    void US_replot_id_frame();
     /////////////////////////////////////////////////////////////////////////////
     void US_new_thl(int thl);
     void US_count_mask(int n);
@@ -323,7 +294,8 @@ signals:
     //
     void US_scan_settings(UC_data_container::UTStr_data_container_settings settings);
     //
-    void US_identification_scan_list(QList<QString> list);
+    void US_id_scan_list(QList<QString> list);
+    void US_set_roi_range(int x_min, int x_max, int y_min, int y_max);
 
 public slots:
     void U_set_data(UC_data_container::UTStr_data_container_settings settings);
@@ -344,25 +316,25 @@ public slots:
     void U_generate_frame_distribution(int n_bins, double min, double max, int thl);
     void U_generate_calibration(int chip);
     void U_generate_calibration();
-    void U_generate_identification_roi();
+    void U_generate_id_roi();
     void U_generate_additional_data();
-    void U_generate_identification_data();
-    void U_generate_identification_frame(int element_index);
+    void U_generate_id_data();
+    void U_generate_id_frame(int element_index);
     void U_generate_range(int thl);
     void U_generate_range();
-    //void U_generate_identification(int element_index);
 /////////////////////////////////////////////////////////////////
     void U_set_frame_type(UC_plot::UTE_frame_type frame_type);
     void U_set_pixel_type(UC_plot::UTE_pixel_type pixel_type);
-    void U_set_identification_type(UC_plot::UTE_identification_type identification_type);
+    void U_set_id_type(UC_plot::UTE_id_type id_type);
+    void U_set_calibration_type(UC_plot::UTE_calibration_type calibration_type);
     ///
     void U_set_roi(int x_min, int x_max, int y_min, int y_max);
     void U_set_rebin(int rebin_x, int rebin_y, int rebin_thl);
-    void U_set_thresholds(int thl_id_1, int thl_id_2, int thl_id_3, int thl_id_4);
+    void U_set_id_thresholds(int thl_id_1, int thl_id_2, int thl_id_3, int thl_id_4);
     void U_set_threshold_range(int thl_start, int thl_finish);
-    void U_set_data_enable(UC_pixels_info::UTStr_data_enable data_enable);
+    //
     void U_set_using_calibraion(bool enable);
-    void U_set_threshold_level(int level);
+    void U_set_threshold_level(double level);
     void U_set_smoothing(int smoothing);
     //
     void U_save_calibration(QString file_name);
@@ -381,8 +353,12 @@ public slots:
     void U_mask_selected(int x_min, int x_max, int y_min, int y_max);
     void U_mask_selected_value(double value_min, double value_max, bool in_roi);
     void U_mask_selected_value_thl(double value_min, double value_max, bool in_roi, int thl);
+    void U_save_mask(QString);
+    void U_load_mask(QString);
     //
-    //void U_generate_muxes(int rebin_xy, int rebin_thl);
+    void U_add_roi(UC_roi roi);
+    void U_delete_roi(int index);
+    //
 };
 
 

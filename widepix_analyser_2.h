@@ -15,6 +15,7 @@ class widepix_analyser_2 : public QMainWindow
 
     UC_wai * wai;
     QString roi;
+    QList<QWidget * > list_enabling;
 
 public:
     explicit widepix_analyser_2(QWidget *parent = nullptr);
@@ -32,16 +33,12 @@ private slots:
     void U_set_distribution_range(double lower, double upper);
     void U_set_count_mask(int n);
     void U_set_roi_range(int x_min, int x_max, int y_min, int y_max);
-    void U_set_thl_range(double thl_min, double thl_max);
-    ///
+    void U_set_thl_range(int thl_min, int thl_max);
     void U_set_scan(int index);
-
-    void U_set_id(double x, double y);
-
     void U_change_scan_settings(UC_data_container::UTStr_data_container_settings settings);
     void U_renew_identification_elements(QList<QString> list);
-    //
     void U_new_spectra(QString name);
+    void U_add_roi(QString name);
     //////////////////////////////////////
 
 signals :
@@ -53,15 +50,9 @@ private slots:
 
     void on_pushButton_clicked();
 
-    void on_pushButton_2_clicked();
-
     void on_pushButton_3_clicked();
 
     void on_pushButton_4_clicked();
-
-    void on_comboBox_currentIndexChanged(int index);
-
-    void on_checkBox_3_toggled(bool checked);
 
     void on_comboBox_2_currentIndexChanged(int index);
 
@@ -69,13 +60,9 @@ private slots:
 
     void on_comboBox_4_currentIndexChanged(int index);
 
-    void on_comboBox_5_currentIndexChanged(int index);
-
     void on_pushButton_6_clicked();
 
     void on_pushButton_7_clicked();
-
-    void on_comboBox_6_currentIndexChanged(int index);
 
     void on_pushButton_8_clicked();
 
@@ -88,8 +75,6 @@ private slots:
     void on_pushButton_12_clicked();
 
     void on_pushButton_13_clicked();
-
-    void on_pushButton_14_clicked();
 
     void on_pushButton_15_clicked();
 
@@ -115,14 +100,6 @@ private slots:
 
     void on_pushButton_25_clicked();
 
-    void on_spinBox_6_valueChanged(int arg1);
-
-    void on_spinBox_7_valueChanged(int arg1);
-
-    void on_spinBox_4_valueChanged(int arg1);
-
-    void on_spinBox_5_valueChanged(int arg1);
-
     void on_pushButton_26_clicked();
 
     void on_pushButton_27_clicked();
@@ -130,8 +107,6 @@ private slots:
     void on_pushButton_28_clicked();
 
     void on_pushButton_29_clicked();
-
-    void on_pushButton_30_clicked();
 
     void on_pushButton_31_clicked();
 
@@ -157,19 +132,7 @@ private slots:
 
     void on_pushButton_40_clicked();
 
-    void on_comboBox_11_currentIndexChanged(int index);
-
-    void on_comboBox_15_currentIndexChanged(int index);
-
-    void on_comboBox_14_currentIndexChanged(int index);
-
-    void on_comboBox_13_currentIndexChanged(int index);
-
-    void on_comboBox_12_currentIndexChanged(int index);
-
     void on_pushButton_41_clicked();
-
-    void on_pushButton_2_clicked(bool checked);
 
     void on_comboBox_17_currentIndexChanged(int index);
 
@@ -196,8 +159,6 @@ private slots:
     void on_radioButton_5_clicked(bool checked);
 
     void on_radioButton_6_clicked(bool checked);
-
-    void on_radioButton_7_clicked();
 
     void on_radioButton_7_clicked(bool checked);
 
@@ -229,15 +190,11 @@ private slots:
 
     void on_checkBox_13_toggled(bool checked);
 
-    void on_doubleSpinBox_3_valueChanged(double arg1);
-
     void on_pushButton_50_clicked();
 
     void on_pushButton_51_clicked();
 
     void on_pushButton_53_clicked();
-
-    void on_pushButton_59_clicked();
 
     void on_pushButton_62_clicked();
 
@@ -245,13 +202,9 @@ private slots:
 
     void on_pushButton_63_clicked();
 
-    void on_pushButton_64_clicked();
-
     void on_pushButton_65_clicked();
 
     void on_pushButton_66_clicked();
-
-    void on_comboBox_21_currentIndexChanged(int index);
 
     void on_pushButton_67_clicked();
 
@@ -268,6 +221,16 @@ private slots:
     void on_spinBox_12_valueChanged(int arg1);
 
     void on_checkBox_17_toggled(bool checked);
+
+    void on_comboBox_6_activated(int index);
+
+    void on_pushButton_2_clicked();
+
+    void on_pushButton_14_clicked();
+
+    void on_pushButton_30_clicked();
+
+    void on_pushButton_69_clicked();
 
 private:
     Ui::widepix_analyser_2 *ui;

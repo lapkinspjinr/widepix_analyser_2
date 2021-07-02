@@ -1,7 +1,61 @@
 #include "uc_pixels_info.h"
 
-UC_pixels_info::UC_pixels_info(UTE_pixels_area pixels_area) {
-    this->pixels_area = pixels_area;
+UC_roi::UC_roi(QString name, int x_min, int y_min, int x_max, int y_max) {
+    this->name = name;
+    this->x_min = x_min;
+    this->x_max = x_max;
+    this->y_min = y_min;
+    this->y_max = y_max;
+}
+
+UC_roi::UC_roi() {
+}
+
+bool UC_roi::U_contains(int x, int y) {
+    bool result;
+    result = (x < x_max) && (x >= x_min);
+    result &= (y < y_max) && (y >= y_min);
+    return result;
+}
+
+void UC_roi::U_set_roi(QString name, int x_min, int y_min, int x_max, int y_max) {
+    this->name = name;
+    this->x_min = x_min;
+    this->x_max = x_max;
+    this->y_min = y_min;
+    this->y_max = y_max;
+}
+
+QString UC_roi::U_get_name() {
+    return name;
+}
+
+int UC_roi::U_get_x_min() {
+    return x_min;
+}
+
+int UC_roi::U_get_y_min() {
+    return y_min;
+}
+
+int UC_roi::U_get_x_max() {
+    return x_max;
+}
+
+int UC_roi::U_get_y_max() {
+    return y_max;
+}
+
+//
+
+UC_pixels_info::UC_pixels_info(QString name, int x_min, int y_min, int x_max, int y_max)
+                : UC_roi(name, x_min, y_min, x_max, y_max) {
+
+    U_reset();
+}
+
+UC_pixels_info::UC_pixels_info(UC_roi roi) {
+    U_set_roi(roi.U_get_name(), roi.U_get_x_min(), roi.U_get_y_min(), roi.U_get_x_max(), roi.U_get_y_max());
     U_reset();
 }
 
@@ -20,8 +74,18 @@ void UC_pixels_info::U_reset() {
     data.clear();
 }
 
-void UC_pixels_info::U_add_pixel(double z) {
-    data << z;
+void UC_pixels_info::U_add_pixel(double z, int x, int y, bool mask, bool overflow) {
+    if (U_contains(x, y)) {
+        if (mask) {
+            masked++;
+            return;
+        }
+        if (overflow) {
+            overflows++;
+            return;
+        }
+        data << z;
+    }
 }
 
 void UC_pixels_info::U_add_masked() {
@@ -42,18 +106,24 @@ void UC_pixels_info::U_finalize() {
         sum += z;
         if (qAbs(z) < 1e-10) zeros++;
     }
-    if (n == 0) return;
+    if (n == 0) {
+        data.clear();
+        return;
+    }
     mean = sum / n;
     std::vector<double> data_stdv = data.toStdVector();
     std::sort(data_stdv.begin(), data_stdv.end());
-    if ((n % 2) == 0) {
+    if ((n % 2) == 1) {
         median = data_stdv[static_cast<unsigned long>(n / 2)];
     } else {
-        double z1 = data_stdv[static_cast<unsigned long>(n / 2)];
-        double z2 = data_stdv[static_cast<unsigned long>(n / 2 + 1)];
+        double z1 = data_stdv[static_cast<unsigned long>(n / 2 - 1)];
+        double z2 = data_stdv[static_cast<unsigned long>(n / 2)];
         median = (z1 + z2) / 2;
     }
-    if (n == 1) return;
+    if (n == 1) {
+        data.clear();
+        return;
+    }
     for (int i = 0; i < n; i++) {
         std_dev += (mean - data[i]) * (mean - data[i]);
     }
@@ -61,15 +131,12 @@ void UC_pixels_info::U_finalize() {
     std_dev = qSqrt(std_dev / (n - 1));
     if (mean < 0) return;
     snr = qSqrt(mean) / std_dev;
+    data.clear();
 }
 
 ////
 
 ////////////////////////////////////////////////////////////////////////////
-UC_pixels_info::UTE_pixels_area UC_pixels_info::U_get_pixel_area() {
-    return pixels_area;
-}
-
 int UC_pixels_info::U_get_n() {
     return n;
 }
@@ -113,9 +180,6 @@ double UC_pixels_info::U_get_std_dev() {
 double UC_pixels_info::U_get_snr() {
     return snr;
 }
-
-void UC_pixels_info::U_set_data_enable(UTStr_data_enable enable) {
-    data_enable = enable;
-}
+//
 
 

@@ -2,11 +2,30 @@
 #define UC_PIXELS_INFO_H
 
 #include <QtMath>
-#include <qvector.h>
+#include <QVector>
+#include <QRect>
 
 #include <vector>
 #include <algorithm>
 
+class UC_roi {
+private :
+    QString name;
+    int x_min;
+    int x_max;
+    int y_min;
+    int y_max;
+public :
+    UC_roi(QString name, int x_min, int y_min, int x_max, int y_max);
+    UC_roi();
+    bool U_contains(int x, int y);
+    void U_set_roi(QString name, int x_min, int y_min, int x_max, int y_max);
+    QString U_get_name();
+    int U_get_x_min();
+    int U_get_y_min();
+    int U_get_x_max();
+    int U_get_y_max();
+};
 
 
 /*!
@@ -15,48 +34,8 @@
  * Данный класс хранит и рассчитывает статистические данные определенных областей детектора.
  * Он используется в классе UC_plot и передается им в сигнале как контейнер внешнему классу для вывода.
  */
-class UC_pixels_info {
-
-public :
-
-    /// Типы областей детектора
-    typedef enum {
-        UTE_PA_chip1,                   // [0]  ///< Первый чип
-        UTE_PA_chip2,                   // [1]  ///< Второй чип
-        UTE_PA_chip3,                   // [2]  ///< Третий чип
-        UTE_PA_chip4,                   // [3]  ///< Четвертый чип
-        UTE_PA_chip5,                   // [4]  ///< Пятый чип
-        UTE_PA_chip6,                   // [5]  ///< Шестой чип
-        UTE_PA_chip7,                   // [6]  ///< Седьмой чип
-        UTE_PA_chip8,                   // [7]  ///< Восьмой чип
-        UTE_PA_chip9,                   // [8]  ///< Девятый чип
-        UTE_PA_chip10,                  // [9]  ///< Десятый чип
-        UTE_PA_chip11,                  // [10] ///< Одиннадцатый чип
-        UTE_PA_chip12,                  // [11] ///< Двенадцатый чип
-        UTE_PA_chip13,                  // [12] ///< Тринадцатый чип
-        UTE_PA_chip14,                  // [13] ///< Четырнадцатый чип
-        UTE_PA_chip15,                  // [14] ///< Пятнадцатый чип
-        UTE_PA_widepix,                 // [15] ///< Детектор целиком
-        UTE_PA_roi,                     // [16] ///< Область интереса
-        UTE_PA_masked,                  // [17] ///< Маскированные пиксели
-        UTE_PA_unmasked,                // [18] ///< Не маскированные пиксели
-        UTE_PA_not_overflow,            // [19] ///< Не переполненные пиксели
-        UTE_PA_roi_unmasked_not_ovf,    // [20] ///< Не переполненные и немаскированные пиксели в области интереса
-    } UTE_pixels_area;
-
-    typedef struct {
-        bool max_enable;
-        bool min_enable;
-        bool sum_enable;
-        bool mean_enable;
-        bool median_enable;
-        bool zeros_enable;
-        bool std_dev_enable;
-        bool snr_enable;
-        bool id1_enable;
-    } UTStr_data_enable;
+class UC_pixels_info : public UC_roi{
 private :
-    UTE_pixels_area pixels_area;    ///< Положение пикселей, о которых храняться данные
     int n;                          ///< Число пикселей
     double min;                     ///< Минимальное значение
     double max;                     ///< Максимальное значение
@@ -70,14 +49,16 @@ private :
     double snr;                     ///< Отношение сигнал - шум
     QVector<double> data;
 
-    UTStr_data_enable data_enable;
 public :
     /*!
      * Конструктор. Создает экземпляр класа и заполняет все поля нулями.
      * \brief UC_pixels_info Конструктор. Создает экземпляр класа и заполняет все поля нулями.
      * \param[in] pixels_area Область пикселей, о которых будут храниться данные.
      */
-    UC_pixels_info(UTE_pixels_area pixels_area);
+    UC_pixels_info(QString name, int x_min, int y_min, int x_max, int y_max);
+
+    UC_pixels_info(UC_roi roi);
+
     /*!
      * Cброс данных.
      * \brief U_reset Cброс данных.
@@ -95,7 +76,7 @@ public :
      * \brief U_add_pixel_1 Добавить данные на первом цикле.
      * \param[in] z значение пикселя
      */
-    void U_add_pixel(double z);
+    void U_add_pixel(double z, int x, int y, bool mask, bool overflow);
     /*!
      * Добавляет маскированный пиксель.
      * \brief U_add_masked Добавить маскированный пиксель.
@@ -118,12 +99,6 @@ public :
      * Функции для доступа к данным
      */
 
-    /*!
-     * Возвращает область пикселей.
-     * \brief U_get_pixel_area Получить область пикселей.
-     * \return Область пикселей, о которых хранятся данные.
-     */
-    UTE_pixels_area U_get_pixel_area();
     /*!
      * Возвращает число пикселей в данной области.
      * \brief U_get_n Получить число пикселей в данной области.
@@ -192,7 +167,10 @@ public :
     double U_get_snr();
 
     //
-    void U_set_data_enable(UTStr_data_enable enable);
+
+    QRect U_get_rect();
 
 };
+
+
 #endif // UC_PIXELS_INFO_H
