@@ -25,6 +25,7 @@ UC_plot::UC_plot(QObject *parent) : QObject(parent) {
     thl_id_4 = 511;
 
     using_calibration = false;
+    ff_minus_df_ready = false;
     scan_enable = false;
     ff_enable = false;
     df_enable = false;
@@ -76,7 +77,7 @@ double UC_plot::U_get_energy_from_thl(int x, int thl) {
         double p0 = calibration_p0[chip];
         double p1 = calibration_p1[chip];
         double p2 = calibration_p2[chip];
-        return p0 + p1 * thl + p2 * p2 * thl;
+        return p0 + p1 * thl + p2 * thl * thl;
     } else {
         return thl;
     }
@@ -94,7 +95,7 @@ double UC_plot::U_get_energy_from_thl_chip(int chip, int thl) {
         double p0 = calibration_p0[chip];
         double p1 = calibration_p1[chip];
         double p2 = calibration_p2[chip];
-        return p0 + p1 * thl + p2 * p2 * thl;
+        return p0 + p1 * thl + p2 * thl * thl;
     } else {
         return thl;
     }
@@ -141,30 +142,37 @@ int UC_plot::U_get_thl_from_energy_chip(int chip, double energy) {
     }
 }
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//void UC_plot::U_alloc_ff_minus_df_mean() {
-//    ff_minus_df_mean = new double[n_thl * 15];
-//    for (int i = 0; i < 15 * n_thl; i++) {
-//        ff_minus_df_mean[i] = 0;
-//    }
-//}
+void UC_plot::U_make_ff_minus_df_mean(int thl) {
+    double ff_value = 0;
+    double df_value = 0;
+    int count = 0;
+    mean_ff_minus_df = 0;
+    for (int x = 0; x < 15 * 256; x++) {
+        for (int y = 0; y < 256; y++) {
+            if (U_get_mask(x, y)) continue;
+            if (ff_enable) {
+                ff_value = ff->U_get_data(thl, x, y, 1);
+            }
+            if (df_enable) {
+                df_value = df->U_get_data(thl, x, y, 1);
+            }
 
-//void UC_plot::U_make_ff_minus_df_mean() {
-//    for (int chip = 0; chip < 15; chip++) {
-//        for (int thl_index = 0; thl_index < n_thl; thl_index++) {
-//            ff_minus_df_mean[chip + 15 * thl_index] = 0;
-//            for (int x = 0; x < 256; x++) {
-//                for (int y = 0; y < 256; y++) {
-//                    ff_minus_df_mean[chip + 15 * thl_index] += U_get_data_ff(thl_index, U_get_coord_x_chip(chip, x), y, 1) * scale_ff - U_get_data_df(thl_index, U_get_coord_x_chip(chip, x), y, 1) * scale_df;
-//                }
-//            }
-//            ff_minus_df_mean[chip + 15 * thl_index] /= (256 * 256);
-//        }
-//    }
-//}
+            mean_ff_minus_df += ff_value - df_value;
+            count++;
+        }
+    }
+    mean_ff_minus_df /= count;
+    ff_minus_df_ready = true;
+}
 
-//double UC_plot::U_get_ff_minus_df_mean(int thl_index, int x) {
-//    return ff_minus_df_mean[U_get_chip_coord_x(x) + 15 * thl_index];
-//}
+double UC_plot::U_get_ff_minus_df_mean(int thl) {
+    if (!ff_minus_df_ready) U_make_ff_minus_df_mean(thl);
+    return mean_ff_minus_df;
+}
+
+void UC_plot::U_reset_ff_minus_df_mean() {
+    ff_minus_df_ready = false;
+}
 ////////////////////////////////////////////////////////////////////////////////////////
 /*!
  * \brief UC_plot::U_set_mask
@@ -231,10 +239,14 @@ void UC_plot::U_get_calibration_chip_spectra(QVector<double> * x, QVector<double
     int scan_thl_max = scan->U_get_thl_max();
     int x_min_reserve = this->x_min;
     int x_max_reserve = this->x_max;
+    int y_min_reserve = this->y_min;
+    int y_max_reserve = this->y_max;
     int x_min = chip * 256;
     int x_max = x_min + 256;
     this->x_max = x_max;
     this->x_min = x_min;
+    this->y_max = 256;
+    this->y_min = 0;
     for (int thl = scan_thl_min; thl <= scan_thl_max; thl++) {
         *x << thl;
         *y << U_get_frame_data(frame_type, pixel_type, thl);
@@ -242,6 +254,8 @@ void UC_plot::U_get_calibration_chip_spectra(QVector<double> * x, QVector<double
     }
     this->x_max = x_max_reserve;
     this->x_min = x_min_reserve;
+    this->y_max = y_max_reserve;
+    this->y_min = y_min_reserve;
 }
 
 TF1 UC_plot::U_get_calibration_fit(QVector<double> * x, QVector<double> * y) {
@@ -250,7 +264,7 @@ TF1 UC_plot::U_get_calibration_fit(QVector<double> * x, QVector<double> * y) {
     TF1 fit("fit", "[0] + [1] * x");
     double thl_min = (*x)[0];
     double thl_max = (*x)[(*x).size() - 1];
-    gr.Fit("fit", "M", "", thl_min, thl_max);
+    gr.Fit("fit", "MQ", "", thl_min, thl_max);
     return fit;
 }
 
@@ -290,7 +304,32 @@ double UC_plot::U_get_calibration_data_2(QVector<double> * x, QVector<double> * 
     double denom = ((*y)[i - 1] - (*y)[i]);
     return (((*x)[i - 1] - (*x)[i])  * (threshold_level - (*y)[i]) / denom) + (*x)[i];
 }
-
+//
+void UC_plot::U_enable_ff_df() {
+    if (scan_index < 0) {
+        scan_enable = false;
+        return;
+    }
+    if (scan_index >= scans_list.size()) {
+        scan_enable = false;
+        return;
+    }
+    scan = &(scans_list[scan_index]);
+    int ff = scan->U_get_settings().ff_int;
+    if (ff == -1) {
+        ff_enable = false;
+    } else {
+        ff_enable = true;
+        this->ff = &scans_list[ff];
+    }
+    int df = scan->U_get_settings().df_int;
+    if (df == -1) {
+        df_enable = false;
+    } else {
+        df_enable = true;
+        this->df = &scans_list[df];
+    }
+}
 ////////////////////////////////////////////////////////////////////////////////////////////////
 double UC_plot::U_get_pixel_data(UTE_pixel_type type, int thl, int x, int y) {
     switch (type) {
@@ -664,7 +703,7 @@ double UC_plot::U_get_pixel_data_20(int thl, int x, int y) { //UTE_PT_ffc_non_xr
     if (qAbs(denom) < 1e-10) return 0;
     ffc = scan->U_get_data_scaled(thl, x, y, 1) - cnt1df;
     ffc /= denom;
-    //ffc *= U_get_ff_minus_df_mean(thl, x);
+    ffc *= U_get_ff_minus_df_mean(thl);
     return ffc;
 }
 
@@ -742,8 +781,8 @@ double UC_plot::U_get_pixel_data_28(int thl, int x, int y) { //UTE_PT_GA_request
     return U_get_pixel_data_6(38, x, y) / denom;
 }
 /////////////////////////////////////////////////////////////////////////////////
-
 double UC_plot::U_get_frame_data(UTE_frame_type type_spectra, UTE_pixel_type type_pixel, int thl) {
+    U_reset_ff_minus_df_mean();
     QVector<double> data;
     for (int x = x_min; x < x_max; x++) {
         for (int y = y_min; y < y_max; y++) {
@@ -785,6 +824,7 @@ double UC_plot::U_get_frame_data(UTE_frame_type type_spectra, UTE_pixel_type typ
 }
 
 double UC_plot::U_get_frame_data_energy(UTE_frame_type type_spectra, UTE_pixel_type type_pixel, double e_min, double e_max) {
+    U_reset_ff_minus_df_mean();
     QVector<double> data;
     for (int x = x_min; x < x_max; x++) {
         thl_min = U_get_thl_from_energy(x, e_min);
@@ -928,8 +968,6 @@ double UC_plot::U_get_frame_data_9(QVector<double> data) { //UTE_FT_signal_to_no
 
 //
 ///////////////////////////////////////////////////////////////////////////////////////
-
-//
 void UC_plot::U_id_roi_1() {    //UTE_IT_GA_method
     UTStr_id_GA_data result;
     int current = 0;
@@ -1218,7 +1256,8 @@ void UC_plot::U_calculating_id(UC_data_container * scan, QList<UC_data_container
 
 ////////////////////////////!!!!!!!!!!SLOTS!!!!!!!!!!!///////////////////////////////////////////////////////////////////////////
 
-void UC_plot::U_set_data(UC_data_container::UTStr_data_container_settings settings) {
+void UC_plot::U_set_data(UC_data_container::UTStr_data_container_settings * settings_ptr) {
+    UC_data_container::UTStr_data_container_settings settings = * settings_ptr;
     QString path = settings.path;
     QDir dir(path);
     QStringList file_names = dir.entryList(QDir::Files, QDir::Name);
@@ -1227,12 +1266,7 @@ void UC_plot::U_set_data(UC_data_container::UTStr_data_container_settings settin
     QString name;
 
     int n = file_names.size();
-    if (n == 0) {
-        QMessageBox msgBox;
-        msgBox.setText("Files of scan have not been found.");
-        msgBox.exec();
-        //return;
-    }
+
 
     int i = 0;
     while (i < n) {
@@ -1256,6 +1290,13 @@ void UC_plot::U_set_data(UC_data_container::UTStr_data_container_settings settin
             file_names.removeAt(i);
             n--;
         }
+    }
+
+    if (n == 0) {
+        QMessageBox msgBox;
+        msgBox.setText("Files of scan have not been found.");
+        msgBox.exec();
+        return;
     }
 
     if (n != 0) {
@@ -1315,10 +1356,12 @@ void UC_plot::U_set_data(UC_data_container::UTStr_data_container_settings settin
 
     scans_list << *data_container;
     if (scan_enable == false) {
-        scan = &(scans_list[scans_list.length() - 1]);
+        scan_index = scans_list.length() - 1;
         scan_enable = true;
+        U_enable_ff_df();
     }
 
+    emit US_list_scans(&scans_list, scan_index);
     U_get_max_thl_range();
 }
 
@@ -1328,12 +1371,21 @@ void UC_plot::U_reset_data() {
     thl_min = 512;
     thl_max = 0;
 
+    scan_enable = false;
+    ff_enable = false;
+    df_enable = false;
+    scan_index = -1;
+
+    emit US_list_scans(&scans_list, scan_index);
+
     U_reset_mask();
 }
 
 void UC_plot::U_delete_scan(int index) {
-    if (index == -1) {
-        scan_enable = false;
+    if (index < 0) {
+        return;
+    }
+    if (index > scans_list.size()) {
         return;
     }
     for (int i = 0; i < scans_list.size(); i++) {
@@ -1355,66 +1407,63 @@ void UC_plot::U_delete_scan(int index) {
             scans_list[i].U_set_settings(settings);
         }
     }
-    UC_data_container * scan_ptr = &(scans_list[index]);
-    if (scan_ptr == scan) {
+
+    if (index == scan_index) {
         if (scans_list.size() == 1) {
             scan_enable = false;
+            ff_enable = false;
+            df_enable = false;
+            scan_index = -1;
         } else {
-            if (index == 0) {
-                scan = &(scans_list[1]);
-            } else {
-                scan = &(scans_list[0]);
-            }
+            scan_index = 0;
         }
     }
+    if (index < scan_index) {
+        scan_index--;
+    }
     scans_list.removeAt(index);
+    U_enable_ff_df();
+    emit US_list_scans(&scans_list, scan_index);
     U_get_max_thl_range();
 }
 
 void UC_plot::U_set_scan(int index) {
-    if (index == -1) {
-        scan_enable = false;
-    } else {
-        if (index >= scans_list.size()) return;
-        scan = &(scans_list[index]);
-        scan_enable = true;
-        if (scan->U_get_settings().ff_int == -1) {
-            ff_enable = false;
-        } else {
-            ff_enable = true;
-            ff = &scans_list[scan->U_get_settings().ff_int];
-        }
-        if (scan->U_get_settings().df_int == -1) {
-            df_enable = false;
-        } else {
-            df_enable = true;
-            df = &scans_list[scan->U_get_settings().df_int];
-        }
+    if (index < 0) {
+        return;
     }
+    if (index >= scans_list.size()) {
+        return;
+    }
+    scan_index = index;
+    U_enable_ff_df();
+    emit US_list_scans(&scans_list, scan_index);
 }
 
-void UC_plot::U_set_settings(int index, UC_data_container::UTStr_data_container_settings settings) {
-    if (index == -1) return;
-    scans_list[index].U_set_settings(settings);
-    if (&(scans_list[index]) == scan) {
-        if (scan->U_get_settings().ff_int == -1) {
-            ff_enable = false;
-        } else {
-            ff_enable = true;
-            ff = &scans_list[scan->U_get_settings().ff_int];
-        }
-        if (scan->U_get_settings().df_int == -1) {
-            df_enable = false;
-        } else {
-            df_enable = true;
-            df = &scans_list[scan->U_get_settings().df_int];
-        }
+void UC_plot::U_set_settings(int index, UC_data_container::UTStr_data_container_settings *settings) {
+    if (index < 0) {
+        return;
     }
+    if (index >= scans_list.size()) {
+        return;
+    }
+
+    scans_list[index].U_set_settings(*settings);
+    U_enable_ff_df();
+    emit US_list_scans(&scans_list, scan_index);
 }
 
 void UC_plot::U_get_settings(int index) {
-    if (index != -1) emit US_scan_settings(scans_list[index].U_get_settings());
+    if (index < 0) {
+        return;
+    }
+    if (index >= scans_list.size()) {
+        return;
+    }
+    UC_data_container::UTStr_data_container_settings settings = scans_list[index].U_get_settings();
+    emit US_scan_settings(&settings);
 }
+
+
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -1447,6 +1496,7 @@ void UC_plot::U_generate_spectra(int n) {
 
 void UC_plot::U_generate_frame(int thl) {
     double z;
+    U_reset_ff_minus_df_mean();
     for (int x = 0; x < (15 * 256); x++) {
         for (int y = 0; y < 256; y++) {
             if (U_get_mask(x, y)) {
@@ -1462,6 +1512,7 @@ void UC_plot::U_generate_frame(int thl) {
 
 void UC_plot::U_generate_frame(double energy) {
     double z;
+    U_reset_ff_minus_df_mean();
     for (int x = 0; x < (15 * 256); x++) {
         int thl = U_get_thl_from_energy(x, energy);
         for (int y = 0; y < 256; y++) {
@@ -1477,6 +1528,7 @@ void UC_plot::U_generate_frame(double energy) {
 }
 
 void UC_plot::U_generate_table(int thl) {
+    U_reset_ff_minus_df_mean();
     const int n = pixels_areas.size();
     U_set_total_progress_bar(256 * 256 * 15);
 
@@ -1499,6 +1551,7 @@ void UC_plot::U_generate_table(int thl) {
 }
 
 void UC_plot::U_generate_table(double energy) {
+    U_reset_ff_minus_df_mean();
     const int n = pixels_areas.size();
     U_set_total_progress_bar(256 * 256 * 15);
 
@@ -1523,13 +1576,14 @@ void UC_plot::U_generate_table(double energy) {
 
 void UC_plot::U_generate_table() {
     const int n = pixels_areas.size();
-    U_set_total_progress_bar(256 * 256 * 15);
+    U_set_total_progress_bar(256 * 256 * 15 * (thl_max - thl_min + 1) + n);
 
     for (int i = 0; i < n; i++) {
         pixels_areas[i].U_reset();
     }
 
     for (int thl = thl_min; thl <= thl_max; thl++) {
+        U_reset_ff_minus_df_mean();
         for (int x = 0; x < 3840; x++) {
             for (int y = 0; y < 256; y++) {
                 U_add_pixel_table(thl, x, y);
@@ -1541,6 +1595,7 @@ void UC_plot::U_generate_table() {
     for (int i = 0; i < n; i++) {
         pixels_areas[i].U_finalize();
         emit US_chip_data(pixels_areas[i]);
+        U_reset_ff_minus_df_mean();
     }
     emit US_rewrite_table();
 }
@@ -1550,12 +1605,15 @@ void UC_plot::U_generate_distribution(int n_bins, double min, double max) {
     TH1D * hist = new TH1D("hist", "hist", n_bins, min, max);
     U_set_total_progress_bar((x_max - x_min) * (y_max - y_min) * (thl_max - thl_min));
 
-    for (int x = x_min; x < x_max; x++) {
-        for (int y = y_min; y < y_max; y++) {
-            U_renew_progress_bar();
-            if (U_get_mask(x, y)) continue;
-            for (int thl = thl_min; thl <= thl_max; thl++) {
+    for (int thl = thl_min; thl <= thl_max; thl++) {
+        U_reset_ff_minus_df_mean();
+        for (int x = x_min; x < x_max; x++) {
+            for (int y = y_min; y < y_max; y++) {
+                U_renew_progress_bar();
+                if (U_get_mask(x, y)) continue;
                 z = U_get_pixel_data(pixel_type, thl, x, y);
+                if (z < min) continue;
+                if (z > max) continue;
                 hist->Fill(z);
             }
         }
@@ -1563,10 +1621,14 @@ void UC_plot::U_generate_distribution(int n_bins, double min, double max) {
 
     QVector<double> x;
     QVector<double> y;
-    for (int i = 0; i < n_bins; i++){
+    for (int i = 1; i <= n_bins; i++){
         x << hist->GetBinCenter(i);
         y << hist->GetBinContent(i);
     }
+    x.insert(0, min);
+    y.insert(0, y[0]);
+    x << max;
+    y << y[y.size() - 1];
 
     emit US_replot_distribution(x, y);
     delete hist;
@@ -1576,22 +1638,29 @@ void UC_plot::U_generate_frame_distribution(int n_bins, double min, double max, 
     double z;
     TH1D * hist = new TH1D("hist", "hist", n_bins, min, max);
     U_set_total_progress_bar((x_max - x_min) * (y_max - y_min));
+    U_reset_ff_minus_df_mean();
 
     for (int x = x_min; x < x_max; x++) {
         for (int y = y_min; y < y_max; y++) {
             U_renew_progress_bar();
             if (U_get_mask(x, y)) continue;
             z = U_get_pixel_data(pixel_type, thl, x, y);
+            if (z < min) continue;
+            if (z > max) continue;
             hist->Fill(z);
         }
     }
 
     QVector<double> x;
     QVector<double> y;
-    for (int i = 0; i < n_bins; i++){
+    for (int i = 1; i <= n_bins; i++){
         x << hist->GetBinCenter(i);
         y << hist->GetBinContent(i);
     }
+    x.insert(0, min);
+    y.insert(0, y[0]);
+    x << max;
+    y << y[y.size() - 1];
 
     emit US_replot_distribution(x, y);
     delete hist;
@@ -1600,6 +1669,7 @@ void UC_plot::U_generate_frame_distribution(int n_bins, double min, double max, 
 void UC_plot::U_generate_calibration(int chip) {
     QVector<double> x;
     QVector<double> y;
+    U_reset_ff_minus_df_mean();
 
     int scan_thl_min = scan->U_get_thl_min();
     int scan_thl_max = scan->U_get_thl_max();
@@ -1625,6 +1695,7 @@ void UC_plot::U_generate_calibration() {
     QVector<double> fit_y;
     int n_scans = scans_list.size();
     QList<UC_data_container *> calibration_list;
+    U_reset_ff_minus_df_mean();
     int total = 0;
     for (int scan_i = 0; scan_i < n_scans; scan_i++) {
         scan = &(scans_list[scan_i]);
@@ -1672,7 +1743,7 @@ void UC_plot::U_generate_calibration() {
         emit US_replot_calibration(fit_x[chip], fit_y, chip, false);
         TGraph gr(n_scans, fit_x[chip].data(), fit_y.data());
         TF1 fit("fit", "[0] + [1] * x + [2] * x * x");
-        gr.Fit("fit", "M", "", fit_y[0], fit_y[n_scans - 1]);
+        gr.Fit("fit", "MQ", "", fit_y[0], fit_y[n_scans - 1]);
         calibration_p2[chip] = fit.GetParameter(2);
         calibration_p1[chip] = fit.GetParameter(1);
         calibration_p0[chip] = fit.GetParameter(0);
@@ -1690,6 +1761,7 @@ void UC_plot::U_generate_calibration() {
 
     scan = scan_reserve;
     using_calibration = true;
+    U_get_max_energy_range();
 }
 
 
@@ -1762,6 +1834,7 @@ void UC_plot::U_generate_range(int thl) {
     double z;
     double max = -1e300;
     double min = 1e300;
+    U_reset_ff_minus_df_mean();
     for (int x = x_min; x < x_max; x++) {
         for (int y = y_min; y < y_max; y++) {
             if (U_get_mask(x, y)) continue;
@@ -1777,6 +1850,7 @@ void UC_plot::U_generate_range() {
     double z;
     double max = -1e300;
     double min = 1e300;
+    U_reset_ff_minus_df_mean();
     U_set_total_progress_bar((x_max - x_min) * (y_max - y_min) * (thl_max - thl_min));
     for (int thl = thl_min; thl <= thl_max; thl++) {
         for (int x = x_min; x < x_max; x++) {
@@ -1908,6 +1982,8 @@ void UC_plot::U_get_max_energy_range() {
     if (!using_calibration) return;
     int thl_min = 512;
     int thl_max = 0;
+    energy_max = -1e300;
+    energy_min = 1e300;
     double max;
     double min;
     for (int i = 0; i < scans_list.size(); i++) {
@@ -1916,8 +1992,8 @@ void UC_plot::U_get_max_energy_range() {
         for (int chip = 0; chip < 15; chip++) {
             max = U_get_energy_from_thl_chip(chip, thl_max);
             min = U_get_energy_from_thl_chip(chip, thl_min);
-            if (max < energy_max) energy_max = max;
-            if (min > energy_min) energy_min = min;
+            if (max > energy_max) energy_max = max;
+            if (min < energy_min) energy_min = min;
         }
     }
     emit US_energy_range(energy_min, energy_max);
@@ -1935,8 +2011,8 @@ void UC_plot::U_get_common_energy_range() {
         for (int chip = 0; chip < 15; chip++) {
             max = U_get_energy_from_thl_chip(chip, thl_max);
             min = U_get_energy_from_thl_chip(chip, thl_min);
-            if (max > energy_max) energy_max = max;
-            if (min < energy_min) energy_min = min;
+            if (max < energy_max) energy_max = max;
+            if (min > energy_min) energy_min = min;
         }
     }
     emit US_energy_range(energy_min, energy_max);

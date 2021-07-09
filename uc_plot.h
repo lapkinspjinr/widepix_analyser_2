@@ -61,6 +61,7 @@ class UC_plot : public QObject
     int current_progress_bar;   ///< Переменная, хранящая пройденное число шагов при расчетах.
 
     bool using_calibration;     ///< Использование калибровки.
+    bool ff_minus_df_ready;
     bool scan_enable;           ///< Наличие активного скана.
     bool ff_enable;             ///< Наличие активного скана плоского поля.
     bool df_enable;             ///< Наличие активного скана черного поля.
@@ -70,8 +71,11 @@ class UC_plot : public QObject
     double calibration_p1[15];  ///< Первые коэффициенты калибровки по чипам.
     double calibration_p2[15];  ///< Вторые коэффициенты калибровки по чипам.
 
+    double mean_ff_minus_df;  ///< Коэффициенты для полного FFC по чипам.
+
     QList<UC_data_container> scans_list;    ///< Список загруженных сканов.
 
+    int scan_index;
     UC_data_container * scan;   ///< Указатель на активный скан.
     UC_data_container * ff;     ///< Указатель на активный скан плоского поля.
     UC_data_container * df;     ///< Указатель на активный скан черного поля.
@@ -182,9 +186,9 @@ public:
     int U_get_thl_from_energy(int x, double energy);
     int U_get_thl_from_energy_chip(int chip, double energy);
 //////////////////////////////////////////////////////////////////////////
-    void U_alloc_ff_minus_df_mean();
-    void U_make_ff_minus_df_mean();
-    double U_get_ff_minus_df_mean(int thl_index, int x);
+    void U_make_ff_minus_df_mean(int thl);
+    double U_get_ff_minus_df_mean(int thl_index);
+    void U_reset_ff_minus_df_mean();
 /////////////////////////////////////////////////////////////////////////////////
     void U_set_mask(int x, int y, bool value);
     bool U_get_mask(int x, int y);
@@ -199,7 +203,8 @@ public:
     void U_get_calibration_chip_fit(QVector<double> * x, QVector<double> * y);
     double U_get_calibration_data_1(QVector<double> * x, QVector<double> * y);
     double U_get_calibration_data_2(QVector<double> * x, QVector<double> * y);
-
+    //
+    void U_enable_ff_df();
 ///////////////////////////////////////////////////////////////////////////////
     double U_get_pixel_data(UTE_pixel_type type, int thl, int x, int y);
     int U_get_pixel_data_1(int thl, int x, int y); //UTE_PT_cnt0
@@ -292,18 +297,20 @@ signals:
     void US_n_files(int n);
     void US_renew_progress_bar(double current, double total);
     //
-    void US_scan_settings(UC_data_container::UTStr_data_container_settings settings);
+    void US_list_scans(QList<UC_data_container> * scans_list, int active_index);
+    void US_scan_settings(UC_data_container::UTStr_data_container_settings * settings);
     //
     void US_id_scan_list(QList<QString> list);
     void US_set_roi_range(int x_min, int x_max, int y_min, int y_max);
 
 public slots:
-    void U_set_data(UC_data_container::UTStr_data_container_settings settings);
+    void U_set_data(UC_data_container::UTStr_data_container_settings * settings_ptr);
     void U_reset_data();
     void U_delete_scan(int index);
     void U_set_scan(int index);
-    void U_set_settings(int index, UC_data_container::UTStr_data_container_settings settings);
+    void U_set_settings(int index, UC_data_container::UTStr_data_container_settings * settings);
     void U_get_settings(int index);
+
 //////////////////////////////////////////////////////////////////////////////////
     void U_generate_spectra();
     void U_generate_spectra(int n);

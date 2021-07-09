@@ -18,11 +18,6 @@ class UC_wai : public QObject
     int thl_start;
     int thl_finish;
 
-    int scan_index;
-    int ff_index;
-    int df_index;
-    int n_scans;
-
     int smoothing;
 
     bool select;
@@ -126,13 +121,7 @@ public:
     void U_set_id_table(QTableView * id_table);
     void U_set_list(QListView * list);
 ////////////////////////////////////////////////////////////////
-    void U_set_data(UC_data_container::UTStr_data_container_settings settings, QString str);
     void U_reset_data();
-    void U_delete_scan(int index);
-    void U_set_scan(int index);
-    void U_change_scan(int index);
-    void U_change_scan_setting(int index, UC_data_container::UTStr_data_container_settings settings);
-
 ////////////////////////////////////////////////////////////////////////
     void U_generate_spectra(QString graph_name);
     void U_generate_spectra(QString graph_name, int n);
@@ -153,7 +142,7 @@ public:
     void U_generate_range();
     void U_generate_range(int thl_index);
     //
-    void U_generate_chip_fit(int chip);
+    void U_generate_chip_fit(int chip, QString graph_name);
     void U_reset_chip_fit();
     //
     void U_generate_calibration();
@@ -201,7 +190,7 @@ public:
     ///////////////////////////////////////////////////////////////////
     void U_save_spectra_txt(QString file_name);
     void U_save_spectra(QString file_name, UTE_file_type file_type);
-    void U_automatic_save_spectra(QString file_name, UTE_file_type file_type);
+    void U_automatic_save_spectra(QString file_name, QString name, UTE_file_type file_type);
     //
     void U_save_frame_txt(QString file_name);
     void U_save_frame(QString file_name, UTE_file_type file_type);
@@ -247,6 +236,7 @@ public:
     void U_delete_roi(int index);
     void U_save_roi(QString file_name);
     void U_load_roi(QString file_name);
+    QString U_get_name_roi(int x_min, int x_max, int y_min, int y_max);
     //
     void U_calculating_spectra(UTE_calculating_spectras calc_type, int index1, int index2);
     void U_calculating_spectra_1(QVector<double> &x1, QVector<double> &y1, QVector<double> &x2, QVector<double> &y2); //UTE_CS_add
@@ -261,9 +251,11 @@ public:
     QString U_calculating_name_4(QString name1, QString name2); //UTE_CS_divide
     QString U_calculating_name_5(QString name1); //UTE_CS_smooth
     QString U_calculating_name_6(QString name1); //UTE_CS_diff
+    //
+    void U_set_gradient(int n); //UTE_CS_diff
 
 signals:
-    void US_set_data(UC_data_container::UTStr_data_container_settings settings);
+    void US_set_data(UC_data_container::UTStr_data_container_settings * settings);
     void US_reset_data();
     void US_delete_scan(int index);
     void US_set_scan(int index);
@@ -338,8 +330,6 @@ signals:
     void US_load_mask(QString file_name);
     /////////////////////////////////////////////////////////////////////////
 
-    ////////////////////////////////////////////////////////
-    void US_new_thl(int thl);
     ////////////////////////////////////////////////////////
     void US_set_distribution_range(double lower, double upper);
     void US_set_thl_range(int lower, int upper);
@@ -425,9 +415,10 @@ public slots:
     void U_mouse_select_spectra(QMouseEvent * event);
     void U_mouse_select_frame(QMouseEvent * event);
     void U_mouse_select_distribution(QMouseEvent * event);
+    void U_mouse_select_chip_fit(QMouseEvent * event);
+    void U_mouse_select_calibration(QMouseEvent * event);
     //////////////////////////////////////////////////////////////////////
-    void U_new_thl(int thl);
-    void U_renew_list_model(UC_data_container::UTStr_data_container_settings settings);
+    void U_renew_scans(QList<UC_data_container> * list_scans_ptr, int active_index);
 };
 
 #endif // UC_WAI_H
