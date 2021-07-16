@@ -14,6 +14,7 @@ widepix_analyser_2::widepix_analyser_2(QWidget *parent) :
     wai->U_set_distribution_qcp(ui->widget_3);
     wai->U_set_chip_fit_qcp(ui->widget_4);
     wai->U_set_calibration_qcp(ui->widget_5);
+    wai->U_set_spectra_2d_qcp(ui->widget_6);
     wai->U_set_id_frame_qcp(ui->widget_7);
     wai->U_set_list(ui->listView);
     wai->U_set_table(ui->tableView);
@@ -45,40 +46,49 @@ widepix_analyser_2::widepix_analyser_2(QWidget *parent) :
     connect(ui->doubleSpinBox_28, SIGNAL(valueChanged(double)), wai, SLOT(U_set_calibration_min_x(double)));
     connect(ui->doubleSpinBox_29, SIGNAL(valueChanged(double)), wai, SLOT(U_set_calibration_max_y(double)));
     connect(ui->doubleSpinBox_30, SIGNAL(valueChanged(double)), wai, SLOT(U_set_calibration_min_y(double)));
+    ////
+    connect(ui->doubleSpinBox_35, SIGNAL(valueChanged(double)), wai, SLOT(U_set_spectra_2d_max_x(double)));
+    connect(ui->doubleSpinBox_34, SIGNAL(valueChanged(double)), wai, SLOT(U_set_spectra_2d_min_x(double)));
+    connect(ui->doubleSpinBox_32, SIGNAL(valueChanged(double)), wai, SLOT(U_set_spectra_2d_max_y(double)));
+    connect(ui->doubleSpinBox_33, SIGNAL(valueChanged(double)), wai, SLOT(U_set_spectra_2d_min_y(double)));
+    connect(ui->doubleSpinBox_38, SIGNAL(valueChanged(double)), wai, SLOT(U_set_spectra_2d_max_z(double)));
+    connect(ui->doubleSpinBox_39, SIGNAL(valueChanged(double)), wai, SLOT(U_set_spectra_2d_min_z(double)));
 
     on_checkBox_13_toggled(true);
     //
     connect(wai, SIGNAL(US_mouse_data(QString)),                                                    ui->statusBar,  SLOT(showMessage(QString)));
     connect(wai, SIGNAL(US_set_distribution_range(double, double)),                                 this,           SLOT(U_set_distribution_range(double, double)));
-//    connect(wai, SIGNAL(US_set_scan(int)),                                                          this,           SLOT(U_set_scan(int)));
+    connect(wai, SIGNAL(US_set_spectra_2d_range(double, double)),                                   this,           SLOT(U_set_spectra_2D_range(double, double)));
     connect(wai, SIGNAL(US_set_thl_range(int, int)),                                                this,           SLOT(U_set_thl_range(int, int)));
-//    connect(wai, SIGNAL(US_renew_scan_settings(UC_data_container::UTStr_data_container_settings)),  this,           SLOT(U_change_scan_settings(UC_data_container::UTStr_data_container_settings)));
     connect(wai, SIGNAL(US_add_roi(QString)),                                                       this,           SLOT(U_add_roi(QString)));
     connect(wai, SIGNAL(US_set_roi_range(int, int, int, int)),                                      this,           SLOT(U_set_roi_range(int, int, int, int)));
+    connect(wai, SIGNAL(US_new_spectra(QString)),                                                   this,           SLOT(U_new_spectra(QString)));
 
     connect(this, SIGNAL(US_set_threshold_level(double)),   wai->U_get_plot(), SLOT(U_set_threshold_level(double)));
     connect(this, SIGNAL(US_save_calibration(QString)),     wai->U_get_plot(), SLOT(U_save_calibration(QString)));
     connect(this, SIGNAL(US_load_calibration(QString)),     wai->U_get_plot(), SLOT(U_load_calibration(QString)));
 
     connect(this,               SIGNAL(US_set_data(UC_data_container::UTStr_data_container_settings *)),                    wai->U_get_plot(),  SLOT(U_set_data(UC_data_container::UTStr_data_container_settings *)));
-    connect(this,               SIGNAL(US_set_scan(int)),                                                                   wai->U_get_plot(),  SLOT(U_set_scan(int))/*,                                                          Qt::DirectConnection*/);
-    connect(this,               SIGNAL(US_change_scan_settings(int, UC_data_container::UTStr_data_container_settings *)),    wai->U_get_plot(),  SLOT(U_set_settings(int, UC_data_container::UTStr_data_container_settings*))/*,    Qt::DirectConnection*/);
-    connect(this,               SIGNAL(US_delete_scan(int)),                                                                wai->U_get_plot(),  SLOT(U_delete_scan(int))/*,                                                       Qt::DirectConnection*/);
-    connect(this,               SIGNAL(US_reset_data()),                                                                    wai->U_get_plot(),  SLOT(U_reset_data())/*,                                                           Qt::DirectConnection*/);
-    connect(this,               SIGNAL(US_get_scan_settings(int)),                                                          wai->U_get_plot(),  SLOT(U_get_settings(int))/*,                                                      Qt::DirectConnection*/);
-    connect(wai->U_get_plot(),  SIGNAL(US_list_scans(QList<UC_data_container> *, int)),                                     this,               SLOT(U_set_scans(QList<UC_data_container> *, int))/*,                             Qt::DirectConnection*/);
-    connect(wai->U_get_plot(),  SIGNAL(US_scan_settings(UC_data_container::UTStr_data_container_settings *)),                 this,               SLOT(U_change_scan_settings(UC_data_container::UTStr_data_container_settings *))/*, Qt::DirectConnection*/);
+    connect(this,               SIGNAL(US_set_scan(int)),                                                                   wai->U_get_plot(),  SLOT(U_set_scan(int)),                                                              Qt::DirectConnection);
+    connect(this,               SIGNAL(US_change_scan_settings(int, UC_data_container::UTStr_data_container_settings *)),   wai->U_get_plot(),  SLOT(U_set_settings(int, UC_data_container::UTStr_data_container_settings*)),       Qt::DirectConnection);
+    connect(this,               SIGNAL(US_delete_scan(int)),                                                                wai->U_get_plot(),  SLOT(U_delete_scan(int)),                                                           Qt::DirectConnection);
+    connect(this,               SIGNAL(US_reset_data()),                                                                    wai->U_get_plot(),  SLOT(U_reset_data()),                                                               Qt::DirectConnection);
+    connect(this,               SIGNAL(US_get_scan_settings(int)),                                                          wai->U_get_plot(),  SLOT(U_get_settings(int)),                                                          Qt::DirectConnection);
+    connect(wai->U_get_plot(),  SIGNAL(US_list_scans(QList<UC_data_container> *, int)),                                     this,               SLOT(U_set_scans(QList<UC_data_container> *, int)),                                 Qt::DirectConnection);
+    connect(wai->U_get_plot(),  SIGNAL(US_scan_settings(UC_data_container::UTStr_data_container_settings *)),               this,               SLOT(U_change_scan_settings(UC_data_container::UTStr_data_container_settings *)),   Qt::DirectConnection);
 
+    connect(wai->U_get_plot(), SIGNAL(US_thl_range(int, int)),                      this, SLOT(U_add_thl(int, int)));
+    connect(wai->U_get_plot(), SIGNAL(US_energy_range(double, double)),             this, SLOT(U_set_energy_range(double, double)));
+    connect(wai->U_get_plot(), SIGNAL(US_file_found(QString)),                      this, SLOT(U_file_found(QString)),                              Qt::DirectConnection);
+    connect(wai->U_get_plot(), SIGNAL(US_n_files(int)),                             this, SLOT(U_n_files(int)),                                     Qt::DirectConnection);
+    connect(wai->U_get_plot(), SIGNAL(US_renew_progress_bar(double, double)),       this, SLOT(U_renew_progress_bar(double, double)));
+    connect(wai->U_get_plot(), SIGNAL(US_range_data(double, double)),               this, SLOT(U_set_distribution_range(double, double)));
+    connect(wai->U_get_plot(), SIGNAL(US_spectra_2d_range_data(double, double)),    this, SLOT(U_set_spectra_2D_range(double, double)));
+    connect(wai->U_get_plot(), SIGNAL(US_count_mask(int)),                          this, SLOT(U_set_count_mask(int)));
+    connect(wai->U_get_plot(), SIGNAL(US_id_scan_list(QList<QString>)),             this, SLOT(U_renew_identification_elements(QList<QString>)));
 
-    connect(wai->U_get_plot(), SIGNAL(US_thl_range(int, int)),                  this, SLOT(U_add_thl(int, int)));
-    connect(wai->U_get_plot(), SIGNAL(US_energy_range(double, double)),         this, SLOT(U_set_energy_range(double, double)));
-    connect(wai->U_get_plot(), SIGNAL(US_file_found(QString)),                  this, SLOT(U_file_found(QString)));
-    connect(wai->U_get_plot(), SIGNAL(US_n_files(int)),                         this, SLOT(U_n_files(int)));
-    connect(wai->U_get_plot(), SIGNAL(US_renew_progress_bar(double, double)),   this, SLOT(U_renew_progress_bar(double, double)));
-    connect(wai->U_get_plot(), SIGNAL(US_range_data(double, double)),           this, SLOT(U_set_distribution_range(double, double)));
-    connect(wai->U_get_plot(), SIGNAL(US_count_mask(int)),                      this, SLOT(U_set_count_mask(int)));
-    connect(wai->U_get_plot(), SIGNAL(US_id_scan_list(QList<QString>)),         this, SLOT(U_renew_identification_elements(QList<QString>)));
-//    connect(wai->U_get_plot(), SIGNAL(US_delete_scan(int)),                     this, SLOT(U_delete_scan(int)));
+    connect(wai->U_get_plot(),  SIGNAL(US_ready()), this,               SLOT(U_ready()),    Qt::DirectConnection);
+    connect(this,               SIGNAL(US_stop()),  wai->U_get_plot(),  SLOT(U_stop()),     Qt::DirectConnection);
 
     wai->U_start();
 
@@ -110,8 +120,56 @@ widepix_analyser_2::widepix_analyser_2(QWidget *parent) :
         list_enabling[i]->setEnabled(false);
     }
 
-    roi = "all chips";
+    list_enabling_busy << ui->pushButton;
+    list_enabling_busy << ui->pushButton_8;
+    list_enabling_busy << ui->pushButton_15;
+    list_enabling_busy << ui->pushButton_13;
+    list_enabling_busy << ui->pushButton_23;
+    list_enabling_busy << ui->pushButton_24;
+    list_enabling_busy << ui->pushButton_44;
+    list_enabling_busy << ui->pushButton_43;
+    list_enabling_busy << ui->pushButton_69;
+    list_enabling_busy << ui->pushButton_46;
+    list_enabling_busy << ui->pushButton_54;
+    list_enabling_busy << ui->pushButton_31;
+    list_enabling_busy << ui->pushButton_29;
+    list_enabling_busy << ui->pushButton_67;
+    list_enabling_busy << ui->pushButton_5;
+    list_enabling_busy << ui->pushButton_21;
+    list_enabling_busy << ui->pushButton_6;
+    list_enabling_busy << ui->pushButton_47;
+    list_enabling_busy << ui->pushButton_7;
+    list_enabling_busy << ui->pushButton_48;
+    list_enabling_busy << ui->pushButton_40;
+    list_enabling_busy << ui->pushButton_33;
+    list_enabling_busy << ui->pushButton_32;
+    list_enabling_busy << ui->pushButton_17;
+    list_enabling_busy << ui->pushButton_20;
+    list_enabling_busy << ui->pushButton_42;
+    list_enabling_busy << ui->pushButton_53;
+    list_enabling_busy << ui->pushButton_45;
+    list_enabling_busy << ui->pushButton_26;
+    list_enabling_busy << ui->pushButton_3;
+    list_enabling_busy << ui->pushButton_27;
+    list_enabling_busy << ui->pushButton_52;
+    list_enabling_busy << ui->pushButton_28;
+    list_enabling_busy << ui->pushButton_22;
+    list_enabling_busy << ui->comboBox;
+    list_enabling_busy << ui->comboBox_2;
+    list_enabling_busy << ui->comboBox_3;
+    list_enabling_busy << ui->comboBox_17;
+    list_enabling_busy << ui->spinBox_12;
+    list_enabling_busy << ui->spinBox_13;
+    list_enabling_busy << ui->spinBox_14;
+    list_enabling_busy << ui->doubleSpinBox_22;
+    list_enabling_busy << ui->doubleSpinBox_20;
+    list_enabling_busy << ui->doubleSpinBox_21;
+    list_enabling_busy << ui->doubleSpinBox_11;
+    list_enabling_busy << ui->radioButton_4;
+    list_enabling_busy << ui->radioButton_3;
 
+
+    roi = "all chips";
 }
 
 widepix_analyser_2::~widepix_analyser_2()
@@ -162,6 +220,12 @@ void widepix_analyser_2::U_set_distribution_range(double lower, double upper)
 {
     ui->doubleSpinBox_17->setValue(lower);
     ui->doubleSpinBox_16->setValue(upper);
+}
+
+void widepix_analyser_2::U_set_spectra_2D_range(double lower, double upper)
+{
+    ui->doubleSpinBox_36->setValue(lower);
+    ui->doubleSpinBox_37->setValue(upper);
 }
 
 void widepix_analyser_2::U_set_count_mask(int n)
@@ -269,9 +333,28 @@ void widepix_analyser_2::U_add_roi(QString name)
     ui->comboBox_6->addItem(name);
 }
 
+void widepix_analyser_2::U_ready()
+{
+    for (int i = 0; i < list_enabling_busy.size(); i++) {
+        list_enabling_busy[i]->setEnabled(true);
+    }
+    ui->pushButton_70->setEnabled(false);
+}
+
+void widepix_analyser_2::U_busy()
+{
+    ui->radioButton_3->setChecked(false);
+    ui->radioButton_4->setChecked(true);
+    wai->U_set_interaction_mode(false);
+    ui->pushButton_70->setEnabled(true);
+    for (int i = 0; i < list_enabling_busy.size(); i++) {
+        list_enabling_busy[i]->setEnabled(false);
+    }
+}
 //////////////////////////////////////////////////////////////////////////////////////////////
 void widepix_analyser_2::on_pushButton_clicked() ///< Spectra. Add graph
 {
+    U_busy();
     QString graph_name = ui->lineEdit_5->text();
     if (graph_name == "") {
         graph_name += ui->comboBox_17->currentText() + "; ";
@@ -291,7 +374,7 @@ void widepix_analyser_2::on_pushButton_3_clicked() ///< Spectra. Create spectra
 
 void widepix_analyser_2::on_pushButton_4_clicked() ///< Source. Browse
 {
-    QString str = QFileDialog::getExistingDirectory(this, "Open scan direction");
+    QString str = QFileDialog::getExistingDirectory(nullptr, "Open scan direction");
     if (str != "") {
         ui->lineEdit_3->setText(str);
         ui->pushButton_31->setEnabled(true);
@@ -315,11 +398,13 @@ void widepix_analyser_2::on_comboBox_4_currentIndexChanged(int index) ///< Ident
 
 void widepix_analyser_2::on_pushButton_6_clicked() ///< Frame. Show frame
 {
+    U_busy();
     wai->U_generate_frame(ui->comboBox->currentText().remove(0, 6).toInt());
 }
 
 void widepix_analyser_2::on_pushButton_7_clicked() ///< Table. Reload table for 1 frame
 {
+    U_busy();
     wai->U_generate_table(ui->comboBox->currentText().remove(0, 6).toInt());
     ui->pushButton_25->setEnabled(true);
 }
@@ -356,7 +441,7 @@ void widepix_analyser_2::on_pushButton_10_clicked() ///< Frame. Rescale
 
 void widepix_analyser_2::on_pushButton_12_clicked() ///< Frame. Save
 {
-    QString str = QFileDialog::getSaveFileName(this, "Save frame");
+    QString str = QFileDialog::getSaveFileName(nullptr, "Save frame");
     if (str != "") {
         wai->U_save_frame(str, static_cast<UC_wai::UTE_file_type>(ui->comboBox_7->currentIndex()));
     }
@@ -374,7 +459,7 @@ void widepix_analyser_2::on_pushButton_15_clicked() ///< Reset mask
 
 void widepix_analyser_2::on_pushButton_16_clicked() ///< Spectra. Save
 {
-    QString str = QFileDialog::getSaveFileName(this, "Save spectra");
+    QString str = QFileDialog::getSaveFileName(nullptr, "Save spectra");
     if (str != "") {
         wai->U_save_spectra(str, static_cast<UC_wai::UTE_file_type>(ui->comboBox_8->currentIndex()));
     }
@@ -382,6 +467,7 @@ void widepix_analyser_2::on_pushButton_16_clicked() ///< Spectra. Save
 
 void widepix_analyser_2::on_pushButton_20_clicked() ///< Distribution. Distribution all frames
 {
+    U_busy();
     QString graph_name = ui->lineEdit_6->text();
     if (graph_name == "") {
         graph_name += ui->comboBox_17->currentText() + "; ";
@@ -393,6 +479,7 @@ void widepix_analyser_2::on_pushButton_20_clicked() ///< Distribution. Distribut
 
 void widepix_analyser_2::on_pushButton_17_clicked() ///< Distribution. Distribution 1 frame
 {
+    U_busy();
     QString graph_name = ui->lineEdit_6->text();
     if (graph_name == "") {
         graph_name += ui->comboBox_17->currentText() + "; ";
@@ -454,7 +541,7 @@ void widepix_analyser_2::on_pushButton_24_clicked() ///< Mask overflow all frame
 
 void widepix_analyser_2::on_pushButton_19_clicked() ///< Distribution. Save
 {
-    QString str = QFileDialog::getSaveFileName(this, "Save distribution");
+    QString str = QFileDialog::getSaveFileName(nullptr, "Save distribution");
     if (str != "") {
         wai->U_save_distribution(str, static_cast<UC_wai::UTE_file_type>(ui->comboBox_9->currentIndex()));
     }
@@ -462,7 +549,7 @@ void widepix_analyser_2::on_pushButton_19_clicked() ///< Distribution. Save
 
 void widepix_analyser_2::on_pushButton_25_clicked() ///< Table. Save
 {
-    QString str = QFileDialog::getSaveFileName(this, "Save table");
+    QString str = QFileDialog::getSaveFileName(nullptr, "Save table");
     if (str != "") {
         wai->U_save_table(str, static_cast<UC_wai::UTE_table_file_type>(ui->comboBox_10->currentIndex()));
     }
@@ -492,6 +579,7 @@ void widepix_analyser_2::on_pushButton_29_clicked() ///< Source. Set scan
 
 void widepix_analyser_2::on_pushButton_31_clicked() ///< Source. Add scan
 {
+    U_busy();
     UC_data_container::UTStr_data_container_settings settings;
     settings.path = ui->lineEdit_3->text();
     settings.count = ui->spinBox_11->value();
@@ -530,6 +618,8 @@ void widepix_analyser_2::on_pushButton_31_clicked() ///< Source. Add scan
     settings.name = str;
 
     emit US_set_data(&settings);
+
+
 }
 
 void widepix_analyser_2::on_pushButton_34_clicked() ///< Show mask
@@ -559,17 +649,19 @@ void widepix_analyser_2::on_radioButton_2_toggled(bool checked) ///< then value.
 
 void widepix_analyser_2::on_pushButton_33_clicked() ///< Distribution. Set range 1 frame
 {
+    U_busy();
     wai->U_generate_range(ui->comboBox->currentText().remove(0, 6).toInt());
 }
 
 void widepix_analyser_2::on_pushButton_32_clicked() ///< Distribution. Set range all frames
 {
+    U_busy();
     wai->U_generate_range();
 }
 
 void widepix_analyser_2::on_pushButton_37_clicked() ///< Spectra. Load txt
 {
-    QString str = QFileDialog::getOpenFileName(this, "Open spectra");
+    QString str = QFileDialog::getOpenFileName(nullptr, "Open spectra");
     if (str != "") {
         wai->U_load_spectra_txt(str);
     }
@@ -577,7 +669,7 @@ void widepix_analyser_2::on_pushButton_37_clicked() ///< Spectra. Load txt
 
 void widepix_analyser_2::on_pushButton_38_clicked() ///< Frame. Load txt
 {
-    QString str = QFileDialog::getOpenFileName(this, "Open frame");
+    QString str = QFileDialog::getOpenFileName(nullptr, "Open frame");
     if (str != "") {
         wai->U_load_frame_txt(str);
     }
@@ -585,7 +677,7 @@ void widepix_analyser_2::on_pushButton_38_clicked() ///< Frame. Load txt
 
 void widepix_analyser_2::on_pushButton_39_clicked() ///< Distribution. Load txt
 {
-    QString str = QFileDialog::getOpenFileName(this, "Open distribution");
+    QString str = QFileDialog::getOpenFileName(nullptr, "Open distribution");
     if (str != "") {
         wai->U_load_distribution_txt(str);
     }
@@ -593,6 +685,7 @@ void widepix_analyser_2::on_pushButton_39_clicked() ///< Distribution. Load txt
 
 void widepix_analyser_2::on_pushButton_40_clicked() ///< Table. Reload table all frames
 {
+    U_busy();
     wai->U_generate_table();
 }
 
@@ -693,16 +786,18 @@ void widepix_analyser_2::on_radioButton_8_clicked(bool checked) ///< y Axis. Log
 
 void widepix_analyser_2::on_pushButton_42_clicked() ///< Calibration. Show fitting chip
 {
+    U_busy();
     QString graph_name = ui->lineEdit_6->text();
     if (graph_name == "") {
         graph_name += ui->comboBox_17->currentText() + "; ";
         graph_name += ui->comboBox_3->currentText() + "; ";
     }
-    wai->U_generate_chip_fit(ui->comboBox_18->currentIndex(), graph_name);
+    wai->U_generate_chip_fit(ui->comboBox_18->currentIndex(), graph_name);  
 }
 
 void widepix_analyser_2::on_pushButton_45_clicked() ///< Calibration. Generate calibration
 {
+    U_busy();
     wai->U_generate_calibration();
 }
 
@@ -717,21 +812,26 @@ void widepix_analyser_2::on_pushButton_46_clicked() ///< Spectra. Add graph by e
         graph_name += QString("bins = %1").arg(ui->spinBox_2->value());
     }
     wai->U_generate_spectra(graph_name, ui->spinBox_2->value());
+
+    ui->pushButton->setEnabled(false);
+    ui->pushButton_46->setEnabled(false);
 }
 
 void widepix_analyser_2::on_pushButton_47_clicked() ///< Frame. Frame by energy
 {
     wai->U_generate_frame(ui->doubleSpinBox_22->value());
+    U_busy();
 }
 
 void widepix_analyser_2::on_pushButton_48_clicked() ///< Table. Reload table for energy
 {
+    U_busy();
     wai->U_generate_table(ui->doubleSpinBox_22->value());
 }
 
 void widepix_analyser_2::on_pushButton_49_clicked() ///< Calibration. Save // chip fit
 {
-    QString str = QFileDialog::getSaveFileName(this, "Save chip fit");
+    QString str = QFileDialog::getSaveFileName(nullptr, "Save chip fit");
     if (str != "") {
         wai->U_save_chip_fit(str, static_cast<UC_wai::UTE_file_type>(ui->comboBox_16->currentIndex()));
     }
@@ -744,7 +844,7 @@ void widepix_analyser_2::on_pushButton_52_clicked() ///< Calibration. Reset // c
 
 void widepix_analyser_2::on_pushButton_54_clicked() ///< Spectra. Automatic save by chip
 {
-    QString str = QFileDialog::getSaveFileName(this, "Save spectra");
+    QString str = QFileDialog::getSaveFileName(nullptr, "Save spectra");
     if (str != "") {
         QString graph_name = ui->lineEdit_5->text(); /// name
         if (graph_name == "") {
@@ -758,7 +858,7 @@ void widepix_analyser_2::on_pushButton_54_clicked() ///< Spectra. Automatic save
 
 void widepix_analyser_2::on_pushButton_57_clicked() ///< Calibration. Save
 {
-    QString str = QFileDialog::getSaveFileName(this, "Save calibration");
+    QString str = QFileDialog::getSaveFileName(nullptr, "Save calibration");
     if (str != "") {
         wai->U_save_calibration(str, static_cast<UC_wai::UTE_file_type>(ui->comboBox_20->currentIndex()));
     }
@@ -812,6 +912,13 @@ void widepix_analyser_2::on_checkBox_13_toggled(bool checked) ///< renew ranges
         connect(wai, SIGNAL(US_set_calibration_min_x(double)), ui->doubleSpinBox_28, SLOT(setValue(double)));
         connect(wai, SIGNAL(US_set_calibration_max_y(double)), ui->doubleSpinBox_29, SLOT(setValue(double)));
         connect(wai, SIGNAL(US_set_calibration_min_y(double)), ui->doubleSpinBox_30, SLOT(setValue(double)));
+
+        connect(wai, SIGNAL(US_set_spectra_2d_max_x(double)), ui->doubleSpinBox_35, SLOT(setValue(double)));
+        connect(wai, SIGNAL(US_set_spectra_2d_min_x(double)), ui->doubleSpinBox_34, SLOT(setValue(double)));
+        connect(wai, SIGNAL(US_set_spectra_2d_max_y(double)), ui->doubleSpinBox_32, SLOT(setValue(double)));
+        connect(wai, SIGNAL(US_set_spectra_2d_min_y(double)), ui->doubleSpinBox_33, SLOT(setValue(double)));
+        connect(wai, SIGNAL(US_set_spectra_2d_max_z(double)), ui->doubleSpinBox_38, SLOT(setValue(double)));
+        connect(wai, SIGNAL(US_set_spectra_2d_min_z(double)), ui->doubleSpinBox_39, SLOT(setValue(double)));
     } else {
         disconnect(wai, SIGNAL(US_set_spectra_max_x(double)), ui->doubleSpinBox_4, SLOT(setValue(double)));
         disconnect(wai, SIGNAL(US_set_spectra_min_x(double)), ui->doubleSpinBox_3, SLOT(setValue(double)));
@@ -839,6 +946,13 @@ void widepix_analyser_2::on_checkBox_13_toggled(bool checked) ///< renew ranges
         disconnect(wai, SIGNAL(US_set_calibration_min_x(double)), ui->doubleSpinBox_28, SLOT(setValue(double)));
         disconnect(wai, SIGNAL(US_set_calibration_max_y(double)), ui->doubleSpinBox_29, SLOT(setValue(double)));
         disconnect(wai, SIGNAL(US_set_calibration_min_y(double)), ui->doubleSpinBox_30, SLOT(setValue(double)));
+
+        disconnect(wai, SIGNAL(US_set_spectra_2d_max_x(double)), ui->doubleSpinBox_35, SLOT(setValue(double)));
+        disconnect(wai, SIGNAL(US_set_spectra_2d_min_x(double)), ui->doubleSpinBox_34, SLOT(setValue(double)));
+        disconnect(wai, SIGNAL(US_set_spectra_2d_max_y(double)), ui->doubleSpinBox_32, SLOT(setValue(double)));
+        disconnect(wai, SIGNAL(US_set_spectra_2d_min_y(double)), ui->doubleSpinBox_33, SLOT(setValue(double)));
+        disconnect(wai, SIGNAL(US_set_spectra_2d_max_z(double)), ui->doubleSpinBox_38, SLOT(setValue(double)));
+        disconnect(wai, SIGNAL(US_set_spectra_2d_min_z(double)), ui->doubleSpinBox_39, SLOT(setValue(double)));
     }
 }
 
@@ -859,7 +973,7 @@ void widepix_analyser_2::on_pushButton_53_clicked() ///< Calibration. Set thresh
 
 void widepix_analyser_2::on_pushButton_62_clicked() ///< Calibration. Save calibration
 {
-    QString str = QFileDialog::getSaveFileName(this, "Save calibration");
+    QString str = QFileDialog::getSaveFileName(nullptr, "Save calibration");
     if (str != "") {
         emit US_save_calibration(str);
     }
@@ -867,7 +981,7 @@ void widepix_analyser_2::on_pushButton_62_clicked() ///< Calibration. Save calib
 
 void widepix_analyser_2::on_pushButton_61_clicked() ///< Calibration. Load calibration
 {
-    QString str = QFileDialog::getSaveFileName(this, "Load calibration");
+    QString str = QFileDialog::getSaveFileName(nullptr, "Load calibration");
     if (str != "") {
         emit US_load_calibration(str);
     }
@@ -989,7 +1103,7 @@ void widepix_analyser_2::on_comboBox_6_activated(int index) ///< ROI combo box
 
 void widepix_analyser_2::on_pushButton_2_clicked() ///< Save RoI
 {
-    QString str = QFileDialog::getSaveFileName(this, "Save RoIs");
+    QString str = QFileDialog::getSaveFileName(nullptr, "Save RoIs");
     if (str != "") {
         wai->U_save_roi(str);
     }
@@ -997,7 +1111,7 @@ void widepix_analyser_2::on_pushButton_2_clicked() ///< Save RoI
 
 void widepix_analyser_2::on_pushButton_14_clicked() ///< Load RoI
 {
-    QString str = QFileDialog::getOpenFileName(this, "Load RoIs");
+    QString str = QFileDialog::getOpenFileName(nullptr, "Load RoIs");
     if (str != "") {
         wai->U_load_roi(str);
     }
@@ -1005,7 +1119,7 @@ void widepix_analyser_2::on_pushButton_14_clicked() ///< Load RoI
 
 void widepix_analyser_2::on_pushButton_30_clicked() ///< Save mask
 {
-    QString str = QFileDialog::getSaveFileName(this, "Save mask");
+    QString str = QFileDialog::getSaveFileName(nullptr, "Save mask");
     if (str != "") {
         wai->U_save_mask(str);
     }
@@ -1013,7 +1127,7 @@ void widepix_analyser_2::on_pushButton_30_clicked() ///< Save mask
 
 void widepix_analyser_2::on_pushButton_69_clicked() ///< Load mask
 {
-    QString str = QFileDialog::getOpenFileName(this, "Load mask");
+    QString str = QFileDialog::getOpenFileName(nullptr, "Load mask");
     if (str != "") {
         wai->U_load_mask(str);
     }
@@ -1043,4 +1157,123 @@ void widepix_analyser_2::on_comboBox_17_activated(int index)
 {
     if (index != -1)
     emit US_set_scan(index);
+}
+
+void widepix_analyser_2::on_pushButton_70_clicked()
+{
+    emit US_stop();
+}
+
+void widepix_analyser_2::on_pushButton_71_clicked()
+{
+    QString str = QFileDialog::getSaveFileName(nullptr, "Save distribution");
+    if (str != "") {
+        QString graph_name = ui->lineEdit_6->text(); /// name
+        if (graph_name == "") {
+            graph_name += ui->comboBox_17->currentText() + "; "; /// scan
+            graph_name += ui->comboBox_3->currentText(); /// pixel count type
+        }
+        wai->U_automatic_save_distribution(str, graph_name, static_cast<UC_wai::UTE_file_type>(ui->comboBox_8->currentIndex()), ui->spinBox->value(), ui->doubleSpinBox_17->value(), ui->doubleSpinBox_16->value());
+    }
+}
+
+void widepix_analyser_2::on_pushButton_73_clicked()
+{
+    QString str = QFileDialog::getSaveFileName(nullptr, "Save distibution");
+    if (str != "") {
+        QString graph_name = ui->lineEdit_6->text(); /// name
+        if (graph_name == "") {
+            graph_name += ui->comboBox_17->currentText() + "; "; /// scan
+            graph_name += ui->comboBox_3->currentText(); /// pixel count type
+        }
+        wai->U_automatic_save_distribution(str, graph_name, static_cast<UC_wai::UTE_file_type>(ui->comboBox_8->currentIndex()), ui->spinBox->value(), ui->doubleSpinBox_17->value(), ui->doubleSpinBox_16->value(), ui->comboBox->currentText().remove(0, 6).toInt());
+    }
+}
+
+void widepix_analyser_2::on_radioButton_9_clicked(bool checked)
+{
+    wai->U_set_z_axis_type(checked);
+}
+
+void widepix_analyser_2::on_radioButton_10_clicked(bool checked)
+{
+    wai->U_set_z_axis_type(!checked);
+}
+
+void widepix_analyser_2::on_pushButton_72_clicked() ///< Spectra 2D. Show spectra 2D
+{
+    U_busy();
+    UC_wai::UStr_spectra_2d_settings settings;
+    settings.bins_x = ui->spinBox_15->value();
+    settings.bins_y = ui->spinBox_16->value();
+    settings.x_min = ui->spinBox_13->value();
+    settings.x_max = ui->spinBox_14->value();
+    settings.y_max = ui->doubleSpinBox_37->value();
+    settings.y_min = ui->doubleSpinBox_36->value();
+    wai->U_generate_spectra_2d(settings);
+}
+
+void widepix_analyser_2::on_pushButton_74_clicked() ///< Spectra 2D. Show spectra 2D by energy
+{
+    U_busy();
+    UC_wai::UStr_spectra_2d_settings settings;
+    settings.bins_x = ui->spinBox_15->value();
+    settings.bins_y = ui->spinBox_16->value();
+    settings.x_min = ui->doubleSpinBox_20->value();
+    settings.x_max = ui->doubleSpinBox_21->value();
+    settings.y_max = ui->doubleSpinBox_37->value();
+    settings.y_min = ui->doubleSpinBox_36->value();
+    wai->U_generate_spectra_2d_energy(settings);
+}
+
+void widepix_analyser_2::on_pushButton_75_clicked() ///< Spectra 2D. Set value range
+{
+    U_busy();
+    int bins;
+    bins = ui->spinBox_14->value();
+    bins += 1 - ui->spinBox_13->value();
+    ui->spinBox_15->setValue(bins);
+    wai->U_generate_spectra_2d_range(ui->spinBox_13->value(), ui->spinBox_14->value());
+}
+
+void widepix_analyser_2::on_pushButton_76_clicked() ///< Spectra 2D. Set value range by energy
+{
+    U_busy();
+    wai->U_generate_spectra_2d_range_energy(ui->doubleSpinBox_20->value(), ui->doubleSpinBox_21->value());
+}
+
+void widepix_analyser_2::on_pushButton_83_clicked() ///< Spectra 2D. Rescale
+{
+    wai->U_rescale_spectra_2d();
+}
+
+void widepix_analyser_2::on_pushButton_79_clicked() ///< Spectra 2D. Resize
+{
+    wai->U_resize_spectra_2d();
+}
+
+void widepix_analyser_2::on_pushButton_81_clicked() ///< Spectra 2D. Save
+{
+    QString str = QFileDialog::getSaveFileName(nullptr, "Save spectra 2D");
+    if (str != "") {
+        wai->U_save_spectra_2d(str, static_cast<UC_wai::UTE_file_type>(ui->comboBox_11->currentIndex()));
+    }
+}
+
+void widepix_analyser_2::on_pushButton_80_clicked() ///< Spectra 2D. Load
+{
+    QString str = QFileDialog::getOpenFileName(nullptr, "Open spectra 2D");
+    if (str != "") {
+        wai->U_load_spectra_2d_txt(str);
+    }
+}
+
+void widepix_analyser_2::on_pushButton_77_clicked() ///< Width +
+{
+    wai->U_thick_up();
+}
+
+void widepix_analyser_2::on_pushButton_82_clicked() ///< Width -
+{
+    wai->U_thick_down();
 }

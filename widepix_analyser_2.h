@@ -16,13 +16,11 @@ class widepix_analyser_2 : public QMainWindow
     UC_wai * wai;
     QString roi;
     QList<QWidget * > list_enabling;
+    QList<QWidget * > list_enabling_busy;
 
 public:
     explicit widepix_analyser_2(QWidget *parent = nullptr);
     ~widepix_analyser_2();
-
-
-
 
 private slots:
     ///////////////////////////////////
@@ -31,6 +29,7 @@ private slots:
     void U_n_files(int n);
     void U_renew_progress_bar(double current, double total);
     void U_set_distribution_range(double lower, double upper);
+    void U_set_spectra_2D_range(double lower, double upper);
     void U_set_count_mask(int n);
     void U_set_roi_range(int x_min, int x_max, int y_min, int y_max);
     void U_set_thl_range(int thl_min, int thl_max);
@@ -40,6 +39,8 @@ private slots:
     void U_renew_identification_elements(QList<QString> list);
     void U_new_spectra(QString name);
     void U_add_roi(QString name);
+    void U_ready();
+    void U_busy();
     //////////////////////////////////////
 
 signals :
@@ -53,6 +54,8 @@ signals :
     void US_delete_scan(int index);
     void US_reset_data();
     void US_get_scan_settings(int index);
+    //
+    void US_stop();
 
 private slots:
 
@@ -243,6 +246,36 @@ private slots:
     void on_comboBox_5_activated(int index);
 
     void on_comboBox_17_activated(int index);
+
+    void on_pushButton_70_clicked();
+
+    void on_pushButton_71_clicked();
+
+    void on_pushButton_73_clicked();
+
+    void on_radioButton_9_clicked(bool checked);
+
+    void on_radioButton_10_clicked(bool checked);
+
+    void on_pushButton_72_clicked();
+
+    void on_pushButton_74_clicked();
+
+    void on_pushButton_75_clicked();
+
+    void on_pushButton_76_clicked();
+
+    void on_pushButton_83_clicked();
+
+    void on_pushButton_79_clicked();
+
+    void on_pushButton_81_clicked();
+
+    void on_pushButton_80_clicked();
+
+    void on_pushButton_77_clicked();
+
+    void on_pushButton_82_clicked();
 
 private:
     Ui::widepix_analyser_2 *ui;

@@ -60,6 +60,7 @@ class UC_plot : public QObject
     int total_progress_bar;     ///< Переменная, хранящая общее число шагов при расчетах.
     int current_progress_bar;   ///< Переменная, хранящая пройденное число шагов при расчетах.
 
+    bool stop;
     bool using_calibration;     ///< Использование калибровки.
     bool ff_minus_df_ready;
     bool scan_enable;           ///< Наличие активного скана.
@@ -114,6 +115,7 @@ public :
         UTE_PT_cnt1,                        ///< Значение первого счетчика при сканировании с образцом.
         UTE_PT_cnt1_divide_on_cnt0,         ///< Отношение значений первого счетчика ко значению нулевого счетчика, взятых при сканировании с образцом.
         UTE_PT_cnt0_subtr_cnt1,             ///< Разность значений нулевого и первого счетчиков, взятых при сканировании с образцом.
+        UTE_PT_cnt1_subtr_cnt1_max_thl,     ///< Значение первого счетчика при сканировании с образцом с вычитанием кадра с максимальным thl.
         UTE_PT_diff_cnt1,                   ///< Приращение значения первого счетчика при понижении порога в сканировании с образцом.
         UTE_PT_ffc,                         ///< Коррекция плоского поля. Значения берутся из сырых данных.
         UTE_PT_mu,                          ///< Коэффициент поглощения. Значения берутся из сырых данных.
@@ -139,7 +141,8 @@ public :
         UTE_PT_diff_cnt1_rejected,          ///< Порог подавления активности пикселя.
         UTE_PT_cnt1ffc_div_cnt0ffc,         ///< Отношение коррекции чистого поля 1-го счетчика к коррекции плоского поля для 2-го счетчика.
         UTE_PT_smoothing_mu_diff,             ///< Дополнительные данные.
-        UTE_PT_GA_request
+        UTE_PT_GA_request,
+        UTE_PT_ffc_cnt0
     } UTE_pixel_type;
 
     typedef struct {
@@ -205,6 +208,11 @@ public:
     double U_get_calibration_data_2(QVector<double> * x, QVector<double> * y);
     //
     void U_enable_ff_df();
+    //
+    double U_get_data_rebin(UC_data_container * scan, int thl, int x, int y, int cnt);
+    double U_get_data_rebin_scaled(UC_data_container * scan, int thl, int x, int y, int cnt);
+    double U_get_data_rebin_corr(UC_data_container * scan, int thl, int x, int y);
+    double U_get_data_rebin_corr_scaled(UC_data_container * scan, int thl, int x, int y);
 ///////////////////////////////////////////////////////////////////////////////
     double U_get_pixel_data(UTE_pixel_type type, int thl, int x, int y);
     int U_get_pixel_data_1(int thl, int x, int y); //UTE_PT_cnt0
@@ -212,35 +220,37 @@ public:
     double U_get_pixel_data_3(int thl, int x, int y); //UTE_PT_cnt1_divide_on_cnt0
     int U_get_pixel_data_4(int thl, int x, int y); //UTE_PT_cnt0_subtr_cnt1
     double U_get_pixel_data_5(int thl, int x, int y); //UTE_PT_diff_cnt1
-    double U_get_pixel_data_6(int thl, int x, int y); //UTE_PT_ffc
-    double U_get_pixel_data_7(int thl, int x, int y); //UTE_PT_mu
-    double U_get_pixel_data_8(int thl, int x, int y); //UTE_PT_diff_ffc
-    double U_get_pixel_data_9(int thl, int x, int y); //UTE_PT_diff_mu
-    double U_get_pixel_data_10(int thl, int x, int y); //UTE_PT_ffc_diff
-    double U_get_pixel_data_11(int thl, int x, int y); //UTE_PT_mu_diff
+    int U_get_pixel_data_6(int thl, int x, int y); //UTE_PT_cnt1_subtr_cnt1_max_thl
+    double U_get_pixel_data_7(int thl, int x, int y); //UTE_PT_ffc
+    double U_get_pixel_data_8(int thl, int x, int y); //UTE_PT_mu
+    double U_get_pixel_data_9(int thl, int x, int y); //UTE_PT_diff_ffc
+    double U_get_pixel_data_10(int thl, int x, int y); //UTE_PT_diff_mu
+    double U_get_pixel_data_11(int thl, int x, int y); //UTE_PT_ffc_diff
+    double U_get_pixel_data_12(int thl, int x, int y); //UTE_PT_mu_diff
     ///
-    double U_get_pixel_data_12(int thl, int x, int y); //UTE_PT_cnt1_corr_cnt0
-    double U_get_pixel_data_13(int thl, int x, int y); //UTE_PT_diff_cnt1_corr_cnt0
-    double U_get_pixel_data_14(int thl, int x, int y); //UTE_PT_ffc_corr_cnt0
-    double U_get_pixel_data_15(int thl, int x, int y); //UTE_PT_mu_corr_cnt0
-    double U_get_pixel_data_16(int thl, int x, int y); //UTE_PT_diff_ffc_corr_cnt0
-    double U_get_pixel_data_17(int thl, int x, int y); //UTE_PT_diff_mu_corr_cnt0
-    double U_get_pixel_data_18(int thl, int x, int y); //UTE_PT_ffc_diff_corr_cnt0
-    double U_get_pixel_data_19(int thl, int x, int y); //UTE_PT_mu_diff_corr_cnt0
+    double U_get_pixel_data_13(int thl, int x, int y); //UTE_PT_cnt1_corr_cnt0
+    double U_get_pixel_data_14(int thl, int x, int y); //UTE_PT_diff_cnt1_corr_cnt0
+    double U_get_pixel_data_15(int thl, int x, int y); //UTE_PT_ffc_corr_cnt0
+    double U_get_pixel_data_16(int thl, int x, int y); //UTE_PT_mu_corr_cnt0
+    double U_get_pixel_data_17(int thl, int x, int y); //UTE_PT_diff_ffc_corr_cnt0
+    double U_get_pixel_data_18(int thl, int x, int y); //UTE_PT_diff_mu_corr_cnt0
+    double U_get_pixel_data_19(int thl, int x, int y); //UTE_PT_ffc_diff_corr_cnt0
+    double U_get_pixel_data_20(int thl, int x, int y); //UTE_PT_mu_diff_corr_cnt0
     ///
-    double U_get_pixel_data_20(int thl, int x, int y); //UTE_PT_ffc_non_xray
-    double U_get_pixel_data_21(int thl, int x, int y); //UTE_PT_cnt0_deviation
+    double U_get_pixel_data_21(int thl, int x, int y); //UTE_PT_ffc_non_xray
+    double U_get_pixel_data_22(int thl, int x, int y); //UTE_PT_cnt0_deviation
     //
-    int U_get_pixel_data_22(int thl, int x, int y); //UTE_PT_cnt1_act
-    int U_get_pixel_data_23(int thl, int x, int y); //UTE_PT_cnt0_act
-    int U_get_pixel_data_24(int thl, int x, int y); //UTE_PT_cnt1_rejected
-    int U_get_pixel_data_25(int thl, int x, int y); //UTE_PT_diff_cnt1_rejected
+    int U_get_pixel_data_23(int thl, int x, int y); //UTE_PT_cnt1_act
+    int U_get_pixel_data_24(int thl, int x, int y); //UTE_PT_cnt0_act
+    int U_get_pixel_data_25(int thl, int x, int y); //UTE_PT_cnt1_rejected
+    int U_get_pixel_data_26(int thl, int x, int y); //UTE_PT_diff_cnt1_rejected
     //
-    double U_get_pixel_data_26(int thl, int x, int y); //UTE_PT_cnt1ffc_div_cnt0ffc
+    double U_get_pixel_data_27(int thl, int x, int y); //UTE_PT_cnt1ffc_div_cnt0ffc
     //
-    double U_get_pixel_data_27(int thl, int x, int y); //UTE_PT_smoothing_mu_diff
+    double U_get_pixel_data_28(int thl, int x, int y); //UTE_PT_smoothing_mu_diff
     //
-    double U_get_pixel_data_28(int thl, int x, int y); //UTE_PT_GA_request
+    double U_get_pixel_data_29(int thl, int x, int y); //UTE_PT_GA_request
+    double U_get_pixel_data_30(int thl, int x, int y); //UTE_PT_ffc_cnt0
 ////////////////////////////////////////////////////////////////////////////////
     double U_get_frame_data(UTE_frame_type type_spectra, UTE_pixel_type type_pixel, int thl);
     double U_get_frame_data_energy(UTE_frame_type type_spectra, UTE_pixel_type type_pixel, double e_min, double e_max);
@@ -270,6 +280,8 @@ signals:
     void US_range_data(double lower, double upper);
     void US_calibration_chip_data(double x, double y, bool is_fit);
     void US_calibration_data(double x, double y, int chip, bool is_fit);
+    void US_spectra_2d_data(double x, double y);
+    void US_spectra_2d_range_data(double lower, double upper);
     void US_id_roi_GA_data(UC_plot::UTStr_id_GA_data data);
     void US_id_roi_LC_data(UC_plot::UTStr_id_LC_data data);
     void US_id_data();
@@ -279,11 +291,13 @@ signals:
     ///////////////////////////////////////////////////////////////////////////////////
 
     void US_replot_spectra(QVector<double> x, QVector<double> y);
+    void US_replot_spectra();
     void US_replot_frame();
     void US_rewrite_table();
     void US_replot_distribution(QVector<double> x, QVector<double> y);
     void US_replot_calibration(QVector<double> x, QVector<double> y, int chip, bool fit);
     void US_replot_calibration_chip(QVector<double> x, QVector<double> y, bool fit);
+    void US_replot_spectra_2d();
     void US_replot_id();
     void US_replot_id_frame();
     /////////////////////////////////////////////////////////////////////////////
@@ -302,6 +316,9 @@ signals:
     //
     void US_id_scan_list(QList<QString> list);
     void US_set_roi_range(int x_min, int x_max, int y_min, int y_max);
+    //
+    void US_ready();
+
 
 public slots:
     void U_set_data(UC_data_container::UTStr_data_container_settings * settings_ptr);
@@ -323,12 +340,16 @@ public slots:
     void U_generate_frame_distribution(int n_bins, double min, double max, int thl);
     void U_generate_calibration(int chip);
     void U_generate_calibration();
+    void U_generate_spectra_2d(int thl_min, int thl_max);
+    void U_generate_spectra_2d(double energy_min, double energy_max);
     void U_generate_id_roi();
     void U_generate_additional_data();
     void U_generate_id_data();
     void U_generate_id_frame(int element_index);
     void U_generate_range(int thl);
     void U_generate_range();
+    void U_generate_range_spectra_2d(int thl_min, int thl_max);
+    void U_generate_range_spectra_2d(double energy_min, double energy_max);
 /////////////////////////////////////////////////////////////////
     void U_set_frame_type(UC_plot::UTE_frame_type frame_type);
     void U_set_pixel_type(UC_plot::UTE_pixel_type pixel_type);
@@ -366,6 +387,7 @@ public slots:
     void U_add_roi(UC_roi roi);
     void U_delete_roi(int index);
     //
+    void U_stop();
 };
 
 

@@ -69,6 +69,13 @@ class UC_wai : public QObject
     QStandardItemModel *    table_model;
     QModelIndex             table_index;
 
+    QCustomPlot *       spectra_2d_qcp;
+    QCPColorMap *       color_map_spectra_2d_qcp;
+    QCPColorScale *     color_scale_spectra_2d_qcp;
+    QCPColorMapData *   color_map_data_spectra_2d_qcp;
+    QCPMarginGroup *    margin_group_spectra_2d_qcp;
+    QCPSelectionRect *  sr_spectra_2d_qcp;
+
     QTableView *            id_table;
     QStandardItemModel *    id_GA_table_model;
     QStandardItemModel *    id_LC_table_model;
@@ -101,7 +108,18 @@ public :
         UTE_CS_diff,
     } UTE_calculating_spectras;
 
+    typedef struct {
+        int bins_x;
+        int bins_y;
+        double x_max;
+        double x_min;
+        double y_min;
+        double y_max;
+    } UStr_spectra_2d_settings;
+
 private :
+
+    UStr_spectra_2d_settings spectra_2d_settings;
 
     Q_OBJECT
 public:
@@ -116,6 +134,7 @@ public:
     void U_set_distribution_qcp(QCustomPlot * distribution_qcp);
     void U_set_chip_fit_qcp(QCustomPlot * chip_fit_qcp);
     void U_set_calibration_qcp(QCustomPlot * calibration_qcp);
+    void U_set_spectra_2d_qcp(QCustomPlot * spectra_2d_qcp);
     void U_set_id_frame_qcp(QCustomPlot *id_frame_qcp);
     void U_set_table(QTableView * table);
     void U_set_id_table(QTableView * id_table);
@@ -148,6 +167,11 @@ public:
     void U_generate_calibration();
     void U_reset_calibration();
     //
+    void U_generate_spectra_2d(UStr_spectra_2d_settings settings);
+    void U_generate_spectra_2d_energy(UStr_spectra_2d_settings settings);
+    void U_generate_spectra_2d_range(int thl_min, int thl_max);
+    void U_generate_spectra_2d_range_energy(double energy_min, double energy_max);
+    //
     void U_generate_id_roi(QString id_GA_element, UC_plot::UTE_id_type type);
     void U_reset_id_roi(UC_plot::UTE_id_type type);
     //
@@ -170,6 +194,8 @@ public:
     void U_set_interaction_mode(bool select);
     void U_set_x_axis_type(bool view);
     void U_set_y_axis_type(bool view);
+    void U_set_z_axis_type(bool view);
+    void U_set_spectra_2d_z_axis_type(bool view);
     void U_set_legend_enable(bool enable);
     //
     void U_set_renew_ranges(bool enable);
@@ -187,6 +213,9 @@ public:
     //
     void U_resize_chip_fit();
     void U_resize_calibration();
+    //
+    void U_resize_spectra_2d();
+    void U_rescale_spectra_2d();
     ///////////////////////////////////////////////////////////////////
     void U_save_spectra_txt(QString file_name);
     void U_save_spectra(QString file_name, UTE_file_type file_type);
@@ -201,12 +230,17 @@ public:
     //
     void U_save_distribution_txt(QString file_name);
     void U_save_distribution(QString file_name, UTE_file_type file_type);
+    void U_automatic_save_distribution(QString file_name, QString name, UTE_file_type file_type, int n_bins, double min, double max, int thl);
+    void U_automatic_save_distribution(QString file_name, QString name, UTE_file_type file_type, int n_bins, double min, double max);
     //
     void U_save_chip_fit_txt(QString file_name);
     void U_save_chip_fit(QString file_name, UTE_file_type file_type);
     //
     void U_save_calibration_txt(QString file_name);
     void U_save_calibration(QString file_name, UTE_file_type file_type);
+    //
+    void U_save_spectra_2d_txt(QString file_name);
+    void U_save_spectra_2d(QString file_name, UTE_file_type file_type);
     //
     void U_save_id_frame_txt(QString file_name);
     void U_save_id_frame(QString file_name, UTE_file_type file_type);
@@ -216,6 +250,7 @@ public:
     void U_load_distribution_txt(QString file_name);
     void U_load_calibr_chip_txt(QString file_name);
     void U_load_calibr_txt(QString file_name);
+    void U_load_spectra_2d_txt(QString file_name);
     void U_load_id_frame_txt(QString file_name);
 ////////////////////////////////////////////////////////////////////////
     void U_set_mask(bool mask, bool more, double value, bool in_roi, int thl);
@@ -253,6 +288,8 @@ public:
     QString U_calculating_name_6(QString name1); //UTE_CS_diff
     //
     void U_set_gradient(int n); //UTE_CS_diff
+    void U_thick_up();
+    void U_thick_down();
 
 signals:
     void US_set_data(UC_data_container::UTStr_data_container_settings * settings);
@@ -264,18 +301,25 @@ signals:
     void US_renew_scan_settings(UC_data_container::UTStr_data_container_settings settings);
 ///////////////////////////////////////////////////////////////////////////
     void US_generate_spectra();
+    void US_generate_spectra_direct();
     void US_generate_spectra(int n);
     void US_generate_frame(int thl);
     void US_generate_frame(double energy);
     void US_generate_table(int thl);
     void US_generate_table(double energy);
     void US_generate_table();
+    void US_generate_distribution_direct(int n_bins, double min, double max);
     void US_generate_distribution(int n_bins, double min, double max);
-    void US_generate_distribution(int n_bins, double min, double max, int thl_index);
+    void US_generate_distribution_direct(int n_bins, double min, double max, int thl);
+    void US_generate_distribution(int n_bins, double min, double max, int thl);
     void US_generate_range();
     void US_generate_range(int thl_index);
     void US_generate_chip_fit(int chip);
     void US_generate_calibration();
+    void US_generate_spectra_2d(int thl_min, int thl_max);
+    void US_generate_spectra_2d(double energy_min, double energy_max);
+    void US_generate_spectra_2d_range(int thl_min, int thl_max);
+    void US_generate_spectra_2d_range(double energy_min, double energy_max);
     void US_generate_id_roi();
     void US_generate_additional_data();
     void US_generate_id_data();
@@ -317,6 +361,13 @@ signals:
     void US_set_calibration_min_x(double value);
     void US_set_calibration_max_y(double value);
     void US_set_calibration_min_y(double value);
+    //
+    void US_set_spectra_2d_max_x(double value);
+    void US_set_spectra_2d_min_x(double value);
+    void US_set_spectra_2d_max_y(double value);
+    void US_set_spectra_2d_min_y(double value);
+    void US_set_spectra_2d_max_z(double value);
+    void US_set_spectra_2d_min_z(double value);
     /////////////////////////////////////////////////////////////////////////
     void US_set_mask(bool mask, bool more, double value, bool in_roi, int thl);
     void US_count_mask(bool more, double value, bool in_roi, int thl);
@@ -332,6 +383,7 @@ signals:
 
     ////////////////////////////////////////////////////////
     void US_set_distribution_range(double lower, double upper);
+    void US_set_spectra_2d_range(double lower, double upper);
     void US_set_thl_range(int lower, int upper);
     void US_mouse_data(QString);
     void US_set_roi_range(int x_min, int x_max, int y_min, int y_max);
@@ -347,20 +399,24 @@ signals:
 
 
 public slots:
+    void U_add_spectra_data(double x, double y);
     void U_add_frame_data(double x, double y, double z);
     void U_add_table_data(UC_pixels_info pixels_info);
     void U_add_id_roi_GA_data(UC_plot::UTStr_id_GA_data data);
     void U_add_id_roi_LC_data(UC_plot::UTStr_id_LC_data data);
     void U_add_id_frame_data(double x, double y, double z);
+    void U_add_spectra_2d_data(double x, double y);
 //
 //////////////////////////////////////////////////////////////////////
     void U_replot_spectra(QVector<double> x, QVector<double> y);
+    void U_replot_spectra();
     void U_replot_frame();
     void U_rewrite_table();
     void U_replot_distribution(QVector<double> x, QVector<double> y);
     void U_replot_chip_fit(QVector<double> x, QVector<double> y, bool fit);
     void U_replot_calibration(QVector<double> x, QVector<double> y, int chip, bool fit);
     void U_replot_id_frame();
+    void U_replot_spectra_2d();
     /////////////////////////////////////////////////
     void U_set_spectra_x_axis_range(QCPRange range);
     void U_set_spectra_y_axis_range(QCPRange range);
@@ -404,12 +460,24 @@ public slots:
     void U_set_calibration_min_x(double value);
     void U_set_calibration_max_y(double value);
     void U_set_calibration_min_y(double value);
+    //
+    void U_set_spectra_2d_x_axis_range(QCPRange range);
+    void U_set_spectra_2d_y_axis_range(QCPRange range);
+    void U_set_spectra_2d_z_axis_range(QCPRange range);
+    ////
+    void U_set_spectra_2d_max_x(double value);
+    void U_set_spectra_2d_min_x(double value);
+    void U_set_spectra_2d_max_y(double value);
+    void U_set_spectra_2d_min_y(double value);
+    void U_set_spectra_2d_max_z(double value);
+    void U_set_spectra_2d_min_z(double value);
 ///////////////////////////////////////////////////////////////////////
     void U_mouse_move_spectra(QMouseEvent * event);
     void U_mouse_move_frame(QMouseEvent * event);
     void U_mouse_move_distribution(QMouseEvent * event);
     void U_mouse_move_chip_fit(QMouseEvent * event);
     void U_mouse_move_calibration(QMouseEvent * event);
+    void U_mouse_move_spectra_2d(QMouseEvent * event);
 //    void U_mouse_move_id_frame(QMouseEvent * event);
     //
     void U_mouse_select_spectra(QMouseEvent * event);
@@ -417,6 +485,7 @@ public slots:
     void U_mouse_select_distribution(QMouseEvent * event);
     void U_mouse_select_chip_fit(QMouseEvent * event);
     void U_mouse_select_calibration(QMouseEvent * event);
+    void U_mouse_select_spectra_2d(QMouseEvent * event);
     //////////////////////////////////////////////////////////////////////
     void U_renew_scans(QList<UC_data_container> * list_scans_ptr, int active_index);
 };
