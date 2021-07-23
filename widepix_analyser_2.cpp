@@ -77,6 +77,18 @@ widepix_analyser_2::widepix_analyser_2(QWidget *parent) :
     connect(wai->U_get_plot(),  SIGNAL(US_list_scans(QList<UC_data_container> *, int)),                                     this,               SLOT(U_set_scans(QList<UC_data_container> *, int)),                                 Qt::DirectConnection);
     connect(wai->U_get_plot(),  SIGNAL(US_scan_settings(UC_data_container::UTStr_data_container_settings *)),               this,               SLOT(U_change_scan_settings(UC_data_container::UTStr_data_container_settings *)),   Qt::DirectConnection);
 
+    connect(this, SIGNAL(US_set_mask(bool, bool, double, bool, int)),       wai->U_get_plot(),  SLOT(U_set_mask(bool, bool, double, bool, int)),                Qt::DirectConnection);
+    connect(this, SIGNAL(US_set_mask(bool, bool, double, bool)),            wai->U_get_plot(),  SLOT(U_set_mask(bool, bool, double, bool)),                     Qt::DirectConnection);
+    connect(this, SIGNAL(US_count_mask(bool, double, bool, int)),           wai->U_get_plot(),  SLOT(U_count_mask(bool, double, bool, int)),                    Qt::DirectConnection);
+    connect(this, SIGNAL(US_count_mask(bool, double, bool)),                wai->U_get_plot(),  SLOT(U_count_mask(bool, double, bool)),                         Qt::DirectConnection);
+    connect(this, SIGNAL(US_set_mask_overflowed(bool, int)),                wai->U_get_plot(),  SLOT(U_set_mask_overflowed(bool, int)),                         Qt::DirectConnection);
+    connect(this, SIGNAL(US_set_mask_overflowed(bool)),                     wai->U_get_plot(),  SLOT(U_set_mask_overflowed(bool)),                              Qt::DirectConnection);
+    connect(this, SIGNAL(US_set_mask_gauss(bool, bool, double, bool, int)), wai->U_get_plot(),  SLOT(U_set_mask_sd_from_mean(bool, bool, double, bool, int)),   Qt::DirectConnection);
+    connect(this, SIGNAL(US_set_mask_gauss(bool, bool, double, bool)),      wai->U_get_plot(),  SLOT(U_set_mask_sd_from_mean(bool, bool, double, bool)),        Qt::DirectConnection);
+    connect(this, SIGNAL(US_reset_mask()),                                  wai->U_get_plot(),  SLOT(U_reset_mask()),                                           Qt::DirectConnection);
+    connect(this, SIGNAL(US_save_mask(QString)),                            wai->U_get_plot(),  SLOT(U_save_mask(QString)),                                     Qt::DirectConnection);
+    connect(this, SIGNAL(US_load_mask(QString)),                            wai->U_get_plot(),  SLOT(U_load_mask(QString)),                                     Qt::DirectConnection);
+
     connect(wai->U_get_plot(), SIGNAL(US_thl_range(int, int)),                      this, SLOT(U_add_thl(int, int)));
     connect(wai->U_get_plot(), SIGNAL(US_energy_range(double, double)),             this, SLOT(U_set_energy_range(double, double)));
     connect(wai->U_get_plot(), SIGNAL(US_file_found(QString)),                      this, SLOT(U_file_found(QString)),                              Qt::DirectConnection);
@@ -97,7 +109,6 @@ widepix_analyser_2::widepix_analyser_2(QWidget *parent) :
     list_enabling << ui->pushButton_13;
     list_enabling << ui->pushButton_15;
     list_enabling << ui->pushButton_23;
-    list_enabling << ui->pushButton_24;
     list_enabling << ui->pushButton_16;
     list_enabling << ui->pushButton_6;
     list_enabling << ui->pushButton_12;
@@ -125,9 +136,7 @@ widepix_analyser_2::widepix_analyser_2(QWidget *parent) :
     list_enabling_busy << ui->pushButton_15;
     list_enabling_busy << ui->pushButton_13;
     list_enabling_busy << ui->pushButton_23;
-    list_enabling_busy << ui->pushButton_24;
     list_enabling_busy << ui->pushButton_44;
-    list_enabling_busy << ui->pushButton_43;
     list_enabling_busy << ui->pushButton_69;
     list_enabling_busy << ui->pushButton_46;
     list_enabling_busy << ui->pushButton_54;
@@ -449,12 +458,18 @@ void widepix_analyser_2::on_pushButton_12_clicked() ///< Frame. Save
 
 void widepix_analyser_2::on_pushButton_13_clicked() ///< Set mask
 {
-    wai->U_set_mask(true, ui->radioButton->isChecked(), ui->doubleSpinBox_11->value(), (ui->checkBox->checkState() == Qt::Checked), ui->comboBox->currentText().remove(0, 6).toInt());
+    if (ui->checkBox_4->checkState() == Qt::Checked) {
+        emit US_set_mask((ui->checkBox_5->checkState() == Qt::Checked), ui->radioButton->isChecked(), ui->doubleSpinBox_11->value(), (ui->checkBox->checkState() == Qt::Checked));
+    } else {
+        emit US_set_mask((ui->checkBox_5->checkState() == Qt::Checked), ui->radioButton->isChecked(), ui->doubleSpinBox_11->value(), (ui->checkBox->checkState() == Qt::Checked), ui->comboBox->currentText().remove(0, 6).toInt());
+    }
+//    wai->U_set_mask(true, ui->radioButton->isChecked(), ui->doubleSpinBox_11->value(), (ui->checkBox->checkState() == Qt::Checked), ui->comboBox->currentText().remove(0, 6).toInt());
 }
 
 void widepix_analyser_2::on_pushButton_15_clicked() ///< Reset mask
 {
-    wai->U_reset_mask();
+    emit US_reset_mask();
+//    wai->U_reset_mask();
 }
 
 void widepix_analyser_2::on_pushButton_16_clicked() ///< Spectra. Save
@@ -529,14 +544,14 @@ void widepix_analyser_2::on_pushButton_18_clicked() ///< Distribution. Resize
     wai->U_resize_distribution();
 }
 
-void widepix_analyser_2::on_pushButton_23_clicked() ///< Mask overflow 1 frame
+void widepix_analyser_2::on_pushButton_23_clicked() ///< Mask overflow
 {
-    wai->U_set_mask_overflowed((ui->checkBox->checkState() == Qt::Checked), ui->comboBox->currentIndex());
-}
-
-void widepix_analyser_2::on_pushButton_24_clicked() ///< Mask overflow all frames
-{
-    wai->U_set_mask_overflowed((ui->checkBox->checkState() == Qt::Checked));
+    if (ui->checkBox_4->checkState() == Qt::Checked) {
+        US_set_mask_overflowed((ui->checkBox->checkState() == Qt::Checked));
+    } else {
+        US_set_mask_overflowed((ui->checkBox->checkState() == Qt::Checked), ui->comboBox->currentIndex());
+    }
+//    wai->U_set_mask_overflowed((ui->checkBox->checkState() == Qt::Checked), ui->comboBox->currentIndex());
 }
 
 void widepix_analyser_2::on_pushButton_19_clicked() ///< Distribution. Save
@@ -559,7 +574,7 @@ void widepix_analyser_2::on_pushButton_26_clicked() ///< Spectra. Delete last gr
 {
     wai->U_delete_last_spectra();
     ui->comboBox_25->removeItem(ui->comboBox_25->count() - 1);
-    ui->comboBox_26->removeItem(ui->comboBox_25->count() - 1);
+    ui->comboBox_26->removeItem(ui->comboBox_26->count() - 1);
 }
 
 void widepix_analyser_2::on_pushButton_27_clicked() ///< Distribution. Delete last graph
@@ -634,7 +649,11 @@ void widepix_analyser_2::on_pushButton_35_clicked() ///< Clean mask
 
 void widepix_analyser_2::on_pushButton_36_clicked() ///< Count pixels would be masked
 {
-   wai->U_count_mask(ui->radioButton->isChecked(), ui->doubleSpinBox_11->value(), (ui->checkBox->checkState() == Qt::Checked), ui->comboBox->currentText().remove(0, 6).toInt());
+    if (ui->checkBox_4->checkState() == Qt::Checked) {
+        emit US_count_mask(ui->radioButton->isChecked(), ui->doubleSpinBox_11->value(), (ui->checkBox->checkState() == Qt::Checked));
+    } else {
+        emit US_count_mask(ui->radioButton->isChecked(), ui->doubleSpinBox_11->value(), (ui->checkBox->checkState() == Qt::Checked), ui->comboBox->currentText().remove(0, 6).toInt());
+    }
 }
 
 void widepix_analyser_2::on_radioButton_toggled(bool checked) ///< then value. More
@@ -728,40 +747,54 @@ void widepix_analyser_2::on_radioButton_4_clicked(bool checked) ///< Graphs inte
     wai->U_set_interaction_mode(!checked);
 }
 
-void widepix_analyser_2::on_pushButton_43_clicked() ///< Mask selected
-{
-    switch (ui->tabWidget->currentIndex()) {
-        case 0 : {
-            wai->U_mask_selected_value(ui->checkBox->checkState() == Qt::Checked);
-            break;
-        }
-        case 2 : {
-            wai->U_mask_selected(ui->spinBox_5->value(), ui->spinBox_7->value(), ui->spinBox_4->value(), ui->spinBox_6->value());
-            break;
-        }
-        case 4 : {
-            wai->U_mask_selected_value(ui->checkBox->checkState() == Qt::Checked);
-            break;
-        }
-    }
-}
-
 void widepix_analyser_2::on_pushButton_44_clicked() ///< Mask selected 1 frame
 {
-    switch (ui->tabWidget->currentIndex()) {
-        case 0 : {
-            wai->U_mask_selected_value_thl(ui->checkBox->checkState() == Qt::Checked, ui->comboBox->currentText().remove(0, 6).toInt());
-            break;
+    if (ui->checkBox_4->checkState() == Qt::Checked) {
+        switch (ui->tabWidget->currentIndex()) {
+            case 1 : {
+                wai->U_mask_selected_value(ui->checkBox->checkState() == Qt::Checked);
+                break;
+            }
+            case 2 : {
+                wai->U_mask_selected(ui->spinBox_5->value(), ui->spinBox_7->value(), ui->spinBox_4->value(), ui->spinBox_6->value());
+                break;
+            }
+            case 4 : {
+                wai->U_mask_selected_value(ui->checkBox->checkState() == Qt::Checked);
+                break;
+            }
         }
-        case 2 : {
-            wai->U_mask_selected(ui->spinBox_5->value(), ui->spinBox_7->value(), ui->spinBox_4->value(), ui->spinBox_6->value());
-            break;
-        }
-        case 4 : {
-            wai->U_mask_selected_value_thl(ui->checkBox->checkState() == Qt::Checked, ui->comboBox->currentText().remove(0, 6).toInt());
-            break;
+    } else {
+        switch (ui->tabWidget->currentIndex()) {
+            case 1 : {
+                wai->U_mask_selected_value(ui->checkBox->checkState() == Qt::Checked, ui->comboBox->currentText().remove(0, 6).toInt());
+                break;
+            }
+            case 2 : {
+                wai->U_mask_selected(ui->spinBox_5->value(), ui->spinBox_7->value(), ui->spinBox_4->value(), ui->spinBox_6->value());
+                break;
+            }
+            case 4 : {
+                wai->U_mask_selected_value(ui->checkBox->checkState() == Qt::Checked, ui->comboBox->currentText().remove(0, 6).toInt());
+                break;
+            }
         }
     }
+
+//    switch (ui->tabWidget->currentIndex()) {
+//        case 0 : {
+//            wai->U_mask_selected_value_thl(ui->checkBox->checkState() == Qt::Checked, ui->comboBox->currentText().remove(0, 6).toInt());
+//            break;
+//        }
+//        case 2 : {
+//            wai->U_mask_selected(ui->spinBox_5->value(), ui->spinBox_7->value(), ui->spinBox_4->value(), ui->spinBox_6->value());
+//            break;
+//        }
+//        case 4 : {
+//            wai->U_mask_selected_value_thl(ui->checkBox->checkState() == Qt::Checked, ui->comboBox->currentText().remove(0, 6).toInt());
+//            break;
+//        }
+//    }
 }
 
 void widepix_analyser_2::on_radioButton_5_clicked(bool checked) ///< x Axis. Linear
@@ -1121,7 +1154,8 @@ void widepix_analyser_2::on_pushButton_30_clicked() ///< Save mask
 {
     QString str = QFileDialog::getSaveFileName(nullptr, "Save mask");
     if (str != "") {
-        wai->U_save_mask(str);
+        emit US_save_mask(str);
+//        wai->U_save_mask(str);
     }
 }
 
@@ -1129,7 +1163,8 @@ void widepix_analyser_2::on_pushButton_69_clicked() ///< Load mask
 {
     QString str = QFileDialog::getOpenFileName(nullptr, "Load mask");
     if (str != "") {
-        wai->U_load_mask(str);
+        emit US_load_mask(str);
+        //wai->U_load_mask(str);
     }
 }
 
@@ -1173,8 +1208,8 @@ void widepix_analyser_2::on_pushButton_71_clicked()
             graph_name += ui->comboBox_17->currentText() + "; "; /// scan
             graph_name += ui->comboBox_3->currentText(); /// pixel count type
         }
-        wai->U_automatic_save_distribution(str, graph_name, static_cast<UC_wai::UTE_file_type>(ui->comboBox_8->currentIndex()), ui->spinBox->value(), ui->doubleSpinBox_17->value(), ui->doubleSpinBox_16->value());
-    }
+        wai->U_automatic_save_distribution(str, graph_name, static_cast<UC_wai::UTE_file_type>(ui->comboBox_8->currentIndex()), ui->spinBox->value(), ui->doubleSpinBox_17->value(), ui->doubleSpinBox_16->value(), ui->comboBox->currentText().remove(0, 6).toInt());
+        }
 }
 
 void widepix_analyser_2::on_pushButton_73_clicked()
@@ -1186,7 +1221,7 @@ void widepix_analyser_2::on_pushButton_73_clicked()
             graph_name += ui->comboBox_17->currentText() + "; "; /// scan
             graph_name += ui->comboBox_3->currentText(); /// pixel count type
         }
-        wai->U_automatic_save_distribution(str, graph_name, static_cast<UC_wai::UTE_file_type>(ui->comboBox_8->currentIndex()), ui->spinBox->value(), ui->doubleSpinBox_17->value(), ui->doubleSpinBox_16->value(), ui->comboBox->currentText().remove(0, 6).toInt());
+        wai->U_automatic_save_distribution(str, graph_name, static_cast<UC_wai::UTE_file_type>(ui->comboBox_8->currentIndex()), ui->spinBox->value(), ui->doubleSpinBox_17->value(), ui->doubleSpinBox_16->value());
     }
 }
 
@@ -1276,4 +1311,28 @@ void widepix_analyser_2::on_pushButton_77_clicked() ///< Width +
 void widepix_analyser_2::on_pushButton_82_clicked() ///< Width -
 {
     wai->U_thick_down();
+}
+
+void widepix_analyser_2::on_pushButton_78_clicked() ///< Spectra 2d. Automatic save by ROI
+{
+    UC_wai::UStr_spectra_2d_settings settings;
+    settings.bins_x = ui->spinBox_15->value();
+    settings.bins_y = ui->spinBox_16->value();
+    settings.x_min = ui->spinBox_13->value();
+    settings.x_max = ui->spinBox_14->value();
+    settings.y_max = ui->doubleSpinBox_37->value();
+    settings.y_min = ui->doubleSpinBox_36->value();
+    QString str = QFileDialog::getSaveFileName(nullptr, "Save spectra 2D");
+    if (str != "") {
+        wai->U_automatic_save_spectra_2d(str, static_cast<UC_wai::UTE_file_type>(ui->comboBox_11->currentIndex()), settings);
+    }
+}
+
+void widepix_analyser_2::on_pushButton_84_clicked() ///< Mask. Mask Gauss
+{
+    if (ui->checkBox_4->checkState() == Qt::Checked) {
+        emit US_set_mask_gauss((ui->checkBox_5->checkState() == Qt::Checked), ui->radioButton->isChecked(), ui->doubleSpinBox_11->value(), (ui->checkBox->checkState() == Qt::Checked));
+    } else {
+        emit US_set_mask_gauss((ui->checkBox_5->checkState() == Qt::Checked), ui->radioButton->isChecked(), ui->doubleSpinBox_11->value(), (ui->checkBox->checkState() == Qt::Checked), ui->comboBox->currentText().remove(0, 6).toInt());
+    }
 }

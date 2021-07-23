@@ -41,6 +41,7 @@ private slots:
     void U_add_roi(QString name);
     void U_ready();
     void U_busy();
+    //
     //////////////////////////////////////
 
 signals :
@@ -56,6 +57,19 @@ signals :
     void US_get_scan_settings(int index);
     //
     void US_stop();
+    //
+    void US_set_mask(bool mask, bool more, double value, bool in_roi, int thl);
+    void US_set_mask(bool mask, bool more, double value, bool in_roi);
+    void US_count_mask(bool more, double value, bool in_roi, int thl);
+    void US_count_mask(bool more, double value, bool in_roi);
+    void US_set_mask_overflowed(bool in_roi, int thl);
+    void US_set_mask_overflowed(bool in_roi);
+    void US_set_mask_gauss(bool mask, bool more, double value, bool in_roi, int thl);
+    void US_set_mask_gauss(bool mask, bool more, double value, bool in_roi);
+    void US_reset_mask();
+    void US_save_mask(QString file_name);
+    void US_load_mask(QString file_name);
+
 
 private slots:
 
@@ -104,8 +118,6 @@ private slots:
     void on_pushButton_18_clicked();
 
     void on_pushButton_23_clicked();
-
-    void on_pushButton_24_clicked();
 
     void on_pushButton_19_clicked();
 
@@ -156,8 +168,6 @@ private slots:
     void on_radioButton_3_clicked(bool checked);
 
     void on_radioButton_4_clicked(bool checked);
-
-    void on_pushButton_43_clicked();
 
     void on_pushButton_44_clicked();
 
@@ -276,6 +286,10 @@ private slots:
     void on_pushButton_77_clicked();
 
     void on_pushButton_82_clicked();
+
+    void on_pushButton_78_clicked();
+
+    void on_pushButton_84_clicked();
 
 private:
     Ui::widepix_analyser_2 *ui;

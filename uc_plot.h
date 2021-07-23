@@ -213,6 +213,11 @@ public:
     double U_get_data_rebin_scaled(UC_data_container * scan, int thl, int x, int y, int cnt);
     double U_get_data_rebin_corr(UC_data_container * scan, int thl, int x, int y);
     double U_get_data_rebin_corr_scaled(UC_data_container * scan, int thl, int x, int y);
+    //
+    double U_get_diff_data(UC_data_container * scan, int thl, int x, int y, int cnt);
+    double U_get_diff_data_scaled(UC_data_container * scan, int thl, int x, int y, int cnt);
+    double U_get_diff_data_corr(UC_data_container * scan, int thl, int x, int y);
+    double U_get_diff_data_corr_scaled(UC_data_container * scan, int thl, int x, int y);
 ///////////////////////////////////////////////////////////////////////////////
     double U_get_pixel_data(UTE_pixel_type type, int thl, int x, int y);
     int U_get_pixel_data_1(int thl, int x, int y); //UTE_PT_cnt0
@@ -374,13 +379,17 @@ public slots:
     void U_get_common_energy_range();
 //////////////////////////////////////////////////////////////////////
     void U_set_mask(bool mask, bool more, double value, bool in_roi, int thl);
+    void U_set_mask(bool mask, bool more, double value, bool in_roi);
     void U_count_mask(bool more, double value, bool in_roi, int thl);
+    void U_count_mask(bool more, double value, bool in_roi);
     void U_set_mask_overflowed(bool in_roi, int thl);
     void U_set_mask_overflowed(bool in_roi);
     void U_reset_mask();
     void U_mask_selected(int x_min, int x_max, int y_min, int y_max);
     void U_mask_selected_value(double value_min, double value_max, bool in_roi);
-    void U_mask_selected_value_thl(double value_min, double value_max, bool in_roi, int thl);
+    void U_mask_selected_value(double value_min, double value_max, bool in_roi, int thl);
+    void U_set_mask_sd_from_mean(bool mask, bool more, double value, bool in_roi, int thl);
+    void U_set_mask_sd_from_mean(bool mask, bool more, double value, bool in_roi);
     void U_save_mask(QString);
     void U_load_mask(QString);
     //

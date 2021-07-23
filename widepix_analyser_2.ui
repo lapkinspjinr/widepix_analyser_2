@@ -21,7 +21,7 @@
        <enum>QTabWidget::West</enum>
       </property>
       <property name="currentIndex">
-       <number>0</number>
+       <number>4</number>
       </property>
       <widget class="QWidget" name="tab_2">
        <attribute name="title">
@@ -1755,6 +1755,440 @@
         </item>
        </layout>
       </widget>
+      <widget class="QWidget" name="tab_8">
+       <attribute name="title">
+        <string>2D Spectra</string>
+       </attribute>
+       <layout class="QVBoxLayout" name="verticalLayout_101">
+        <item>
+         <widget class="QCustomPlot" name="widget_6" native="true">
+          <property name="minimumSize">
+           <size>
+            <width>0</width>
+            <height>421</height>
+           </size>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <layout class="QHBoxLayout" name="horizontalLayout_56">
+          <item>
+           <layout class="QVBoxLayout" name="verticalLayout_62">
+            <item>
+             <layout class="QVBoxLayout" name="verticalLayout_105">
+              <item>
+               <layout class="QHBoxLayout" name="horizontalLayout_57">
+                <item>
+                 <widget class="QGroupBox" name="groupBox_64">
+                  <property name="maximumSize">
+                   <size>
+                    <width>150</width>
+                    <height>70</height>
+                   </size>
+                  </property>
+                  <property name="title">
+                   <string>y max</string>
+                  </property>
+                  <layout class="QVBoxLayout" name="verticalLayout_85">
+                   <item>
+                    <widget class="QDoubleSpinBox" name="doubleSpinBox_32">
+                     <property name="maximumSize">
+                      <size>
+                       <width>100</width>
+                       <height>16777215</height>
+                      </size>
+                     </property>
+                     <property name="decimals">
+                      <number>5</number>
+                     </property>
+                     <property name="minimum">
+                      <double>-99999999999999.000000000000000</double>
+                     </property>
+                     <property name="maximum">
+                      <double>1000000000000000000.000000000000000</double>
+                     </property>
+                    </widget>
+                   </item>
+                  </layout>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QGroupBox" name="groupBox_65">
+                  <property name="maximumSize">
+                   <size>
+                    <width>150</width>
+                    <height>70</height>
+                   </size>
+                  </property>
+                  <property name="title">
+                   <string>y min</string>
+                  </property>
+                  <layout class="QVBoxLayout" name="verticalLayout_92">
+                   <item>
+                    <widget class="QDoubleSpinBox" name="doubleSpinBox_33">
+                     <property name="decimals">
+                      <number>5</number>
+                     </property>
+                     <property name="minimum">
+                      <double>-100000000000000000.000000000000000</double>
+                     </property>
+                     <property name="maximum">
+                      <double>99999999999999.000000000000000</double>
+                     </property>
+                    </widget>
+                   </item>
+                  </layout>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QGroupBox" name="groupBox_66">
+                  <property name="maximumSize">
+                   <size>
+                    <width>150</width>
+                    <height>70</height>
+                   </size>
+                  </property>
+                  <property name="title">
+                   <string>x min</string>
+                  </property>
+                  <layout class="QVBoxLayout" name="verticalLayout_93">
+                   <item>
+                    <widget class="QDoubleSpinBox" name="doubleSpinBox_34">
+                     <property name="decimals">
+                      <number>5</number>
+                     </property>
+                     <property name="minimum">
+                      <double>-9999999999999.000000000000000</double>
+                     </property>
+                     <property name="maximum">
+                      <double>99999999999999.000000000000000</double>
+                     </property>
+                    </widget>
+                   </item>
+                  </layout>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QGroupBox" name="groupBox_67">
+                  <property name="maximumSize">
+                   <size>
+                    <width>150</width>
+                    <height>70</height>
+                   </size>
+                  </property>
+                  <property name="title">
+                   <string>x max</string>
+                  </property>
+                  <layout class="QVBoxLayout" name="verticalLayout_94">
+                   <item>
+                    <widget class="QDoubleSpinBox" name="doubleSpinBox_35">
+                     <property name="decimals">
+                      <number>5</number>
+                     </property>
+                     <property name="minimum">
+                      <double>-99999999999999.000000000000000</double>
+                     </property>
+                     <property name="maximum">
+                      <double>999999999999999.000000000000000</double>
+                     </property>
+                    </widget>
+                   </item>
+                  </layout>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QGroupBox" name="groupBox_73">
+                  <property name="maximumSize">
+                   <size>
+                    <width>150</width>
+                    <height>70</height>
+                   </size>
+                  </property>
+                  <property name="title">
+                   <string>z min</string>
+                  </property>
+                  <layout class="QVBoxLayout" name="verticalLayout_106">
+                   <item>
+                    <widget class="QDoubleSpinBox" name="doubleSpinBox_39">
+                     <property name="decimals">
+                      <number>5</number>
+                     </property>
+                     <property name="minimum">
+                      <double>-9999999999999.000000000000000</double>
+                     </property>
+                     <property name="maximum">
+                      <double>99999999999999.000000000000000</double>
+                     </property>
+                    </widget>
+                   </item>
+                  </layout>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QGroupBox" name="groupBox_70">
+                  <property name="maximumSize">
+                   <size>
+                    <width>150</width>
+                    <height>70</height>
+                   </size>
+                  </property>
+                  <property name="title">
+                   <string>z max</string>
+                  </property>
+                  <layout class="QVBoxLayout" name="verticalLayout_98">
+                   <item>
+                    <widget class="QDoubleSpinBox" name="doubleSpinBox_38">
+                     <property name="decimals">
+                      <number>5</number>
+                     </property>
+                     <property name="minimum">
+                      <double>-99999999999999.000000000000000</double>
+                     </property>
+                     <property name="maximum">
+                      <double>999999999999999.000000000000000</double>
+                     </property>
+                    </widget>
+                   </item>
+                  </layout>
+                 </widget>
+                </item>
+               </layout>
+              </item>
+              <item>
+               <layout class="QHBoxLayout" name="horizontalLayout_58">
+                <item>
+                 <widget class="QGroupBox" name="groupBox_68">
+                  <property name="maximumSize">
+                   <size>
+                    <width>100</width>
+                    <height>70</height>
+                   </size>
+                  </property>
+                  <property name="title">
+                   <string>Bins x</string>
+                  </property>
+                  <layout class="QVBoxLayout" name="verticalLayout_95">
+                   <item>
+                    <widget class="QSpinBox" name="spinBox_15">
+                     <property name="minimum">
+                      <number>1</number>
+                     </property>
+                     <property name="maximum">
+                      <number>999999</number>
+                     </property>
+                     <property name="value">
+                      <number>100</number>
+                     </property>
+                    </widget>
+                   </item>
+                  </layout>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QGroupBox" name="groupBox_72">
+                  <property name="maximumSize">
+                   <size>
+                    <width>100</width>
+                    <height>70</height>
+                   </size>
+                  </property>
+                  <property name="title">
+                   <string>Bins y</string>
+                  </property>
+                  <layout class="QVBoxLayout" name="verticalLayout_104">
+                   <item>
+                    <widget class="QSpinBox" name="spinBox_16">
+                     <property name="minimum">
+                      <number>1</number>
+                     </property>
+                     <property name="maximum">
+                      <number>999999</number>
+                     </property>
+                     <property name="value">
+                      <number>100</number>
+                     </property>
+                    </widget>
+                   </item>
+                  </layout>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QGroupBox" name="groupBox_69">
+                  <property name="maximumSize">
+                   <size>
+                    <width>150</width>
+                    <height>70</height>
+                   </size>
+                  </property>
+                  <property name="title">
+                   <string>Value min</string>
+                  </property>
+                  <layout class="QVBoxLayout" name="verticalLayout_96">
+                   <item>
+                    <widget class="QDoubleSpinBox" name="doubleSpinBox_36">
+                     <property name="decimals">
+                      <number>5</number>
+                     </property>
+                     <property name="minimum">
+                      <double>-99999999999999.000000000000000</double>
+                     </property>
+                     <property name="maximum">
+                      <double>999999999999999.000000000000000</double>
+                     </property>
+                    </widget>
+                   </item>
+                  </layout>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QGroupBox" name="groupBox_71">
+                  <property name="maximumSize">
+                   <size>
+                    <width>150</width>
+                    <height>70</height>
+                   </size>
+                  </property>
+                  <property name="title">
+                   <string>Value max</string>
+                  </property>
+                  <layout class="QVBoxLayout" name="verticalLayout_103">
+                   <item>
+                    <widget class="QDoubleSpinBox" name="doubleSpinBox_37">
+                     <property name="decimals">
+                      <number>5</number>
+                     </property>
+                     <property name="minimum">
+                      <double>-99999999999999.000000000000000</double>
+                     </property>
+                     <property name="maximum">
+                      <double>999999999999999.000000000000000</double>
+                     </property>
+                    </widget>
+                   </item>
+                  </layout>
+                 </widget>
+                </item>
+               </layout>
+              </item>
+             </layout>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <layout class="QVBoxLayout" name="verticalLayout_102">
+            <item>
+             <widget class="QPushButton" name="pushButton_75">
+              <property name="text">
+               <string>Set value range</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="pushButton_76">
+              <property name="text">
+               <string>Set value range by energy</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="pushButton_83">
+              <property name="text">
+               <string>Rescale</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <layout class="QVBoxLayout" name="verticalLayout_97">
+            <item>
+             <widget class="QPushButton" name="pushButton_72">
+              <property name="text">
+               <string>Show spectra 2D</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="pushButton_74">
+              <property name="text">
+               <string>Show spectra 2D by energy</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="pushButton_79">
+              <property name="text">
+               <string>Resize</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <layout class="QVBoxLayout" name="verticalLayout_100">
+            <item>
+             <widget class="QPushButton" name="pushButton_81">
+              <property name="text">
+               <string>Save</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="pushButton_78">
+              <property name="text">
+               <string>Automatic save by RoI</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QComboBox" name="comboBox_11">
+              <property name="currentIndex">
+               <number>0</number>
+              </property>
+              <item>
+               <property name="text">
+                <string>txt</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>pdf</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>jpg</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>png</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>bmp</string>
+               </property>
+              </item>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <layout class="QVBoxLayout" name="verticalLayout_99">
+            <item>
+             <widget class="QPushButton" name="pushButton_80">
+              <property name="text">
+               <string>Load txt</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+         </layout>
+        </item>
+       </layout>
+      </widget>
       <widget class="QWidget" name="tab_6">
        <attribute name="title">
         <string>Calibration</string>
@@ -2329,434 +2763,6 @@
                </layout>
               </item>
              </layout>
-            </item>
-           </layout>
-          </item>
-         </layout>
-        </item>
-       </layout>
-      </widget>
-      <widget class="QWidget" name="tab_8">
-       <attribute name="title">
-        <string>2D Spectra</string>
-       </attribute>
-       <layout class="QVBoxLayout" name="verticalLayout_101">
-        <item>
-         <widget class="QCustomPlot" name="widget_6" native="true">
-          <property name="minimumSize">
-           <size>
-            <width>0</width>
-            <height>421</height>
-           </size>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <layout class="QHBoxLayout" name="horizontalLayout_56">
-          <item>
-           <layout class="QVBoxLayout" name="verticalLayout_62">
-            <item>
-             <layout class="QVBoxLayout" name="verticalLayout_105">
-              <item>
-               <layout class="QHBoxLayout" name="horizontalLayout_57">
-                <item>
-                 <widget class="QGroupBox" name="groupBox_64">
-                  <property name="maximumSize">
-                   <size>
-                    <width>150</width>
-                    <height>70</height>
-                   </size>
-                  </property>
-                  <property name="title">
-                   <string>y max</string>
-                  </property>
-                  <layout class="QVBoxLayout" name="verticalLayout_85">
-                   <item>
-                    <widget class="QDoubleSpinBox" name="doubleSpinBox_32">
-                     <property name="maximumSize">
-                      <size>
-                       <width>100</width>
-                       <height>16777215</height>
-                      </size>
-                     </property>
-                     <property name="decimals">
-                      <number>5</number>
-                     </property>
-                     <property name="minimum">
-                      <double>-99999999999999.000000000000000</double>
-                     </property>
-                     <property name="maximum">
-                      <double>1000000000000000000.000000000000000</double>
-                     </property>
-                    </widget>
-                   </item>
-                  </layout>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QGroupBox" name="groupBox_65">
-                  <property name="maximumSize">
-                   <size>
-                    <width>150</width>
-                    <height>70</height>
-                   </size>
-                  </property>
-                  <property name="title">
-                   <string>y min</string>
-                  </property>
-                  <layout class="QVBoxLayout" name="verticalLayout_92">
-                   <item>
-                    <widget class="QDoubleSpinBox" name="doubleSpinBox_33">
-                     <property name="decimals">
-                      <number>5</number>
-                     </property>
-                     <property name="minimum">
-                      <double>-100000000000000000.000000000000000</double>
-                     </property>
-                     <property name="maximum">
-                      <double>99999999999999.000000000000000</double>
-                     </property>
-                    </widget>
-                   </item>
-                  </layout>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QGroupBox" name="groupBox_66">
-                  <property name="maximumSize">
-                   <size>
-                    <width>150</width>
-                    <height>70</height>
-                   </size>
-                  </property>
-                  <property name="title">
-                   <string>x min</string>
-                  </property>
-                  <layout class="QVBoxLayout" name="verticalLayout_93">
-                   <item>
-                    <widget class="QDoubleSpinBox" name="doubleSpinBox_34">
-                     <property name="decimals">
-                      <number>5</number>
-                     </property>
-                     <property name="minimum">
-                      <double>-9999999999999.000000000000000</double>
-                     </property>
-                     <property name="maximum">
-                      <double>99999999999999.000000000000000</double>
-                     </property>
-                    </widget>
-                   </item>
-                  </layout>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QGroupBox" name="groupBox_67">
-                  <property name="maximumSize">
-                   <size>
-                    <width>150</width>
-                    <height>70</height>
-                   </size>
-                  </property>
-                  <property name="title">
-                   <string>x max</string>
-                  </property>
-                  <layout class="QVBoxLayout" name="verticalLayout_94">
-                   <item>
-                    <widget class="QDoubleSpinBox" name="doubleSpinBox_35">
-                     <property name="decimals">
-                      <number>5</number>
-                     </property>
-                     <property name="minimum">
-                      <double>-99999999999999.000000000000000</double>
-                     </property>
-                     <property name="maximum">
-                      <double>999999999999999.000000000000000</double>
-                     </property>
-                    </widget>
-                   </item>
-                  </layout>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QGroupBox" name="groupBox_73">
-                  <property name="maximumSize">
-                   <size>
-                    <width>150</width>
-                    <height>70</height>
-                   </size>
-                  </property>
-                  <property name="title">
-                   <string>z min</string>
-                  </property>
-                  <layout class="QVBoxLayout" name="verticalLayout_106">
-                   <item>
-                    <widget class="QDoubleSpinBox" name="doubleSpinBox_39">
-                     <property name="decimals">
-                      <number>5</number>
-                     </property>
-                     <property name="minimum">
-                      <double>-9999999999999.000000000000000</double>
-                     </property>
-                     <property name="maximum">
-                      <double>99999999999999.000000000000000</double>
-                     </property>
-                    </widget>
-                   </item>
-                  </layout>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QGroupBox" name="groupBox_70">
-                  <property name="maximumSize">
-                   <size>
-                    <width>150</width>
-                    <height>70</height>
-                   </size>
-                  </property>
-                  <property name="title">
-                   <string>z max</string>
-                  </property>
-                  <layout class="QVBoxLayout" name="verticalLayout_98">
-                   <item>
-                    <widget class="QDoubleSpinBox" name="doubleSpinBox_38">
-                     <property name="decimals">
-                      <number>5</number>
-                     </property>
-                     <property name="minimum">
-                      <double>-99999999999999.000000000000000</double>
-                     </property>
-                     <property name="maximum">
-                      <double>999999999999999.000000000000000</double>
-                     </property>
-                    </widget>
-                   </item>
-                  </layout>
-                 </widget>
-                </item>
-               </layout>
-              </item>
-              <item>
-               <layout class="QHBoxLayout" name="horizontalLayout_58">
-                <item>
-                 <widget class="QGroupBox" name="groupBox_68">
-                  <property name="maximumSize">
-                   <size>
-                    <width>100</width>
-                    <height>70</height>
-                   </size>
-                  </property>
-                  <property name="title">
-                   <string>Bins x</string>
-                  </property>
-                  <layout class="QVBoxLayout" name="verticalLayout_95">
-                   <item>
-                    <widget class="QSpinBox" name="spinBox_15">
-                     <property name="maximum">
-                      <number>999999</number>
-                     </property>
-                     <property name="value">
-                      <number>100</number>
-                     </property>
-                    </widget>
-                   </item>
-                  </layout>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QGroupBox" name="groupBox_72">
-                  <property name="maximumSize">
-                   <size>
-                    <width>100</width>
-                    <height>70</height>
-                   </size>
-                  </property>
-                  <property name="title">
-                   <string>Bins y</string>
-                  </property>
-                  <layout class="QVBoxLayout" name="verticalLayout_104">
-                   <item>
-                    <widget class="QSpinBox" name="spinBox_16">
-                     <property name="maximum">
-                      <number>999999</number>
-                     </property>
-                     <property name="value">
-                      <number>100</number>
-                     </property>
-                    </widget>
-                   </item>
-                  </layout>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QGroupBox" name="groupBox_69">
-                  <property name="maximumSize">
-                   <size>
-                    <width>150</width>
-                    <height>70</height>
-                   </size>
-                  </property>
-                  <property name="title">
-                   <string>Value min</string>
-                  </property>
-                  <layout class="QVBoxLayout" name="verticalLayout_96">
-                   <item>
-                    <widget class="QDoubleSpinBox" name="doubleSpinBox_36">
-                     <property name="decimals">
-                      <number>5</number>
-                     </property>
-                     <property name="minimum">
-                      <double>-99999999999999.000000000000000</double>
-                     </property>
-                     <property name="maximum">
-                      <double>999999999999999.000000000000000</double>
-                     </property>
-                    </widget>
-                   </item>
-                  </layout>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QGroupBox" name="groupBox_71">
-                  <property name="maximumSize">
-                   <size>
-                    <width>150</width>
-                    <height>70</height>
-                   </size>
-                  </property>
-                  <property name="title">
-                   <string>Value max</string>
-                  </property>
-                  <layout class="QVBoxLayout" name="verticalLayout_103">
-                   <item>
-                    <widget class="QDoubleSpinBox" name="doubleSpinBox_37">
-                     <property name="decimals">
-                      <number>5</number>
-                     </property>
-                     <property name="minimum">
-                      <double>-99999999999999.000000000000000</double>
-                     </property>
-                     <property name="maximum">
-                      <double>999999999999999.000000000000000</double>
-                     </property>
-                    </widget>
-                   </item>
-                  </layout>
-                 </widget>
-                </item>
-               </layout>
-              </item>
-             </layout>
-            </item>
-           </layout>
-          </item>
-          <item>
-           <layout class="QVBoxLayout" name="verticalLayout_102">
-            <item>
-             <widget class="QPushButton" name="pushButton_75">
-              <property name="text">
-               <string>Set value range</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QPushButton" name="pushButton_76">
-              <property name="text">
-               <string>Set value range by energy</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QPushButton" name="pushButton_83">
-              <property name="text">
-               <string>Rescale</string>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </item>
-          <item>
-           <layout class="QVBoxLayout" name="verticalLayout_97">
-            <item>
-             <widget class="QPushButton" name="pushButton_72">
-              <property name="text">
-               <string>Show spectra 2D</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QPushButton" name="pushButton_74">
-              <property name="text">
-               <string>Show spectra 2D by energy</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QPushButton" name="pushButton_79">
-              <property name="text">
-               <string>Resize</string>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </item>
-          <item>
-           <layout class="QVBoxLayout" name="verticalLayout_100">
-            <item>
-             <widget class="QPushButton" name="pushButton_81">
-              <property name="text">
-               <string>Save</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QPushButton" name="pushButton_78">
-              <property name="text">
-               <string>Automatic save by RoI</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QComboBox" name="comboBox_11">
-              <property name="currentIndex">
-               <number>0</number>
-              </property>
-              <item>
-               <property name="text">
-                <string>txt</string>
-               </property>
-              </item>
-              <item>
-               <property name="text">
-                <string>pdf</string>
-               </property>
-              </item>
-              <item>
-               <property name="text">
-                <string>jpg</string>
-               </property>
-              </item>
-              <item>
-               <property name="text">
-                <string>png</string>
-               </property>
-              </item>
-              <item>
-               <property name="text">
-                <string>bmp</string>
-               </property>
-              </item>
-             </widget>
-            </item>
-           </layout>
-          </item>
-          <item>
-           <layout class="QVBoxLayout" name="verticalLayout_99">
-            <item>
-             <widget class="QPushButton" name="pushButton_80">
-              <property name="text">
-               <string>Load txt</string>
-              </property>
-             </widget>
             </item>
            </layout>
           </item>
@@ -4198,11 +4204,25 @@
               </widget>
              </item>
              <item>
-              <widget class="QCheckBox" name="checkBox">
-               <property name="text">
-                <string>In region of interest</string>
-               </property>
-              </widget>
+              <layout class="QHBoxLayout" name="horizontalLayout_60">
+               <item>
+                <widget class="QCheckBox" name="checkBox">
+                 <property name="text">
+                  <string>In region of interest</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QCheckBox" name="checkBox_5">
+                 <property name="text">
+                  <string>mask en</string>
+                 </property>
+                 <property name="checked">
+                  <bool>true</bool>
+                 </property>
+                </widget>
+               </item>
+              </layout>
              </item>
              <item>
               <layout class="QHBoxLayout" name="horizontalLayout_5">
@@ -4257,6 +4277,13 @@
                <item>
                 <layout class="QVBoxLayout" name="verticalLayout_12">
                  <item>
+                  <widget class="QCheckBox" name="checkBox_4">
+                   <property name="text">
+                    <string>all frames</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
                   <widget class="QPushButton" name="pushButton_23">
                    <property name="minimumSize">
                     <size>
@@ -4265,14 +4292,7 @@
                     </size>
                    </property>
                    <property name="text">
-                    <string>Mask overflow on 1 frame</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QPushButton" name="pushButton_24">
-                   <property name="text">
-                    <string>Mask overflow all frames</string>
+                    <string>Mask overflow</string>
                    </property>
                   </widget>
                  </item>
@@ -4311,14 +4331,14 @@
                <item>
                 <widget class="QPushButton" name="pushButton_44">
                  <property name="text">
-                  <string>mask selected 1 frame</string>
+                  <string>mask selected</string>
                  </property>
                 </widget>
                </item>
                <item>
-                <widget class="QPushButton" name="pushButton_43">
+                <widget class="QPushButton" name="pushButton_84">
                  <property name="text">
-                  <string>mask selected</string>
+                  <string>mask Gauss</string>
                  </property>
                 </widget>
                </item>

@@ -241,6 +241,7 @@ public:
     //
     void U_save_spectra_2d_txt(QString file_name);
     void U_save_spectra_2d(QString file_name, UTE_file_type file_type);
+    void U_automatic_save_spectra_2d(QString file_name, UTE_file_type file_type, UStr_spectra_2d_settings settings);
     //
     void U_save_id_frame_txt(QString file_name);
     void U_save_id_frame(QString file_name, UTE_file_type file_type);
@@ -252,6 +253,8 @@ public:
     void U_load_calibr_txt(QString file_name);
     void U_load_spectra_2d_txt(QString file_name);
     void U_load_id_frame_txt(QString file_name);
+    void U_load_table_tsv(QString file_name);
+    void U_load_table_csv(QString file_name);
 ////////////////////////////////////////////////////////////////////////
     void U_set_mask(bool mask, bool more, double value, bool in_roi, int thl);
     void U_count_mask(bool more, double value, bool in_roi, int thl);
@@ -261,7 +264,7 @@ public:
     void U_set_mask_overflowed(bool in_roi);
     void U_reset_mask();
     void U_mask_selected(int x_min, int x_max, int y_min, int y_max);
-    void U_mask_selected_value_thl(bool in_roi, int thl);
+    void U_mask_selected_value(bool in_roi, int thl);
     void U_mask_selected_value(bool in_roi);
     void U_save_mask(QString file_name);
     void U_load_mask(QString file_name);
@@ -317,6 +320,7 @@ signals:
     void US_generate_chip_fit(int chip);
     void US_generate_calibration();
     void US_generate_spectra_2d(int thl_min, int thl_max);
+    void US_generate_spectra_2d_direct(int thl_min, int thl_max);
     void US_generate_spectra_2d(double energy_min, double energy_max);
     void US_generate_spectra_2d_range(int thl_min, int thl_max);
     void US_generate_spectra_2d_range(double energy_min, double energy_max);
@@ -375,7 +379,7 @@ signals:
     void US_set_mask_overflowed(bool in_roi);
     void US_reset_mask();
     void US_mask_selected(int x_min, int x_max, int y_min, int y_max);
-    void US_mask_selected_value_thl(double value_min, double value_max,  bool in_roi, int thl);
+    void US_mask_selected_value(double value_min, double value_max,  bool in_roi, int thl);
     void US_mask_selected_value(double value_min, double value_max,  bool in_roi);
     void US_save_mask(QString file_name);
     void US_load_mask(QString file_name);

@@ -32,12 +32,45 @@ QVector<double> U_smooth(QVector<double> x, QVector<double> y, int n) {
 
 QVector<double> U_diff(QVector<double> x, QVector<double> y) {
     QVector<double> y_out;
-    y_out << (y[1] - y[0]);
-    for (int i = 1; i < x.size() - 1; i++) {
-        y_out << (y[i + 1] - y[i - 1]) / 2;
+    int n = x.size();
+
+    for (int i = 0; i < x.size(); i++) {
+        double yin2;
+        if (i < 3) yin2 = y[0];
+            else yin2 = y[i - 2];
+        double yin1;
+        if (i < 1) yin1 = y[0];
+            else yin1 = y[i - 1];
+        double yi1;
+        if (i < (n - 1)) yi1 = y[i + 1];
+            else yi1 = y[n - 1];
+        double yi2;
+        if (i < (n - 2)) yi2 = y[i + 2];
+            else yi2 = y[n - 1];
+        double xin1;
+        if (i < 1) xin1 = x[0];
+            else xin1 = x[i - 1];
+        double xi1;
+        if (i < (n - 1)) xi1 = x[i + 1];
+            else xi1 = x[n - 1];
+        y_out << U_diff(yin2, yin1, yi1, yi2, xin1, xi1);
     }
-    y_out << (y[x.size() - 1] - y[x.size() - 2]);
+
+
+//    y_out << (y[1] - y[0]);
+//    for (int i = 1; i < x.size() - 1; i++) {
+//        y_out << (y[i + 1] - y[i - 1]) / 2;
+//    }
+//    y_out << (y[x.size() - 1] - y[x.size() - 2]);
     return y_out;
+}
+
+double U_diff(double yin2, double yin1, double yi1, double yi2, double xin1, double xi1) {
+    double denom = xi1 - xin1;
+    if (qAbs(denom) < 1e-10) return 0;
+    double result = yin2 - 8 * yin1 + 8 * yi1 - yi2;
+    result /= 6 * denom;
+    return result;
 }
 
 QVector<double> U_vector_minus(QVector<double> y) {

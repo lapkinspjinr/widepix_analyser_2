@@ -76,9 +76,12 @@ UC_wai::UC_wai(QObject *parent) : QObject(parent)
     connect(this, SIGNAL(US_generate_table()),                                      plot, SLOT(U_generate_table())/*,                                         Qt::DirectConnection*/);
     connect(this, SIGNAL(US_generate_distribution(int, double, double)),            plot, SLOT(U_generate_distribution(int, double, double))/*,               Qt::DirectConnection*/);
     connect(this, SIGNAL(US_generate_distribution(int, double, double, int)),       plot, SLOT(U_generate_frame_distribution(int, double, double, int))/*,    Qt::DirectConnection*/);
+    connect(this, SIGNAL(US_generate_distribution_direct(int, double, double)),     plot, SLOT(U_generate_distribution(int, double, double)),               Qt::DirectConnection);
+    connect(this, SIGNAL(US_generate_distribution_direct(int, double, double, int)),plot, SLOT(U_generate_frame_distribution(int, double, double, int)),    Qt::DirectConnection);
     connect(this, SIGNAL(US_generate_chip_fit(int)),                                plot, SLOT(U_generate_calibration(int))/*,                                Qt::DirectConnection*/);
     connect(this, SIGNAL(US_generate_calibration()),                                plot, SLOT(U_generate_calibration())/*,                                   Qt::DirectConnection*/);
     connect(this, SIGNAL(US_generate_spectra_2d(int, int)),                         plot, SLOT(U_generate_spectra_2d(int, int))/*,                                      Qt::DirectConnection*/);
+    connect(this, SIGNAL(US_generate_spectra_2d_direct(int, int)),                  plot, SLOT(U_generate_spectra_2d(int, int)),                            Qt::DirectConnection);
     connect(this, SIGNAL(US_generate_spectra_2d(double, double)),                   plot, SLOT(U_generate_spectra_2d(double, double))/*,                                      Qt::DirectConnection*/);
     connect(this, SIGNAL(US_generate_id_roi()),                                     plot, SLOT(U_generate_id_roi()),                                        Qt::DirectConnection);
     connect(this, SIGNAL(US_generate_additional_data()),                            plot, SLOT(U_generate_additional_data()),                               Qt::DirectConnection);
@@ -105,7 +108,7 @@ UC_wai::UC_wai(QObject *parent) : QObject(parent)
     connect(this, SIGNAL(US_reset_mask()),                                          plot, SLOT(U_reset_mask()),                                         Qt::DirectConnection);
     connect(this, SIGNAL(US_mask_selected(int, int, int, int)),                     plot, SLOT(U_mask_selected(int, int, int, int)),                    Qt::DirectConnection);
     connect(this, SIGNAL(US_mask_selected_value(double, double, bool)),             plot, SLOT(U_mask_selected_value(double, double, bool)),            Qt::DirectConnection);
-    connect(this, SIGNAL(US_mask_selected_value_thl(double, double, bool, int)),    plot, SLOT(U_mask_selected_value_thl(double, double, bool, int)),   Qt::DirectConnection);
+    connect(this, SIGNAL(US_mask_selected_value(double, double, bool, int)),        plot, SLOT(U_mask_selected_value(double, double, bool, int)),       Qt::DirectConnection);
     connect(this, SIGNAL(US_save_mask(QString)),                                    plot, SLOT(U_save_mask(QString)),                                   Qt::DirectConnection);
     connect(this, SIGNAL(US_load_mask(QString)),                                    plot, SLOT(U_load_mask(QString)),                                   Qt::DirectConnection);
 
@@ -158,6 +161,8 @@ void UC_wai::U_set_spectra_qcp(QCustomPlot * spectra_qcp) {
     spectra_qcp->setInteractions(QCP::iRangeDrag|QCP::iRangeZoom);
     spectra_qcp->xAxis->setLabel("thl");
     spectra_qcp->yAxis->setLabel("value");
+
+    spectra_qcp->legend->setSelectedParts(QCPLegend::spItems);
 
     sr_spectra_qcp = new QCPSelectionRect(spectra_qcp);
     spectra_qcp->setSelectionRect(sr_spectra_qcp);
@@ -253,38 +258,9 @@ void UC_wai::U_set_spectra_2d_qcp(QCustomPlot * spectra_2d_qcp) {
 
     spectra_2d_qcp->setInteractions(QCP::iRangeDrag|QCP::iRangeZoom); // this will also allow rescaling the color scale by dragging/zooming
     spectra_2d_qcp->axisRect()->setupFullAxesBox(true);
-    spectra_2d_qcp->xAxis->setLabel("x");
-    spectra_2d_qcp->yAxis->setLabel("y");
-
-//    color_map_frame_qcp = new QCPColorMap(frame_qcp->xAxis, frame_qcp->yAxis);
-//    color_map_data_frame_qcp = new QCPColorMapData(3840, 256, QCPRange(0, 3839), QCPRange(0, 255));
-//    color_map_frame_qcp->setData(color_map_data_frame_qcp, true);
-
-//    color_scale_frame_qcp = new QCPColorScale(frame_qcp);
-//    frame_qcp->plotLayout()->addElement(0, 1, color_scale_frame_qcp);
-//    color_scale_frame_qcp->setType(QCPAxis::atRight);
-//    color_map_frame_qcp->setColorScale(color_scale_frame_qcp);
-//    color_scale_frame_qcp->axis()->setLabel("value");
-
-//    color_map_frame_qcp->setGradient(*gradient);
-//    color_map_frame_qcp->setInterpolate(false);
-
-//    margin_group_frame_qcp = new QCPMarginGroup(frame_qcp);
-//    frame_qcp->axisRect()->setMarginGroup(QCP::msBottom|QCP::msTop, margin_group_frame_qcp);
-//    color_scale_frame_qcp->setMarginGroup(QCP::msBottom|QCP::msTop, margin_group_frame_qcp);
-
-//    color_map_frame_qcp->rescaleDataRange(true);
-//    color_scale_frame_qcp->rescaleDataRange(true);
-//    frame_qcp->rescaleAxes();
-//    frame_qcp->replot(QCustomPlot::rpQueuedReplot);
 
     sr_spectra_2d_qcp = new QCPSelectionRect(spectra_2d_qcp);
     spectra_2d_qcp->setSelectionRect(sr_spectra_2d_qcp);
-
-//    connect(spectra_2d_qcp->xAxis,               SIGNAL(rangeChanged(QCPRange)),     this, SLOT(U_set_frame_x_axis_range(QCPRange)), Qt::DirectConnection);
-//    connect(spectra_2d_qcp->yAxis,               SIGNAL(rangeChanged(QCPRange)),     this, SLOT(U_set_frame_y_axis_range(QCPRange)), Qt::DirectConnection);
-////    connect(color_scale_frame_qcp->axis(),  SIGNAL(rangeChanged(QCPRange)),     this, SLOT(U_set_frame_z_axis_range(QCPRange)), Qt::DirectConnection);
-//    connect(spectra_2d_qcp,                      SIGNAL(mouseRelease(QMouseEvent*)), this, SLOT(U_mouse_select_frame(QMouseEvent*)));
 }
 
 void UC_wai::U_set_id_frame_qcp(QCustomPlot * id_frame_qcp) {
@@ -320,11 +296,6 @@ void UC_wai::U_set_id_frame_qcp(QCustomPlot * id_frame_qcp) {
 
     sr_id_frame_qcp = new QCPSelectionRect(id_frame_qcp);
     id_frame_qcp->setSelectionRect(sr_id_frame_qcp);
-
-//    connect(frame_qcp->xAxis,               SIGNAL(rangeChanged(QCPRange)),     this, SLOT(U_set_frame_x_axis_range(QCPRange)), Qt::DirectConnection);
-//    connect(frame_qcp->yAxis,               SIGNAL(rangeChanged(QCPRange)),     this, SLOT(U_set_frame_y_axis_range(QCPRange)), Qt::DirectConnection);
-//    connect(color_scale_frame_qcp->axis(),  SIGNAL(rangeChanged(QCPRange)),     this, SLOT(U_set_frame_z_axis_range(QCPRange)), Qt::DirectConnection);
-//    connect(frame_qcp,                      SIGNAL(mouseRelease(QMouseEvent*)), this, SLOT(U_mouse_select_frame(QMouseEvent*)));
 }
 
 void UC_wai::U_set_table(QTableView * table) {
@@ -426,7 +397,20 @@ void UC_wai::U_generate_spectra(QString graph_name, int n) {
 }
 
 void UC_wai::U_delete_last_spectra() {
-    spectra_qcp->removeGraph(spectra_qcp->graphCount() - 1);
+    bool deleted = false;
+    int n = spectra_qcp->legend->itemCount();
+    QCPAbstractLegendItem * item;
+    for (int i = 0; i < n; i++) {
+        item = spectra_qcp->legend->item(i);
+        if (item->selected()) {
+            spectra_qcp->removeGraph(i);
+            deleted = true;
+            break;
+        }
+    }
+    if (!deleted) {
+        spectra_qcp->removeGraph(spectra_qcp->graphCount() - 1);
+    }
     spectra_qcp->replot(QCustomPlot::rpQueuedReplot);
 }
 
@@ -478,7 +462,20 @@ void UC_wai::U_generate_distribution(int n_bins, double min, double max, int thl
 }
 
 void UC_wai::U_delete_last_distribution() {
-    distribution_qcp->removeGraph(distribution_qcp->graphCount() - 1);
+    bool deleted = false;
+    int n = distribution_qcp->legend->itemCount();
+    QCPAbstractLegendItem * item;
+    for (int i = 0; i < n; i++) {
+        item = distribution_qcp->legend->item(i);
+        if (item->selected()) {
+            distribution_qcp->removeGraph(i);
+            deleted = true;
+            break;
+        }
+    }
+    if (!deleted) {
+        distribution_qcp->removeGraph(spectra_qcp->graphCount() - 1);
+    }
     distribution_qcp->replot(QCustomPlot::rpQueuedReplot);
 }
 
@@ -566,6 +563,8 @@ void UC_wai::U_generate_spectra_2d(UStr_spectra_2d_settings settings) {
     spectra_2d_qcp->axisRect()->setMarginGroup(QCP::msBottom|QCP::msTop, margin_group_spectra_2d_qcp);
     color_scale_spectra_2d_qcp->setMarginGroup(QCP::msBottom|QCP::msTop, margin_group_spectra_2d_qcp);
 
+    spectra_2d_qcp->setInteractions(QCP::iRangeDrag|QCP::iRangeZoom); // this will also allow rescaling the color scale by dragging/zooming
+
     color_map_spectra_2d_qcp->rescaleDataRange(true);
     color_scale_spectra_2d_qcp->rescaleDataRange(true);
     spectra_2d_qcp->rescaleAxes();
@@ -603,6 +602,8 @@ void UC_wai::U_generate_spectra_2d_energy(UStr_spectra_2d_settings settings) {
     margin_group_spectra_2d_qcp = new QCPMarginGroup(spectra_2d_qcp);
     spectra_2d_qcp->axisRect()->setMarginGroup(QCP::msBottom|QCP::msTop, margin_group_spectra_2d_qcp);
     color_scale_spectra_2d_qcp->setMarginGroup(QCP::msBottom|QCP::msTop, margin_group_spectra_2d_qcp);
+
+    spectra_2d_qcp->setInteractions(QCP::iRangeDrag|QCP::iRangeZoom);
 
     color_map_spectra_2d_qcp->rescaleDataRange(true);
     color_scale_spectra_2d_qcp->rescaleDataRange(true);
@@ -724,11 +725,11 @@ void UC_wai::U_set_thresholds(int thl_id_1, int thl_id_2, int thl_id_3, int thl_
 void UC_wai::U_set_interaction_mode(bool select) {
     this->select = select;
     if (select) {
-        spectra_qcp->setInteractions(static_cast<QCP::Interaction>(0));
+        spectra_qcp->setInteractions(QCP::iSelectLegend);
         frame_qcp->setInteractions(static_cast<QCP::Interaction>(0));
-        distribution_qcp->setInteractions(static_cast<QCP::Interaction>(0));
-        chip_fit_qcp->setInteractions(static_cast<QCP::Interaction>(0));
-        calibration_qcp->setInteractions(static_cast<QCP::Interaction>(0));
+        distribution_qcp->setInteractions(QCP::iSelectLegend);
+        chip_fit_qcp->setInteractions(QCP::iSelectLegend);
+        calibration_qcp->setInteractions(QCP::iSelectLegend);
         id_frame_qcp->setInteractions(static_cast<QCP::Interaction>(0));
         if (spectra_2d_qcp->plottableCount() > 0) spectra_2d_qcp->setInteractions(static_cast<QCP::Interaction>(0));
         spectra_qcp->setSelectionRectMode(QCP::srmCustom);
@@ -739,11 +740,11 @@ void UC_wai::U_set_interaction_mode(bool select) {
         id_frame_qcp->setSelectionRectMode(QCP::srmCustom);
         if (spectra_2d_qcp->plottableCount() > 0) spectra_2d_qcp->setSelectionRectMode(QCP::srmCustom);
     } else {
-        spectra_qcp->setInteractions(QCP::iRangeDrag|QCP::iRangeZoom);
+        spectra_qcp->setInteractions(QCP::iRangeDrag|QCP::iRangeZoom|QCP::iSelectLegend);
         frame_qcp->setInteractions(QCP::iRangeDrag|QCP::iRangeZoom);
-        distribution_qcp->setInteractions(QCP::iRangeDrag|QCP::iRangeZoom);
-        chip_fit_qcp->setInteractions(QCP::iRangeDrag|QCP::iRangeZoom);
-        calibration_qcp->setInteractions(QCP::iRangeDrag|QCP::iRangeZoom);
+        distribution_qcp->setInteractions(QCP::iRangeDrag|QCP::iRangeZoom|QCP::iSelectLegend);
+        chip_fit_qcp->setInteractions(QCP::iRangeDrag|QCP::iRangeZoom|QCP::iSelectLegend);
+        calibration_qcp->setInteractions(QCP::iRangeDrag|QCP::iRangeZoom|QCP::iSelectLegend);
         id_frame_qcp->setInteractions(QCP::iRangeDrag|QCP::iRangeZoom);
         if (spectra_2d_qcp->plottableCount() > 0) spectra_2d_qcp->setInteractions(QCP::iRangeDrag|QCP::iRangeZoom);
         spectra_qcp->setSelectionRectMode(QCP::srmNone);
@@ -918,23 +919,25 @@ void UC_wai::U_resize_spectra_2d() {
 }
 
 void UC_wai::U_rescale_spectra_2d() {
-//    QCPRange xrange = spectra_2d_qcp->xAxis->range();
-//    QCPRange yrange = spectra_2d_qcp->yAxis->range();
-//    double min = 1e300;
-//    double max = -1e300;
-//    double z = 0;
-//    int keyindex;
-//    int valueindex;
-//    for (double x = xrange.lower; x < xrange.upper; x += color_map_data_spectra_2d_qcp->keySize()) {
-//        for (double y = yrange.lower; y < yrange.upper; y+= color_map_data_spectra_2d_qcp->valueSize()) {
-//            color_map_data_spectra_2d_qcp->coordToCell(x, y, &keyindex, &valueindex);
-//            z = color_map_spectra_2d_qcp->data()->cell(keyindex, valueindex);
-//            if (z < min) min = z;
-//            if (z > max) max = z;
-//        }
-//    }
-//    color_scale_spectra_2d_qcp->axis()->setRange(min, max);
-    color_scale_spectra_2d_qcp->rescaleDataRange(true);
+    QCPRange xrange = spectra_2d_qcp->xAxis->range();
+    QCPRange yrange = spectra_2d_qcp->yAxis->range();
+    double min = 1e300;
+    double max = -1e300;
+    double z = 0;
+    double delta_x = (spectra_2d_settings.x_max - spectra_2d_settings.x_min) / (spectra_2d_settings.bins_x);
+    double delta_y = (spectra_2d_settings.y_max - spectra_2d_settings.y_min) / (spectra_2d_settings.bins_y);
+    int keyindex;
+    int valueindex;
+    for (double x = xrange.lower; x < xrange.upper; x += delta_x) {
+        for (double y = yrange.lower; y < yrange.upper; y+= delta_y) {
+            color_map_data_spectra_2d_qcp->coordToCell(x, y, &keyindex, &valueindex);
+            z = color_map_spectra_2d_qcp->data()->cell(keyindex, valueindex);
+            if (z < min) min = z;
+            if (z > max) max = z;
+        }
+    }
+    color_scale_spectra_2d_qcp->axis()->setRange(min, max);
+
     spectra_2d_qcp->replot(QCustomPlot::rpQueuedReplot);
 }
 ///////////////////////////////////////////////////////////////////
@@ -1392,6 +1395,61 @@ void UC_wai::U_save_spectra_2d(QString file_name, UTE_file_type file_type) {
         }
     }
 }
+
+void UC_wai::U_automatic_save_spectra_2d(QString file_name, UTE_file_type file_type, UStr_spectra_2d_settings settings) {
+    int x_min = this->x_min;
+    int y_min = this->y_min;
+    int x_max = this->x_max;
+    int y_max = this->y_max;
+    int n = list_roi.size();
+    UC_roi * roi;
+    for (int i = 0; i < n; i++) {
+        roi = &(list_roi[i]);
+        emit US_set_roi(roi->U_get_x_min(), roi->U_get_x_max(), roi->U_get_y_min(), roi->U_get_y_max());
+
+        spectra_2d_qcp->clearPlottables();
+        color_map_spectra_2d_qcp = new QCPColorMap(spectra_2d_qcp->xAxis, spectra_2d_qcp->yAxis);
+        color_map_data_spectra_2d_qcp = new QCPColorMapData(settings.bins_x, settings.bins_y, QCPRange(settings.x_min, settings.x_max), QCPRange(settings.y_min, settings.y_max));
+        color_map_spectra_2d_qcp->setData(color_map_data_spectra_2d_qcp, true);
+
+        spectra_2d_qcp->xAxis->setLabel("thl");
+        spectra_2d_qcp->yAxis->setLabel("value");
+
+        color_scale_spectra_2d_qcp = new QCPColorScale(spectra_2d_qcp);
+        spectra_2d_qcp->plotLayout()->addElement(0, 1, color_scale_spectra_2d_qcp);
+        color_scale_spectra_2d_qcp->setType(QCPAxis::atRight);
+        color_map_spectra_2d_qcp->setColorScale(color_scale_spectra_2d_qcp);
+        color_scale_spectra_2d_qcp->axis()->setLabel("count");
+
+        color_map_spectra_2d_qcp->setGradient(*gradient);
+        color_map_spectra_2d_qcp->setInterpolate(false);
+
+        margin_group_spectra_2d_qcp = new QCPMarginGroup(spectra_2d_qcp);
+        spectra_2d_qcp->axisRect()->setMarginGroup(QCP::msBottom|QCP::msTop, margin_group_spectra_2d_qcp);
+        color_scale_spectra_2d_qcp->setMarginGroup(QCP::msBottom|QCP::msTop, margin_group_spectra_2d_qcp);
+
+        color_map_spectra_2d_qcp->rescaleDataRange(true);
+        color_scale_spectra_2d_qcp->rescaleDataRange(true);
+        if (renew_renges) spectra_2d_qcp->rescaleAxes();
+        spectra_2d_qcp->replot(QCustomPlot::rpQueuedReplot);
+
+        connect(spectra_2d_qcp->xAxis,              SIGNAL(rangeChanged(QCPRange)),     this, SLOT(U_set_spectra_2d_x_axis_range(QCPRange)), Qt::DirectConnection);
+        connect(spectra_2d_qcp->yAxis,              SIGNAL(rangeChanged(QCPRange)),     this, SLOT(U_set_spectra_2d_y_axis_range(QCPRange)), Qt::DirectConnection);
+        connect(color_scale_spectra_2d_qcp->axis(), SIGNAL(rangeChanged(QCPRange)),     this, SLOT(U_set_spectra_2d_z_axis_range(QCPRange)), Qt::DirectConnection);
+        connect(spectra_2d_qcp,                     SIGNAL(mouseRelease(QMouseEvent*)), this, SLOT(U_mouse_move_spectra_2d(QMouseEvent*)));
+
+        int thl_min = static_cast<int>(round(settings.x_min));
+        int thl_max = static_cast<int>(round(settings.x_max));
+        emit US_generate_spectra_2d_direct(thl_min, thl_max);
+        U_save_spectra_2d(file_name + "." + roi->U_get_name(), file_type);
+    }
+    U_save_spectra(file_name, file_type);
+    this->x_min = x_min;
+    this->y_min = y_min;
+    this->x_max = x_max;
+    this->y_max = y_max;
+    emit US_set_roi(x_min, x_max, y_min, y_max);
+}
 //
 void UC_wai::U_save_id_frame_txt(QString file_name) {
     QFile file(file_name);
@@ -1449,7 +1507,7 @@ void UC_wai::U_load_spectra_txt(QString file_name) {
         graph_name = str.readLine();
         graph_name = str.readLine();
         str >> n;
-        QVector<double> x(n), y(n);
+        QVector<double> x, y;
         for (int j = 0; j < n; j++) {
             str >> z;
             x << z;
@@ -1463,6 +1521,7 @@ void UC_wai::U_load_spectra_txt(QString file_name) {
         spectra_qcp->graph()->setPen(pens[spectra_qcp->graphCount() % 16]);
         spectra_qcp->graph()->setLineStyle(QCPGraph::lsStepCenter);
         spectra_qcp->graph()->setData(x, y);
+        US_new_spectra(graph_name);
     }
     spectra_qcp->legend->setVisible(legend_enable);
     if (renew_renges) spectra_qcp->rescaleAxes();
@@ -1673,6 +1732,56 @@ void UC_wai::U_load_id_frame_txt(QString file_name) {
     emit US_set_distribution_range(color_scale_id_frame_qcp->axis()->range().lower, color_scale_id_frame_qcp->axis()->range().upper);
     file.close();
 }
+
+
+void UC_wai::U_load_table_tsv(QString file_name) {
+    QFile file(file_name);
+    file.open(QFile::ReadOnly);
+    QTextStream str(&file);
+    QString line = str.readLine();
+    QStringList list_str = line.split('\t');
+    QList<QStandardItem *> list;
+    int n;
+    QStandardItem * item;
+    while (! str.atEnd()) {
+        line = str.readLine();
+        list_str = line.split('\t');
+        n = list_str.size();
+        list.clear();
+        for (int i = 0; i < n; i++) {
+            item = new QStandardItem(list_str[i]);
+            list << item;
+        }
+        table_model->appendRow(list);
+    }
+    table->resizeColumnsToContents();
+    file.close();
+}
+
+
+void UC_wai::U_load_table_csv(QString file_name) {
+    QFile file(file_name);
+    file.open(QFile::ReadOnly);
+    QTextStream str(&file);
+    QString line = str.readLine();
+    QStringList list_str = line.split(',');
+    QList<QStandardItem *> list;
+    int n;
+    QStandardItem * item;
+    while (! str.atEnd()) {
+        line = str.readLine();
+        list_str = line.split('\t');
+        n = list_str.size();
+        list.clear();
+        for (int i = 0; i < n; i++) {
+            item = new QStandardItem(list_str[i]);
+            list << item;
+        }
+        table_model->appendRow(list);
+    }
+    table->resizeColumnsToContents();
+    file.close();
+}
 //
 
 
@@ -1728,8 +1837,8 @@ void UC_wai::U_mask_selected(int x_min, int x_max, int y_min, int y_max) {
     emit US_mask_selected(x_min, x_max, y_min, y_max);
 }
 
-void UC_wai::U_mask_selected_value_thl(bool in_roi, int thl) {
-    emit US_mask_selected_value_thl(value_min, value_max, in_roi, thl);
+void UC_wai::U_mask_selected_value(bool in_roi, int thl) {
+    emit US_mask_selected_value(value_min, value_max, in_roi, thl);
 }
 
 void UC_wai::U_mask_selected_value(bool in_roi) {
@@ -2034,7 +2143,12 @@ void UC_wai::U_set_gradient(int n) {
     gradient->loadPreset(static_cast<QCPColorGradient::GradientPreset>(n));
     color_map_frame_qcp->setGradient(*gradient);
     color_map_id_frame_qcp->setGradient(*gradient);
-    if (spectra_2d_qcp->plottableCount() > 0) color_map_spectra_2d_qcp->setGradient(*gradient);
+    frame_qcp->replot(QCustomPlot::rpQueuedReplot);
+    id_frame_qcp->replot(QCustomPlot::rpQueuedReplot);
+    if (spectra_2d_qcp->plottableCount() > 0) {
+        color_map_spectra_2d_qcp->setGradient(*gradient);
+        spectra_2d_qcp->replot(QCustomPlot::rpQueuedReplot);
+    }
 }
 
 void UC_wai::U_thick_up() {
@@ -2296,7 +2410,7 @@ void UC_wai::U_replot_id_frame() {
 }
 
 void UC_wai::U_replot_spectra_2d() {
-    if (renew_renges) spectra_2d_qcp->rescaleAxes();
+    if (renew_renges) U_resize_spectra_2d();
     if (renew_renges) U_rescale_spectra_2d();
     spectra_2d_qcp->replot(QCustomPlot::rpQueuedReplot);
     connect(spectra_2d_qcp, SIGNAL(mouseMove(QMouseEvent*)), this, SLOT(U_mouse_move_spectra_2d(QMouseEvent*)));

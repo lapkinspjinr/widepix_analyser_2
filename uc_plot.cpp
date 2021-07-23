@@ -353,7 +353,7 @@ double UC_plot::U_get_data_rebin(UC_data_container * scan, int thl, int x, int y
     for (int current_thl = thl_min_1; current_thl <= thl_max_1; current_thl++) {
         for (int current_x = x_min; current_x < x_max; current_x++) {
             for (int current_y = y_min; current_y < y_max; current_y++) {
-                if (U_get_mask(x, y)) continue;
+                //if (U_get_mask(x, y)) continue;
                 data += scan->U_get_data(current_thl, current_x, current_y, cnt);
                 count++;
             }
@@ -457,6 +457,38 @@ double UC_plot::U_get_data_rebin_corr_scaled(UC_data_container * scan, int thl, 
     }
     return data / count;
 }
+//
+double UC_plot::U_get_diff_data(UC_data_container * scan, int thl, int x, int y, int cnt) { //UTE_PT_diff_cnt1
+    double yin2 = U_get_data_rebin(scan, thl - 2, x, y, cnt);
+    double yin1 = U_get_data_rebin(scan, thl - 1, x, y, cnt);
+    double yi1 = U_get_data_rebin(scan, thl + 1, x, y, cnt);
+    double yi2 = U_get_data_rebin(scan, thl + 2, x, y, cnt);
+    return U_diff(yin2, yin1, yi1, yi2, thl - 1, thl + 1);
+}
+
+double UC_plot::U_get_diff_data_scaled(UC_data_container * scan, int thl, int x, int y, int cnt) { //UTE_PT_diff_cnt1
+    double yin2 = U_get_data_rebin_scaled(scan, thl - 2, x, y, cnt);
+    double yin1 = U_get_data_rebin_scaled(scan, thl - 1, x, y, cnt);
+    double yi1 = U_get_data_rebin_scaled(scan, thl + 1, x, y, cnt);
+    double yi2 = U_get_data_rebin_scaled(scan, thl + 2, x, y, cnt);
+    return U_diff(yin2, yin1, yi1, yi2, thl - 1, thl + 1);
+}
+
+double UC_plot::U_get_diff_data_corr(UC_data_container * scan, int thl, int x, int y) { //UTE_PT_diff_cnt1
+    double yin2 = U_get_data_rebin_corr(scan, thl - 2, x, y);
+    double yin1 = U_get_data_rebin_corr(scan, thl - 1, x, y);
+    double yi1 = U_get_data_rebin_corr(scan, thl + 1, x, y);
+    double yi2 = U_get_data_rebin_corr(scan, thl + 2, x, y);
+    return U_diff(yin2, yin1, yi1, yi2, thl - 1, thl + 1);
+}
+
+double UC_plot::U_get_diff_data_corr_scaled(UC_data_container * scan, int thl, int x, int y) { //UTE_PT_diff_cnt1
+    double yin2 = U_get_data_rebin_corr_scaled(scan, thl - 2, x, y);
+    double yin1 = U_get_data_rebin_corr_scaled(scan, thl - 1, x, y);
+    double yi1 = U_get_data_rebin_corr_scaled(scan, thl + 1, x, y);
+    double yi2 = U_get_data_rebin_corr_scaled(scan, thl + 2, x, y);
+    return U_diff(yin2, yin1, yi1, yi2, thl - 1, thl + 1);
+}
 ////////////////////////////////////////////////////////////////////////////////////////////////
 double UC_plot::U_get_pixel_data(UTE_pixel_type type, int thl, int x, int y) {
     switch (type) {
@@ -550,7 +582,7 @@ double UC_plot::U_get_pixel_data(UTE_pixel_type type, int thl, int x, int y) {
             return U_get_pixel_data_29(thl, x, y);
         }
         case UTE_PT_ffc_cnt0 : {
-            return U_get_pixel_data_29(thl, x, y);
+            return U_get_pixel_data_30(thl, x, y);
         }
     }
     return 0;
@@ -599,8 +631,40 @@ int UC_plot::U_get_pixel_data_4(int thl, int x, int y) { //UTE_PT_cnt0_subtr_cnt
 
 double UC_plot::U_get_pixel_data_5(int thl, int x, int y) { //UTE_PT_diff_cnt1
 //    return scan->U_get_data(thl, x, y, 1) - scan->U_get_data(thl + 1, x, y, 1);
-
-    return U_get_data_rebin(scan, thl, x, y, 1) - U_get_data_rebin(scan, thl + 1, x, y, 1);
+    if (thl == thl_min) {
+        double yin2 = U_get_data_rebin(scan, thl_min, x, y, 1);
+        double yin1 = U_get_data_rebin(scan, thl_min, x, y, 1);
+        double yi1 = U_get_data_rebin(scan, thl + 1, x, y, 1);
+        double yi2 = U_get_data_rebin(scan, thl + 2, x, y, 1);
+        return -U_diff(yin2, yin1, yi1, yi2, thl - 1, thl + 1);
+    }
+    if ((thl - 1) == thl_min) {
+        double yin2 = U_get_data_rebin(scan, thl_min, x, y, 1);
+        double yin1 = U_get_data_rebin(scan, thl - 1, x, y, 1);
+        double yi1 = U_get_data_rebin(scan, thl + 1, x, y, 1);
+        double yi2 = U_get_data_rebin(scan, thl + 2, x, y, 1);
+        return -U_diff(yin2, yin1, yi1, yi2, thl - 1, thl + 1);
+    }
+    if (thl == thl_max) {
+        double yin2 = U_get_data_rebin(scan, thl - 2, x, y, 1);
+        double yin1 = U_get_data_rebin(scan, thl - 1, x, y, 1);
+        double yi1 = U_get_data_rebin(scan, thl_max, x, y, 1);
+        double yi2 = U_get_data_rebin(scan, thl_max, x, y, 1);
+        return -U_diff(yin2, yin1, yi1, yi2, thl - 1, thl + 1);
+    }
+    if ((thl + 1) == thl_max) {
+        double yin2 = U_get_data_rebin(scan, thl - 2, x, y, 1);
+        double yin1 = U_get_data_rebin(scan, thl - 1, x, y, 1);
+        double yi1 = U_get_data_rebin(scan, thl + 1, x, y, 1);
+        double yi2 = U_get_data_rebin(scan, thl_max, x, y, 1);
+        return -U_diff(yin2, yin1, yi1, yi2, thl - 1, thl + 1);
+    }
+    double yin2 = U_get_data_rebin(scan, thl - 2, x, y, 1);
+    double yin1 = U_get_data_rebin(scan, thl - 1, x, y, 1);
+    double yi1 = U_get_data_rebin(scan, thl + 1, x, y, 1);
+    double yi2 = U_get_data_rebin(scan, thl + 2, x, y, 1);
+    return -U_diff(yin2, yin1, yi1, yi2, thl - 1, thl + 1);
+//    return U_get_data_rebin(scan, thl, x, y, 1) - U_get_data_rebin(scan, thl + 1, x, y, 1);
 }
 
 int UC_plot::U_get_pixel_data_6(int thl, int x, int y) { //UTE_PT_cnt1_subtr_cnt1_max_thl
@@ -693,26 +757,60 @@ double UC_plot::U_get_pixel_data_9(int thl, int x, int y) { //UTE_PT_diff_ffc
 //    ffc_1 /= denom_1;
 //    return ffc_1 - ffc;
 
-    if (!ff_enable) return 0;
-    double cnt1df, cnt1df_1;
-    if (df_enable) {
-        cnt1df = U_get_data_rebin_scaled(df, thl, x, y, 1);
-        cnt1df_1 = U_get_data_rebin_scaled(df, thl + 1, x, y, 1);
-    } else {
-        cnt1df = 0;
-        cnt1df_1 = 0;
+//    if (!ff_enable) return 0;
+//    double cnt1df, cnt1df_1;
+//    if (df_enable) {
+//        cnt1df = U_get_data_rebin_scaled(df, thl, x, y, 1);
+//        cnt1df_1 = U_get_data_rebin_scaled(df, thl + 1, x, y, 1);
+//    } else {
+//        cnt1df = 0;
+//        cnt1df_1 = 0;
+//    }
+//    double ffc = 0;
+//    double denom = U_get_data_rebin_scaled(ff, thl, x, y, 1) - cnt1df;
+//    if (qAbs(denom) < 1e-10) return 0;
+//    double ffc_1 = 0;
+//    double denom_1 = U_get_data_rebin_scaled(ff, thl + 1, x, y, 1) - cnt1df_1;
+//    if (qAbs(denom_1) < 1e-10) return 0;
+//    ffc = U_get_data_rebin_scaled(scan, thl, x, y, 1) - cnt1df;
+//    ffc /= denom;
+//    ffc_1 = U_get_data_rebin_scaled(scan, thl + 1, x, y, 1) - cnt1df_1;
+//    ffc_1 /= denom_1;
+//    return ffc_1 - ffc;
+
+    if (thl == thl_min) {
+        double yin2 = U_get_pixel_data_7(thl_min, x, y);
+        double yin1 = U_get_pixel_data_7(thl_min, x, y);
+        double yi1 = U_get_pixel_data_7(thl + 1, x, y);
+        double yi2 = U_get_pixel_data_7(thl + 2, x, y);
+        return -U_diff(yin2, yin1, yi1, yi2, thl - 1, thl + 1);
     }
-    double ffc = 0;
-    double denom = U_get_data_rebin_scaled(ff, thl, x, y, 1) - cnt1df;
-    if (qAbs(denom) < 1e-10) return 0;
-    double ffc_1 = 0;
-    double denom_1 = U_get_data_rebin_scaled(ff, thl + 1, x, y, 1) - cnt1df_1;
-    if (qAbs(denom_1) < 1e-10) return 0;
-    ffc = U_get_data_rebin_scaled(scan, thl, x, y, 1) - cnt1df;
-    ffc /= denom;
-    ffc_1 = U_get_data_rebin_scaled(scan, thl + 1, x, y, 1) - cnt1df_1;
-    ffc_1 /= denom_1;
-    return ffc_1 - ffc;
+    if ((thl - 1) == thl_min) {
+        double yin2 = U_get_pixel_data_7(thl_min, x, y);
+        double yin1 = U_get_pixel_data_7(thl - 1, x, y);
+        double yi1 = U_get_pixel_data_7(thl + 1, x, y);
+        double yi2 = U_get_pixel_data_7(thl + 2, x, y);
+        return -U_diff(yin2, yin1, yi1, yi2, thl - 1, thl + 1);
+    }
+    if (thl == thl_max) {
+        double yin2 = U_get_pixel_data_7(thl - 2, x, y);
+        double yin1 = U_get_pixel_data_7(thl - 1, x, y);
+        double yi1 = U_get_pixel_data_7(thl_max, x, y);
+        double yi2 = U_get_pixel_data_7(thl_max, x, y);
+        return -U_diff(yin2, yin1, yi1, yi2, thl - 1, thl + 1);
+    }
+    if ((thl + 1) == thl_max) {
+        double yin2 = U_get_pixel_data_7(thl - 2, x, y);
+        double yin1 = U_get_pixel_data_7(thl - 1, x, y);
+        double yi1 = U_get_pixel_data_7(thl + 1, x, y);
+        double yi2 = U_get_pixel_data_7(thl_max, x, y);
+        return -U_diff(yin2, yin1, yi1, yi2, thl - 1, thl + 1);
+    }
+    double yin2 = U_get_pixel_data_7(thl - 2, x, y);
+    double yin1 = U_get_pixel_data_7(thl - 1, x, y);
+    double yi1 = U_get_pixel_data_7(thl + 1, x, y);
+    double yi2 = U_get_pixel_data_7(thl + 2, x, y);
+    return U_diff(yin2, yin1, yi1, yi2, thl - 1, thl + 1);
 }
 
 double UC_plot::U_get_pixel_data_10(int thl, int x, int y) { //UTE_PT_diff_mu
@@ -739,28 +837,62 @@ double UC_plot::U_get_pixel_data_10(int thl, int x, int y) { //UTE_PT_diff_mu
 //    if (mu_1 < 1e-10) return 0;
 //    return qLn(mu_1) - qLn(mu);
 
-    if (!ff_enable) return 0;
-    double cnt1df, cnt1df_1;
-    if (df_enable) {
-        cnt1df = U_get_data_rebin_scaled(df, thl, x, y, 1);
-        cnt1df_1 = U_get_data_rebin_scaled(df, thl + 1, x, y, 1);
-    } else {
-        cnt1df = 0;
-        cnt1df_1 = 0;
+//    if (!ff_enable) return 0;
+//    double cnt1df, cnt1df_1;
+//    if (df_enable) {
+//        cnt1df = U_get_data_rebin_scaled(df, thl, x, y, 1);
+//        cnt1df_1 = U_get_data_rebin_scaled(df, thl + 1, x, y, 1);
+//    } else {
+//        cnt1df = 0;
+//        cnt1df_1 = 0;
+//    }
+//    double mu = 0;
+//    double denom = U_get_data_rebin_scaled(scan, thl, x, y, 1) - cnt1df;
+//    if (qAbs(denom) < 1e-10) return 0;
+//    double mu_1 = 0;
+//    double denom_1 = U_get_data_rebin_scaled(scan, thl + 1, x, y, 1) - cnt1df_1;
+//    if (qAbs(denom_1) < 1e-10) return 0;
+//    mu = U_get_data_rebin_scaled(ff, thl, x, y, 1) - cnt1df;
+//    mu /= denom;
+//    if (mu < 1e-10) return 0;
+//    mu_1 = U_get_data_rebin_scaled(ff, thl + 1, x, y, 1) - cnt1df_1;
+//    mu_1 /= denom_1;
+//    if (mu_1 < 1e-10) return 0;
+//    return qLn(mu_1) - qLn(mu);
+
+    if (thl == thl_min) {
+        double yin2 = U_get_pixel_data_8(thl_min, x, y);
+        double yin1 = U_get_pixel_data_8(thl_min, x, y);
+        double yi1 = U_get_pixel_data_8(thl + 1, x, y);
+        double yi2 = U_get_pixel_data_8(thl + 2, x, y);
+        return -U_diff(yin2, yin1, yi1, yi2, thl - 1, thl + 1);
     }
-    double mu = 0;
-    double denom = U_get_data_rebin_scaled(scan, thl, x, y, 1) - cnt1df;
-    if (qAbs(denom) < 1e-10) return 0;
-    double mu_1 = 0;
-    double denom_1 = U_get_data_rebin_scaled(scan, thl + 1, x, y, 1) - cnt1df_1;
-    if (qAbs(denom_1) < 1e-10) return 0;
-    mu = U_get_data_rebin_scaled(ff, thl, x, y, 1) - cnt1df;
-    mu /= denom;
-    if (mu < 1e-10) return 0;
-    mu_1 = U_get_data_rebin_scaled(ff, thl + 1, x, y, 1) - cnt1df_1;
-    mu_1 /= denom_1;
-    if (mu_1 < 1e-10) return 0;
-    return qLn(mu_1) - qLn(mu);
+    if ((thl - 1) == thl_min) {
+        double yin2 = U_get_pixel_data_8(thl_min, x, y);
+        double yin1 = U_get_pixel_data_8(thl - 1, x, y);
+        double yi1 = U_get_pixel_data_8(thl + 1, x, y);
+        double yi2 = U_get_pixel_data_8(thl + 2, x, y);
+        return -U_diff(yin2, yin1, yi1, yi2, thl - 1, thl + 1);
+    }
+    if (thl == thl_max) {
+        double yin2 = U_get_pixel_data_8(thl - 2, x, y);
+        double yin1 = U_get_pixel_data_8(thl - 1, x, y);
+        double yi1 = U_get_pixel_data_8(thl_max, x, y);
+        double yi2 = U_get_pixel_data_8(thl_max, x, y);
+        return -U_diff(yin2, yin1, yi1, yi2, thl - 1, thl + 1);
+    }
+    if ((thl + 1) == thl_max) {
+        double yin2 = U_get_pixel_data_8(thl - 2, x, y);
+        double yin1 = U_get_pixel_data_8(thl - 1, x, y);
+        double yi1 = U_get_pixel_data_8(thl + 1, x, y);
+        double yi2 = U_get_pixel_data_8(thl_max, x, y);
+        return -U_diff(yin2, yin1, yi1, yi2, thl - 1, thl + 1);
+    }
+    double yin2 = U_get_pixel_data_8(thl - 2, x, y);
+    double yin1 = U_get_pixel_data_8(thl - 1, x, y);
+    double yi1 = U_get_pixel_data_8(thl + 1, x, y);
+    double yi2 = U_get_pixel_data_8(thl + 2, x, y);
+    return U_diff(yin2, yin1, yi1, yi2, thl - 1, thl + 1);
 }
 
 double UC_plot::U_get_pixel_data_11(int thl, int x, int y) { //UTE_PT_ffc_diff
@@ -780,13 +912,13 @@ double UC_plot::U_get_pixel_data_11(int thl, int x, int y) { //UTE_PT_ffc_diff
     if (!ff_enable) return 0;
     double delta_cnt1df;
     if (df_enable) {
-        delta_cnt1df = U_get_data_rebin_scaled(df, thl, x, y, 1) - U_get_data_rebin_scaled(df, thl + 1, x, y, 1);
+        delta_cnt1df = U_get_diff_data_scaled(df, thl, x, y, 1);
     } else {
         delta_cnt1df = 0;
     }
-    double denom = U_get_data_rebin_scaled(ff, thl, x, y, 1) - U_get_data_rebin_scaled(ff, thl + 1, x, y, 1) - delta_cnt1df;
+    double denom = U_get_diff_data_scaled(ff, thl, x, y, 1) - delta_cnt1df;
     if (qAbs(denom) < 1e-10) return 0;
-    double ffc = U_get_data_rebin_scaled(scan, thl, x, y, 1) - U_get_data_rebin_scaled(scan, thl + 1, x, y, 1) - delta_cnt1df;
+    double ffc = U_get_diff_data_scaled(scan, thl, x, y, 1) - delta_cnt1df;
     ffc /= denom;
     return ffc;
 }
@@ -809,16 +941,30 @@ double UC_plot::U_get_pixel_data_12(int thl, int x, int y) { //UTE_PT_mu_diff
     if (!ff_enable) return 0;
     double delta_cnt1df;
     if (df_enable) {
-        delta_cnt1df = U_get_data_rebin_scaled(df, thl, x, y, 1) - U_get_data_rebin_scaled(df, thl + 1, x, y, 1);
+        delta_cnt1df = U_get_diff_data_scaled(df, thl, x, y, 1);
     } else {
         delta_cnt1df = 0;
     }
-    double denom = U_get_data_rebin_scaled(scan, thl, x, y, 1) - U_get_data_rebin_scaled(scan, thl + 1, x, y, 1) - delta_cnt1df;
+    double denom = U_get_diff_data_scaled(scan, thl, x, y, 1) - delta_cnt1df;
     if (qAbs(denom) < 1e-10) return 0;
-    double mu = U_get_data_rebin_scaled(ff, thl, x, y, 1) - U_get_data_rebin_scaled(ff, thl + 1, x, y, 1) - delta_cnt1df;
+    double mu = U_get_diff_data_scaled(ff, thl, x, y, 1) - delta_cnt1df;
     mu /= denom;
     if (mu < 1e-10) return 0;
     return qLn(mu);
+
+//    if (!ff_enable) return 0;
+//    double delta_cnt1df;
+//    if (df_enable) {
+//        delta_cnt1df = U_get_data_rebin_scaled(df, thl, x, y, 1) - U_get_data_rebin_scaled(df, thl + 1, x, y, 1);
+//    } else {
+//        delta_cnt1df = 0;
+//    }
+//    double denom = U_get_data_rebin_scaled(scan, thl, x, y, 1) - U_get_data_rebin_scaled(scan, thl + 1, x, y, 1) - delta_cnt1df;
+//    if (qAbs(denom) < 1e-10) return 0;
+//    double mu = U_get_data_rebin_scaled(ff, thl, x, y, 1) - U_get_data_rebin_scaled(ff, thl + 1, x, y, 1) - delta_cnt1df;
+//    mu /= denom;
+//    if (mu < 1e-10) return 0;
+//    return qLn(mu);
 
 }
 ////
@@ -832,7 +978,40 @@ double UC_plot::U_get_pixel_data_13(int thl, int x, int y) { //UTE_PT_cnt1_corr_
 double UC_plot::U_get_pixel_data_14(int thl, int x, int y) { //UTE_PT_diff_cnt1_corr_cnt0
 //    return scan->U_get_corrected_cnt1(thl, x, y) - scan->U_get_corrected_cnt1(thl + 1, x, y);
 
-    return U_get_data_rebin_corr(scan, thl, x, y) - U_get_data_rebin_corr(scan, thl + 1, x, y);
+    if (thl == thl_min) {
+        double yin2 = U_get_diff_data_corr(scan, thl_min, x, y);
+        double yin1 = U_get_diff_data_corr(scan, thl_min, x, y);
+        double yi1 = U_get_diff_data_corr(scan, thl + 1, x, y);
+        double yi2 = U_get_diff_data_corr(scan, thl + 2, x, y);
+        return -U_diff(yin2, yin1, yi1, yi2, thl - 1, thl + 1);
+    }
+    if ((thl - 1) == thl_min) {
+        double yin2 = U_get_diff_data_corr(scan, thl_min, x, y);
+        double yin1 = U_get_diff_data_corr(scan, thl - 1, x, y);
+        double yi1 = U_get_diff_data_corr(scan, thl + 1, x, y);
+        double yi2 = U_get_diff_data_corr(scan, thl + 2, x, y);
+        return -U_diff(yin2, yin1, yi1, yi2, thl - 1, thl + 1);
+    }
+    if (thl == thl_max) {
+        double yin2 = U_get_diff_data_corr(scan, thl - 2, x, y);
+        double yin1 = U_get_diff_data_corr(scan, thl - 1, x, y);
+        double yi1 = U_get_diff_data_corr(scan, thl_max, x, y);
+        double yi2 = U_get_diff_data_corr(scan, thl_max, x, y);
+        return -U_diff(yin2, yin1, yi1, yi2, thl - 1, thl + 1);
+    }
+    if ((thl + 1) == thl_max) {
+        double yin2 = U_get_diff_data_corr(scan, thl - 2, x, y);
+        double yin1 = U_get_diff_data_corr(scan, thl - 1, x, y);
+        double yi1 = U_get_diff_data_corr(scan, thl + 1, x, y);
+        double yi2 = U_get_diff_data_corr(scan, thl_max, x, y);
+        return -U_diff(yin2, yin1, yi1, yi2, thl - 1, thl + 1);
+    }
+    double yin2 = U_get_diff_data_corr(scan, thl - 2, x, y);
+    double yin1 = U_get_diff_data_corr(scan, thl - 1, x, y);
+    double yi1 = U_get_diff_data_corr(scan, thl + 1, x, y);
+    double yi2 = U_get_diff_data_corr(scan, thl + 2, x, y);
+    return -U_diff(yin2, yin1, yi1, yi2, thl - 1, thl + 1);
+//    return U_get_data_rebin_corr(scan, thl, x, y) - U_get_data_rebin_corr(scan, thl + 1, x, y);
 }
 
 double UC_plot::U_get_pixel_data_15(int thl, int x, int y) { //UTE_PT_ffc_corr_cnt0
@@ -914,25 +1093,59 @@ double UC_plot::U_get_pixel_data_17(int thl, int x, int y) { //UTE_PT_diff_ffc_c
 //    ffc_1 /= denom_1;
 //    return ffc_1 - ffc;
 
-    if (!ff_enable) return 0;
-    double cnt1df;
-    double cnt1df_1;
-    if (df_enable) {
-        cnt1df = U_get_data_rebin_corr_scaled(df, thl, x, y);
-        cnt1df_1 = U_get_data_rebin_corr_scaled(df, thl + 1, x, y);
-    } else {
-        cnt1df = 0;
-        cnt1df_1 = 0;
+    if (thl == thl_min) {
+        double yin2 = U_get_pixel_data_15(thl_min, x, y);
+        double yin1 = U_get_pixel_data_15(thl_min, x, y);
+        double yi1 = U_get_pixel_data_15(thl + 1, x, y);
+        double yi2 = U_get_pixel_data_15(thl + 2, x, y);
+        return -U_diff(yin2, yin1, yi1, yi2, thl - 1, thl + 1);
     }
-    double denom =  U_get_data_rebin_corr_scaled(ff, thl, x, y) - cnt1df;
-    if (qAbs(denom) < 1e-10) return 0;
-    double denom_1 = U_get_data_rebin_corr_scaled(ff, thl + 1, x, y) - cnt1df_1;
-    if (qAbs(denom_1) < 1e-10) return 0;
-    double ffc = U_get_data_rebin_corr_scaled(scan, thl, x, y) - cnt1df;
-    ffc /= denom;
-    double ffc_1 = U_get_data_rebin_corr_scaled(scan, thl + 1, x, y) - cnt1df_1;
-    ffc_1 /= denom_1;
-    return ffc_1 - ffc;
+    if ((thl - 1) == thl_min) {
+        double yin2 = U_get_pixel_data_15(thl_min, x, y);
+        double yin1 = U_get_pixel_data_15(thl - 1, x, y);
+        double yi1 = U_get_pixel_data_15(thl + 1, x, y);
+        double yi2 = U_get_pixel_data_15(thl + 2, x, y);
+        return -U_diff(yin2, yin1, yi1, yi2, thl - 1, thl + 1);
+    }
+    if (thl == thl_max) {
+        double yin2 = U_get_pixel_data_15(thl - 2, x, y);
+        double yin1 = U_get_pixel_data_15(thl - 1, x, y);
+        double yi1 = U_get_pixel_data_15(thl_max, x, y);
+        double yi2 = U_get_pixel_data_15(thl_max, x, y);
+        return -U_diff(yin2, yin1, yi1, yi2, thl - 1, thl + 1);
+    }
+    if ((thl + 1) == thl_max) {
+        double yin2 = U_get_pixel_data_15(thl - 2, x, y);
+        double yin1 = U_get_pixel_data_15(thl - 1, x, y);
+        double yi1 = U_get_pixel_data_15(thl + 1, x, y);
+        double yi2 = U_get_pixel_data_15(thl_max, x, y);
+        return -U_diff(yin2, yin1, yi1, yi2, thl - 1, thl + 1);
+    }
+    double yin2 = U_get_pixel_data_15(thl - 2, x, y);
+    double yin1 = U_get_pixel_data_15(thl - 1, x, y);
+    double yi1 = U_get_pixel_data_15(thl + 1, x, y);
+    double yi2 = U_get_pixel_data_15(thl + 2, x, y);
+    return -U_diff(yin2, yin1, yi1, yi2, thl - 1, thl + 1);
+
+//    if (!ff_enable) return 0;
+//    double cnt1df;
+//    double cnt1df_1;
+//    if (df_enable) {
+//        cnt1df = U_get_data_rebin_corr_scaled(df, thl, x, y);
+//        cnt1df_1 = U_get_data_rebin_corr_scaled(df, thl + 1, x, y);
+//    } else {
+//        cnt1df = 0;
+//        cnt1df_1 = 0;
+//    }
+//    double denom =  U_get_data_rebin_corr_scaled(ff, thl, x, y) - cnt1df;
+//    if (qAbs(denom) < 1e-10) return 0;
+//    double denom_1 = U_get_data_rebin_corr_scaled(ff, thl + 1, x, y) - cnt1df_1;
+//    if (qAbs(denom_1) < 1e-10) return 0;
+//    double ffc = U_get_data_rebin_corr_scaled(scan, thl, x, y) - cnt1df;
+//    ffc /= denom;
+//    double ffc_1 = U_get_data_rebin_corr_scaled(scan, thl + 1, x, y) - cnt1df_1;
+//    ffc_1 /= denom_1;
+//    return ffc_1 - ffc;
 }
 
 double UC_plot::U_get_pixel_data_18(int thl, int x, int y) { //UTE_PT_diff_mu_corr_cnt0
@@ -958,27 +1171,61 @@ double UC_plot::U_get_pixel_data_18(int thl, int x, int y) { //UTE_PT_diff_mu_co
 //    if (mu_1 < 1e-10) return 0;
 //    return qLn(mu_1) - qLn(mu);
 
-    if (!ff_enable) return 0;
-    double cnt1df;
-    double cnt1df_1;
-    if (df_enable) {
-        cnt1df = U_get_data_rebin_corr_scaled(df, thl, x, y);
-        cnt1df_1 = U_get_data_rebin_corr_scaled(df, thl + 1, x, y);
-    } else {
-        cnt1df = 0;
-        cnt1df_1 = 0;
+    if (thl == thl_min) {
+        double yin2 = U_get_pixel_data_16(thl_min, x, y);
+        double yin1 = U_get_pixel_data_16(thl_min, x, y);
+        double yi1 = U_get_pixel_data_16(thl + 1, x, y);
+        double yi2 = U_get_pixel_data_16(thl + 2, x, y);
+        return -U_diff(yin2, yin1, yi1, yi2, thl - 1, thl + 1);
     }
-    double denom = U_get_data_rebin_corr_scaled(scan, thl, x, y) - cnt1df;
-    if (qAbs(denom) < 1e-10) return 0;
-    double denom_1 = U_get_data_rebin_corr_scaled(scan, thl + 1, x, y) - cnt1df_1;
-    if (qAbs(denom_1) < 1e-10) return 0;
-    double mu = U_get_data_rebin_corr_scaled(ff, thl, x, y) - cnt1df;
-    mu /= denom;
-    if (mu < 1e-10) return 0;
-    double mu_1 = U_get_data_rebin_corr_scaled(ff, thl + 1, x, y) - cnt1df_1;
-    mu_1 /= denom_1;
-    if (mu_1 < 1e-10) return 0;
-    return qLn(mu_1) - qLn(mu);
+    if ((thl - 1) == thl_min) {
+        double yin2 = U_get_pixel_data_16(thl_min, x, y);
+        double yin1 = U_get_pixel_data_16(thl - 1, x, y);
+        double yi1 = U_get_pixel_data_16(thl + 1, x, y);
+        double yi2 = U_get_pixel_data_16(thl + 2, x, y);
+        return -U_diff(yin2, yin1, yi1, yi2, thl - 1, thl + 1);
+    }
+    if (thl == thl_max) {
+        double yin2 = U_get_pixel_data_16(thl - 2, x, y);
+        double yin1 = U_get_pixel_data_16(thl - 1, x, y);
+        double yi1 = U_get_pixel_data_16(thl_max, x, y);
+        double yi2 = U_get_pixel_data_16(thl_max, x, y);
+        return -U_diff(yin2, yin1, yi1, yi2, thl - 1, thl + 1);
+    }
+    if ((thl + 1) == thl_max) {
+        double yin2 = U_get_pixel_data_16(thl - 2, x, y);
+        double yin1 = U_get_pixel_data_16(thl - 1, x, y);
+        double yi1 = U_get_pixel_data_16(thl + 1, x, y);
+        double yi2 = U_get_pixel_data_16(thl_max, x, y);
+        return -U_diff(yin2, yin1, yi1, yi2, thl - 1, thl + 1);
+    }
+    double yin2 = U_get_pixel_data_16(thl - 2, x, y);
+    double yin1 = U_get_pixel_data_16(thl - 1, x, y);
+    double yi1 = U_get_pixel_data_16(thl + 1, x, y);
+    double yi2 = U_get_pixel_data_16(thl + 2, x, y);
+    return -U_diff(yin2, yin1, yi1, yi2, thl - 1, thl + 1);
+
+//    if (!ff_enable) return 0;
+//    double cnt1df;
+//    double cnt1df_1;
+//    if (df_enable) {
+//        cnt1df = U_get_data_rebin_corr_scaled(df, thl, x, y);
+//        cnt1df_1 = U_get_data_rebin_corr_scaled(df, thl + 1, x, y);
+//    } else {
+//        cnt1df = 0;
+//        cnt1df_1 = 0;
+//    }
+//    double denom = U_get_data_rebin_corr_scaled(scan, thl, x, y) - cnt1df;
+//    if (qAbs(denom) < 1e-10) return 0;
+//    double denom_1 = U_get_data_rebin_corr_scaled(scan, thl + 1, x, y) - cnt1df_1;
+//    if (qAbs(denom_1) < 1e-10) return 0;
+//    double mu = U_get_data_rebin_corr_scaled(ff, thl, x, y) - cnt1df;
+//    mu /= denom;
+//    if (mu < 1e-10) return 0;
+//    double mu_1 = U_get_data_rebin_corr_scaled(ff, thl + 1, x, y) - cnt1df_1;
+//    mu_1 /= denom_1;
+//    if (mu_1 < 1e-10) return 0;
+//    return qLn(mu_1) - qLn(mu);
 }
 
 double UC_plot::U_get_pixel_data_19(int thl, int x, int y) { //UTE_PT_ffc_diff_corr_cnt0
@@ -998,15 +1245,28 @@ double UC_plot::U_get_pixel_data_19(int thl, int x, int y) { //UTE_PT_ffc_diff_c
     if (!ff_enable) return 0;
     double delta_cnt1df;
     if (df_enable) {
-        delta_cnt1df = U_get_data_rebin_corr_scaled(df, thl, x, y) - U_get_data_rebin_corr_scaled(df, thl + 1, x, y);
+        delta_cnt1df = U_get_diff_data_corr_scaled(df, thl, x, y);
     } else {
         delta_cnt1df = 0;
     }
-    double denom = U_get_data_rebin_corr_scaled(ff, thl, x, y) - U_get_data_rebin_corr_scaled(ff, thl + 1, x, y) - delta_cnt1df;
+    double denom = U_get_diff_data_corr_scaled(ff, thl, x, y) - delta_cnt1df;
     if (qAbs(denom) < 1e-10) return 0;
-    double ffc = U_get_data_rebin_corr_scaled(scan, thl, x, y) - U_get_data_rebin_corr_scaled(scan, thl + 1, x, y) - delta_cnt1df;
+    double ffc = U_get_diff_data_corr_scaled(scan, thl, x, y) - delta_cnt1df;
     ffc /= denom;
     return ffc;
+
+//    if (!ff_enable) return 0;
+//    double delta_cnt1df;
+//    if (df_enable) {
+//        delta_cnt1df = U_get_data_rebin_corr_scaled(df, thl, x, y) - U_get_data_rebin_corr_scaled(df, thl + 1, x, y);
+//    } else {
+//        delta_cnt1df = 0;
+//    }
+//    double denom = U_get_data_rebin_corr_scaled(ff, thl, x, y) - U_get_data_rebin_corr_scaled(ff, thl + 1, x, y) - delta_cnt1df;
+//    if (qAbs(denom) < 1e-10) return 0;
+//    double ffc = U_get_data_rebin_corr_scaled(scan, thl, x, y) - U_get_data_rebin_corr_scaled(scan, thl + 1, x, y) - delta_cnt1df;
+//    ffc /= denom;
+//    return ffc;
 }
 
 double UC_plot::U_get_pixel_data_20(int thl, int x, int y) { //UTE_PT_mu_diff_corr_cnt0
@@ -1027,16 +1287,30 @@ double UC_plot::U_get_pixel_data_20(int thl, int x, int y) { //UTE_PT_mu_diff_co
     if (!ff_enable) return 0;
     double delta_cnt1df;
     if (df_enable) {
-        delta_cnt1df = U_get_data_rebin_corr_scaled(df, thl, x, y) - U_get_data_rebin_corr_scaled(df, thl + 1, x, y);
+        delta_cnt1df = U_get_diff_data_corr_scaled(df, thl, x, y);
     } else {
         delta_cnt1df = 0;
     }
-    double denom = U_get_data_rebin_corr_scaled(scan, thl, x, y) - U_get_data_rebin_corr_scaled(scan, thl + 1, x, y) - delta_cnt1df;
+    double denom = U_get_diff_data_corr_scaled(scan, thl, x, y) - delta_cnt1df;
     if (qAbs(denom) < 1e-10) return 0;
-    double mu = U_get_data_rebin_corr_scaled(ff, thl, x, y) - U_get_data_rebin_corr_scaled(ff, thl + 1, x, y) - delta_cnt1df;
+    double mu = U_get_diff_data_corr_scaled(ff, thl, x, y) - delta_cnt1df;
     mu /= denom;
     if (mu < 1e-10) return 0;
     return qLn(mu);
+
+//    if (!ff_enable) return 0;
+//    double delta_cnt1df;
+//    if (df_enable) {
+//        delta_cnt1df = U_get_data_rebin_corr_scaled(df, thl, x, y) - U_get_data_rebin_corr_scaled(df, thl + 1, x, y);
+//    } else {
+//        delta_cnt1df = 0;
+//    }
+//    double denom = U_get_data_rebin_corr_scaled(scan, thl, x, y) - U_get_data_rebin_corr_scaled(scan, thl + 1, x, y) - delta_cnt1df;
+//    if (qAbs(denom) < 1e-10) return 0;
+//    double mu = U_get_data_rebin_corr_scaled(ff, thl, x, y) - U_get_data_rebin_corr_scaled(ff, thl + 1, x, y) - delta_cnt1df;
+//    mu /= denom;
+//    if (mu < 1e-10) return 0;
+//    return qLn(mu);
 }
 ///
 double UC_plot::U_get_pixel_data_21(int thl, int x, int y) { //UTE_PT_ffc_non_xray
@@ -2672,6 +2946,37 @@ void UC_plot::U_set_mask(bool mask, bool more, double value, bool in_roi, int th
     }
 }
 
+void UC_plot::U_set_mask(bool mask, bool more, double value, bool in_roi) {
+    int x_min = 0;
+    int x_max = 15 * 256;
+    int y_min = 0;
+    int y_max = 256;
+    double data;
+    if (in_roi) {
+        x_min = this->x_min;
+        x_max = this->x_max;
+        y_min = this->y_min;
+        y_max = this->y_max;
+    }
+
+    int thl_min = scan->U_get_thl_min();
+    int thl_max = scan->U_get_thl_max();
+    for (int thl = thl_min; thl <= thl_max; thl++) {
+        for (int x = x_min; x < x_max; x++) {
+            for (int y = y_min; y < y_max; y++) {
+                data = U_get_pixel_data(pixel_type, thl, x, y);
+                if (more) {
+                    if (data > value) {
+                        U_set_mask(x, y, mask);
+                    }
+                } else {
+                    if (data < value) U_set_mask(x, y, mask);
+                }
+            }
+        }
+    }
+}
+
 void UC_plot::U_count_mask(bool more, double value, bool in_roi, int thl) {
     int x_min = 0;
     int x_max = 15 * 256;
@@ -2700,6 +3005,38 @@ void UC_plot::U_count_mask(bool more, double value, bool in_roi, int thl) {
     emit US_count_mask(n);
 }
 
+void UC_plot::U_count_mask(bool more, double value, bool in_roi) {
+    int x_min = 0;
+    int x_max = 15 * 256;
+    int y_min = 0;
+    int y_max = 256;
+    double data;
+    if (in_roi) {
+        x_min = this->x_min;
+        x_max = this->x_max;
+        y_min = this->y_min;
+        y_max = this->y_max;
+    }
+
+    int n = 0;
+    int thl_min = scan->U_get_thl_min();
+    int thl_max = scan->U_get_thl_max();
+    for (int thl = thl_min; thl <= thl_max; thl++) {
+        for (int x = x_min; x < x_max; x++) {
+            for (int y = y_min; y < y_max; y++) {
+                if (U_get_mask(x, y)) continue;
+                data = U_get_pixel_data(pixel_type, thl, x, y);
+                if (more) {
+                    if (data > value) n++;
+                } else {
+                    if (data < value) n++;
+                }
+            }
+        }
+    }
+    emit US_count_mask(n);
+}
+
 void UC_plot::U_set_mask_overflowed(bool in_roi, int thl) {
     int x_min = 0;
     int x_max = 15 * 256;
@@ -2722,30 +3059,6 @@ void UC_plot::U_set_mask_overflowed(bool in_roi, int thl) {
             cnt1 = scan->U_get_data(thl, x, y, 1);
             overflowed = (cnt0 == overflow) | (cnt1 == overflow);
             if (overflowed) U_set_mask(x, y, true);
-        }
-    }
-
-    if (ff_enable) {
-        int overflow = ff->U_get_count() * 4095;
-        for (int x = x_min; x < x_max; x++) {
-            for (int y = y_min; y < y_max; y++) {
-                cnt0 = ff->U_get_data(thl, x, y, 0);
-                cnt1 = ff->U_get_data(thl, x, y, 1);
-                overflowed = (cnt0 == overflow) | (cnt1 == overflow);
-                if (overflowed) U_set_mask(x, y, true);
-            }
-        }
-    }
-
-    if (df_enable) {
-        int overflow = df->U_get_count() * 4095;
-        for (int x = x_min; x < x_max; x++) {
-            for (int y = y_min; y < y_max; y++) {
-                cnt0 = df->U_get_data(thl, x, y, 0);
-                cnt1 = df->U_get_data(thl, x, y, 1);
-                overflowed = (cnt0 == overflow) | (cnt1 == overflow);
-                if (overflowed) U_set_mask(x, y, true);
-            }
         }
     }
 }
@@ -2796,7 +3109,7 @@ void UC_plot::U_mask_selected_value(double value_min, double value_max, bool in_
     }
 }
 
-void UC_plot::U_mask_selected_value_thl(double value_min, double value_max, bool in_roi, int thl) {
+void UC_plot::U_mask_selected_value(double value_min, double value_max, bool in_roi, int thl) {
     int x_min = 0;
     int x_max = 15 * 256;
     int y_min = 0;
@@ -2816,6 +3129,85 @@ void UC_plot::U_mask_selected_value_thl(double value_min, double value_max, bool
                 U_set_mask(x, y, true);
             }
         }
+    }
+}
+
+void UC_plot::U_set_mask_sd_from_mean(bool mask, bool more, double value, bool in_roi, int thl) {
+    int x_min = 0;
+    int x_max = 15 * 256;
+    int y_min = 0;
+    int y_max = 256;
+    double data;
+    if (!in_roi) {
+        x_min = this->x_min;
+        x_max = this->x_max;
+        y_min = this->y_min;
+        y_max = this->y_max;
+        this->x_min = 0;
+        this->x_max = 15 * 256;
+        this->y_min = 0;
+        this->y_max = 256;
+    }
+
+    double mean = U_get_frame_data(UTE_FT_average, pixel_type, thl);
+    double sd = U_get_frame_data(UTE_FT_standart_deviation, pixel_type, thl);
+
+    for (int x = this->x_min; x < this->x_max; x++) {
+        for (int y = this->y_min; y < this->y_max; y++) {
+            data = U_get_pixel_data(pixel_type, thl, x, y);
+            if (more) {
+                if (qAbs(data - mean) > (value * sd)) U_set_mask(x, y, mask);
+            } else {
+                if (qAbs(data - mean) < (value * sd)) U_set_mask(x, y, mask);
+            }
+        }
+    }
+    if (!in_roi) {
+        this->x_min = x_min;
+        this->x_max = x_max;
+        this->y_min = y_min;
+        this->y_max = y_max;
+    }
+}
+
+void UC_plot::U_set_mask_sd_from_mean(bool mask, bool more, double value, bool in_roi) {
+    int x_min = 0;
+    int x_max = 15 * 256;
+    int y_min = 0;
+    int y_max = 256;
+    double data;
+    if (!in_roi) {
+        x_min = this->x_min;
+        x_max = this->x_max;
+        y_min = this->y_min;
+        y_max = this->y_max;
+        this->x_min = 0;
+        this->x_max = 15 * 256;
+        this->y_min = 0;
+        this->y_max = 256;
+    }
+
+    for (int thl = thl_min; thl < thl_max; thl++) {
+        double mean = U_get_frame_data(UTE_FT_average, pixel_type, thl);
+        double sd = U_get_frame_data(UTE_FT_standart_deviation, pixel_type, thl);
+
+        for (int x = this->x_min; x < this->x_max; x++) {
+            for (int y = this->y_min; y < this->y_max; y++) {
+                data = U_get_pixel_data(pixel_type, thl, x, y);
+                if (more) {
+                    if (qAbs(data - mean) > (value * sd)) U_set_mask(x, y, mask);
+                } else {
+                    if (qAbs(data - mean) < (value * sd)) U_set_mask(x, y, mask);
+                }
+            }
+        }
+    }
+
+    if (!in_roi) {
+        this->x_min = x_min;
+        this->x_max = x_max;
+        this->y_min = y_min;
+        this->y_max = y_max;
     }
 }
 
