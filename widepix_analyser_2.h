@@ -24,7 +24,10 @@ public:
 
 private slots:
     ///////////////////////////////////
-    void U_add_thl(int thl_min, int thl_max);
+    void U_add_thl(QVector<int> thl_vector);
+    void U_set_thl_range(int thl_min, int thl_max);
+    void U_set_energy_range(double energy_min, double energy_max);
+    //
     void U_file_found(QString file_name);
     void U_n_files(int n);
     void U_renew_progress_bar(double current, double total);
@@ -32,8 +35,6 @@ private slots:
     void U_set_spectra_2D_range(double lower, double upper);
     void U_set_count_mask(int n);
     void U_set_roi_range(int x_min, int x_max, int y_min, int y_max);
-    void U_set_thl_range(int thl_min, int thl_max);
-    void U_set_energy_range(double energy_min, double energy_max);
     void U_set_scans(QList<UC_data_container> * scans_list_ptr, int active_index);
     void U_change_scan_settings(UC_data_container::UTStr_data_container_settings *settings);
     void U_renew_identification_elements(QList<QString> list);
@@ -69,7 +70,10 @@ signals :
     void US_reset_mask();
     void US_save_mask(QString file_name);
     void US_load_mask(QString file_name);
-
+    //
+    void US_get_max_range();
+    //
+    void US_set_threshold_range(int thl_index_min, int thl_index_max);
 
 private slots:
 
@@ -247,10 +251,6 @@ private slots:
 
     void on_pushButton_69_clicked();
 
-    void on_spinBox_13_valueChanged(int arg1);
-
-    void on_spinBox_14_valueChanged(int arg1);
-
     void on_checkBox_18_toggled(bool checked);
 
     void on_comboBox_5_activated(int index);
@@ -290,6 +290,14 @@ private slots:
     void on_pushButton_78_clicked();
 
     void on_pushButton_84_clicked();
+
+    void on_pushButton_43_clicked();
+
+    void on_pushButton_24_clicked();
+
+    void on_comboBox_21_currentIndexChanged(int index);
+
+    void on_comboBox_28_currentIndexChanged(int index);
 
 private:
     Ui::widepix_analyser_2 *ui;

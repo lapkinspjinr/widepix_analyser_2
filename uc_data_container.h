@@ -47,6 +47,7 @@ private :
     QHash<int, UTStr_frame_double> * data_additional;
 
     QVector<double> id_data[256 * 15][256];
+    QVector<int> thl_vector;
 
 public:
     UC_data_container(UTStr_data_container_settings settings);
@@ -61,6 +62,9 @@ public:
     double U_get_mean_cnt0(int x, int y);
     double U_get_corrected_cnt1(int thl, int x, int y);
     double U_get_corrected_cnt1_scaled(int thl, int x, int y, double scale = 1);
+    //
+    void U_set_thl_vector(QVector<int> thl_vector);
+    QVector<int> *U_get_thl_vector();
     //
     UTStr_data_container_settings U_get_settings();
     void U_set_settings(UTStr_data_container_settings settings);

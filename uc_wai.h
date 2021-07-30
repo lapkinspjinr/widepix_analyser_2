@@ -3,6 +3,9 @@
 
 #include <QObject>
 
+#include <TFile.h>
+#include <TH2D.h>
+
 #include "qcustomplot.h"
 
 #include "uc_plot.h"
@@ -92,6 +95,7 @@ public :
         UTE_FT_jpg,
         UTE_FT_png,
         UTE_FT_bmp,
+        UTE_FT_root
     } UTE_file_type;
 
     typedef enum {
@@ -218,10 +222,12 @@ public:
     void U_rescale_spectra_2d();
     ///////////////////////////////////////////////////////////////////
     void U_save_spectra_txt(QString file_name);
+    void U_save_spectra_root(QString file_name);
     void U_save_spectra(QString file_name, UTE_file_type file_type);
     void U_automatic_save_spectra(QString file_name, QString name, UTE_file_type file_type);
     //
     void U_save_frame_txt(QString file_name);
+    void U_save_frame_root(QString file_name);
     void U_save_frame(QString file_name, UTE_file_type file_type);
     //
     void U_save_table_tsv(QString file_name);
@@ -229,17 +235,21 @@ public:
     void U_save_table(QString file_name, UTE_table_file_type file_type);
     //
     void U_save_distribution_txt(QString file_name);
+    void U_save_distribution_root(QString file_name);
     void U_save_distribution(QString file_name, UTE_file_type file_type);
     void U_automatic_save_distribution(QString file_name, QString name, UTE_file_type file_type, int n_bins, double min, double max, int thl);
     void U_automatic_save_distribution(QString file_name, QString name, UTE_file_type file_type, int n_bins, double min, double max);
     //
     void U_save_chip_fit_txt(QString file_name);
+    void U_save_chip_fit_root(QString file_name);
     void U_save_chip_fit(QString file_name, UTE_file_type file_type);
     //
     void U_save_calibration_txt(QString file_name);
+    void U_save_calibration_root(QString file_name);
     void U_save_calibration(QString file_name, UTE_file_type file_type);
     //
     void U_save_spectra_2d_txt(QString file_name);
+    void U_save_spectra_2d_root(QString file_name);
     void U_save_spectra_2d(QString file_name, UTE_file_type file_type);
     void U_automatic_save_spectra_2d(QString file_name, UTE_file_type file_type, UStr_spectra_2d_settings settings);
     //
@@ -255,6 +265,7 @@ public:
     void U_load_id_frame_txt(QString file_name);
     void U_load_table_tsv(QString file_name);
     void U_load_table_csv(QString file_name);
+    void U_load_table(QString file_name);
 ////////////////////////////////////////////////////////////////////////
     void U_set_mask(bool mask, bool more, double value, bool in_roi, int thl);
     void U_count_mask(bool more, double value, bool in_roi, int thl);
@@ -336,7 +347,7 @@ signals:
     void US_set_rebin(int rebin_x, int rebin_y, int rebin_thl);
     void US_set_id_type(UC_plot::UTE_id_type id_type);
     void US_set_thresholds(int thl_id_1, int thl_id_2, int thl_id_3, int thl_id_4);
-    void US_set_threshold_range(int thl_min, int thl_max);
+    //void US_set_threshold_range(int thl_min, int thl_max);
     void US_set_smoothing(int smoothing);
     /////////////////////////////////////////////////////////////////
     void US_set_spectra_max_x(double value);

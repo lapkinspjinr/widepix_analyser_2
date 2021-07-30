@@ -42,8 +42,9 @@ class UC_plot : public QObject
     int x_max;              ///< Правая граница области интереса.
     int y_min;              ///< Нижняя граница области интереса.
     int y_max;              ///< Верхняя граница области интереса.
-    int thl_min;            ///< Минимальный порог области интереса по порогам.
-    int thl_max;            ///< Максимальный порог области интереса по порогам.
+    int thl_index_min;            ///< Минимальный порог области интереса по порогам.
+    int thl_index_max;            ///< Максимальный порог области интереса по порогам.
+    int n_thl;
     double energy_min;      ///< Максимальная энергии диапазона по энергии
     double energy_max;      ///< Минимальная энергии диапазона по энергии
 
@@ -82,6 +83,7 @@ class UC_plot : public QObject
     UC_data_container * df;     ///< Указатель на активный скан черного поля.
 
     QVector<int> element_vector;    ///< Вектор индексов эелементов.
+    QVector<int> * thl_vector;    ///< Вектор индексов эелементов.
 
 public :
     /// Методы расчета кадра.
@@ -95,6 +97,8 @@ public :
         UTE_FT_overflowed,                  ///< Число переполнений в кадре.
         UTE_FT_standart_deviation,          ///< Стандартное отклонение значений в кадре.
         UTE_FT_signal_to_noise_resolution,  ///< Отношение сигнал - шум для значений в кадре.
+        UTE_FT_max_density,                 ///< Наиболее вероятное значение.
+        UTE_FT_variance,                    ///< Дисперсия.
     } UTE_frame_type;
 
     /// Методы идентификации веществ
@@ -189,7 +193,7 @@ public:
     int U_get_thl_from_energy(int x, double energy);
     int U_get_thl_from_energy_chip(int chip, double energy);
 //////////////////////////////////////////////////////////////////////////
-    void U_make_ff_minus_df_mean(int thl);
+    void U_make_ff_minus_df_mean(int thl_index);
     double U_get_ff_minus_df_mean(int thl_index);
     void U_reset_ff_minus_df_mean();
 /////////////////////////////////////////////////////////////////////////////////
@@ -209,56 +213,59 @@ public:
     //
     void U_enable_ff_df();
     //
-    double U_get_data_rebin(UC_data_container * scan, int thl, int x, int y, int cnt);
-    double U_get_data_rebin_scaled(UC_data_container * scan, int thl, int x, int y, int cnt);
-    double U_get_data_rebin_corr(UC_data_container * scan, int thl, int x, int y);
-    double U_get_data_rebin_corr_scaled(UC_data_container * scan, int thl, int x, int y);
+//    void U_add_thl(QVector<int> thl_vector);
+//    void U_sort_thl_vector();
     //
-    double U_get_diff_data(UC_data_container * scan, int thl, int x, int y, int cnt);
-    double U_get_diff_data_scaled(UC_data_container * scan, int thl, int x, int y, int cnt);
-    double U_get_diff_data_corr(UC_data_container * scan, int thl, int x, int y);
-    double U_get_diff_data_corr_scaled(UC_data_container * scan, int thl, int x, int y);
+    double U_get_data_rebin(UC_data_container * scan, int thl_index, int x, int y, int cnt);
+    double U_get_data_rebin_scaled(UC_data_container * scan, int thl_index, int x, int y, int cnt);
+    double U_get_data_rebin_corr(UC_data_container * scan, int thl_index, int x, int y);
+    double U_get_data_rebin_corr_scaled(UC_data_container * scan, int thl_index, int x, int y);
+    //
+    double U_get_diff_data(UC_data_container * scan, int thl_index, int x, int y, int cnt);
+    double U_get_diff_data_scaled(UC_data_container * scan, int thl_index, int x, int y, int cnt);
+    double U_get_diff_data_corr(UC_data_container * scan, int thl_index, int x, int y);
+    double U_get_diff_data_corr_scaled(UC_data_container * scan, int thl_index, int x, int y);
 ///////////////////////////////////////////////////////////////////////////////
-    double U_get_pixel_data(UTE_pixel_type type, int thl, int x, int y);
-    int U_get_pixel_data_1(int thl, int x, int y); //UTE_PT_cnt0
-    int U_get_pixel_data_2(int thl, int x, int y); //UTE_PT_cnt1
-    double U_get_pixel_data_3(int thl, int x, int y); //UTE_PT_cnt1_divide_on_cnt0
-    int U_get_pixel_data_4(int thl, int x, int y); //UTE_PT_cnt0_subtr_cnt1
-    double U_get_pixel_data_5(int thl, int x, int y); //UTE_PT_diff_cnt1
-    int U_get_pixel_data_6(int thl, int x, int y); //UTE_PT_cnt1_subtr_cnt1_max_thl
-    double U_get_pixel_data_7(int thl, int x, int y); //UTE_PT_ffc
-    double U_get_pixel_data_8(int thl, int x, int y); //UTE_PT_mu
-    double U_get_pixel_data_9(int thl, int x, int y); //UTE_PT_diff_ffc
-    double U_get_pixel_data_10(int thl, int x, int y); //UTE_PT_diff_mu
-    double U_get_pixel_data_11(int thl, int x, int y); //UTE_PT_ffc_diff
-    double U_get_pixel_data_12(int thl, int x, int y); //UTE_PT_mu_diff
+    double U_get_pixel_data(UTE_pixel_type type, int thl_index, int x, int y);
+    int U_get_pixel_data_1(int thl_index, int x, int y); //UTE_PT_cnt0
+    int U_get_pixel_data_2(int thl_index, int x, int y); //UTE_PT_cnt1
+    double U_get_pixel_data_3(int thl_index, int x, int y); //UTE_PT_cnt1_divide_on_cnt0
+    int U_get_pixel_data_4(int thl_index, int x, int y); //UTE_PT_cnt0_subtr_cnt1
+    double U_get_pixel_data_5(int thl_index, int x, int y); //UTE_PT_diff_cnt1
+    int U_get_pixel_data_6(int thl_index, int x, int y); //UTE_PT_cnt1_subtr_cnt1_max_thl
+    double U_get_pixel_data_7(int thl_index, int x, int y); //UTE_PT_ffc
+    double U_get_pixel_data_8(int thl_index, int x, int y); //UTE_PT_mu
+    double U_get_pixel_data_9(int thl_index, int x, int y); //UTE_PT_diff_ffc
+    double U_get_pixel_data_10(int thl_index, int x, int y); //UTE_PT_diff_mu
+    double U_get_pixel_data_11(int thl_index, int x, int y); //UTE_PT_ffc_diff
+    double U_get_pixel_data_12(int thl_index, int x, int y); //UTE_PT_mu_diff
     ///
-    double U_get_pixel_data_13(int thl, int x, int y); //UTE_PT_cnt1_corr_cnt0
-    double U_get_pixel_data_14(int thl, int x, int y); //UTE_PT_diff_cnt1_corr_cnt0
-    double U_get_pixel_data_15(int thl, int x, int y); //UTE_PT_ffc_corr_cnt0
-    double U_get_pixel_data_16(int thl, int x, int y); //UTE_PT_mu_corr_cnt0
-    double U_get_pixel_data_17(int thl, int x, int y); //UTE_PT_diff_ffc_corr_cnt0
-    double U_get_pixel_data_18(int thl, int x, int y); //UTE_PT_diff_mu_corr_cnt0
-    double U_get_pixel_data_19(int thl, int x, int y); //UTE_PT_ffc_diff_corr_cnt0
-    double U_get_pixel_data_20(int thl, int x, int y); //UTE_PT_mu_diff_corr_cnt0
+    double U_get_pixel_data_13(int thl_index, int x, int y); //UTE_PT_cnt1_corr_cnt0
+    double U_get_pixel_data_14(int thl_index, int x, int y); //UTE_PT_diff_cnt1_corr_cnt0
+    double U_get_pixel_data_15(int thl_index, int x, int y); //UTE_PT_ffc_corr_cnt0
+    double U_get_pixel_data_16(int thl_index, int x, int y); //UTE_PT_mu_corr_cnt0
+    double U_get_pixel_data_17(int thl_index, int x, int y); //UTE_PT_diff_ffc_corr_cnt0
+    double U_get_pixel_data_18(int thl_index, int x, int y); //UTE_PT_diff_mu_corr_cnt0
+    double U_get_pixel_data_19(int thl_index, int x, int y); //UTE_PT_ffc_diff_corr_cnt0
+    double U_get_pixel_data_20(int thl_index, int x, int y); //UTE_PT_mu_diff_corr_cnt0
     ///
-    double U_get_pixel_data_21(int thl, int x, int y); //UTE_PT_ffc_non_xray
-    double U_get_pixel_data_22(int thl, int x, int y); //UTE_PT_cnt0_deviation
+    double U_get_pixel_data_21(int thl_index, int x, int y); //UTE_PT_ffc_non_xray
+    double U_get_pixel_data_22(int thl_index, int x, int y); //UTE_PT_cnt0_deviation
     //
-    int U_get_pixel_data_23(int thl, int x, int y); //UTE_PT_cnt1_act
-    int U_get_pixel_data_24(int thl, int x, int y); //UTE_PT_cnt0_act
-    int U_get_pixel_data_25(int thl, int x, int y); //UTE_PT_cnt1_rejected
-    int U_get_pixel_data_26(int thl, int x, int y); //UTE_PT_diff_cnt1_rejected
+    int U_get_pixel_data_23(int thl_index, int x, int y); //UTE_PT_cnt1_act
+    int U_get_pixel_data_24(int thl_index, int x, int y); //UTE_PT_cnt0_act
+    int U_get_pixel_data_25(int thl_index, int x, int y); //UTE_PT_cnt1_rejected
+    int U_get_pixel_data_26(int thl_index, int x, int y); //UTE_PT_diff_cnt1_rejected
     //
-    double U_get_pixel_data_27(int thl, int x, int y); //UTE_PT_cnt1ffc_div_cnt0ffc
+    double U_get_pixel_data_27(int thl_index, int x, int y); //UTE_PT_cnt1ffc_div_cnt0ffc
     //
-    double U_get_pixel_data_28(int thl, int x, int y); //UTE_PT_smoothing_mu_diff
+    double U_get_pixel_data_28(int thl_index, int x, int y); //UTE_PT_smoothing_mu_diff
     //
-    double U_get_pixel_data_29(int thl, int x, int y); //UTE_PT_GA_request
-    double U_get_pixel_data_30(int thl, int x, int y); //UTE_PT_ffc_cnt0
+    double U_get_pixel_data_29(int thl_index, int x, int y); //UTE_PT_GA_request
+    double U_get_pixel_data_30(int thl_index, int x, int y); //UTE_PT_ffc_cnt0
 ////////////////////////////////////////////////////////////////////////////////
-    double U_get_frame_data(UTE_frame_type type_spectra, UTE_pixel_type type_pixel, int thl);
-    double U_get_frame_data_energy(UTE_frame_type type_spectra, UTE_pixel_type type_pixel, double e_min, double e_max);
+    double U_get_frame_data(UTE_frame_type type_spectra, UTE_pixel_type type_pixel, int thl_index);
+    double U_get_frame_data_energy(UTE_frame_type type_spectra, QVector<double> data);
     double U_get_frame_data_1(QVector<double> data); //UTE_FT_average
     double U_get_frame_data_2(QVector<double> data); //UTE_FT_sum
     double U_get_frame_data_3(QVector<double> data); //UTE_FT_median
@@ -268,6 +275,8 @@ public:
     int U_get_frame_data_7(QVector<double> data); //UTE_FT_overflowed
     double U_get_frame_data_8(QVector<double> data); //UTE_FT_standart_deviation
     double U_get_frame_data_9(QVector<double> data); //UTE_FT_signal_to_noise_resolution
+    double U_get_frame_data_10(QVector<double> data); //UTE_FT_max_density
+    double U_get_frame_data_11(QVector<double> data); //UTE_FT_variance
 ////////////////////////////////////////////////////////////////////////////////////
     void U_id_roi_1();
 
@@ -309,8 +318,9 @@ signals:
     void US_new_thl(int thl);
     void US_count_mask(int n);
     //
-    void US_thl_range(int thl_min, int thl_max);
+    void US_thl_range(int thl_index_min, int thl_index_max);
     void US_energy_range(double energy_min, double energy_max);
+    void US_thl_vector(QVector<int> thl_vector);
     ////////////////////////////////////////////////////////////////////////
     void US_file_found(QString file_name);
     void US_n_files(int n);
@@ -336,24 +346,24 @@ public slots:
 //////////////////////////////////////////////////////////////////////////////////
     void U_generate_spectra();
     void U_generate_spectra(int n);
-    void U_generate_frame(int thl);
+    void U_generate_frame(int thl_index);
     void U_generate_frame(double energy);
-    void U_generate_table(int thl);
+    void U_generate_table(int thl_index);
     void U_generate_table(double energy);
     void U_generate_table();
     void U_generate_distribution(int n_bins, double min, double max);
-    void U_generate_frame_distribution(int n_bins, double min, double max, int thl);
+    void U_generate_frame_distribution(int n_bins, double min, double max, int thl_index);
     void U_generate_calibration(int chip);
     void U_generate_calibration();
-    void U_generate_spectra_2d(int thl_min, int thl_max);
+    void U_generate_spectra_2d(int thl_index_min, int thl_index_max);
     void U_generate_spectra_2d(double energy_min, double energy_max);
     void U_generate_id_roi();
     void U_generate_additional_data();
     void U_generate_id_data();
     void U_generate_id_frame(int element_index);
-    void U_generate_range(int thl);
+    void U_generate_range(int thl_index);
     void U_generate_range();
-    void U_generate_range_spectra_2d(int thl_min, int thl_max);
+    void U_generate_range_spectra_2d(int thl_index_min, int thl_index_max);
     void U_generate_range_spectra_2d(double energy_min, double energy_max);
 /////////////////////////////////////////////////////////////////
     void U_set_frame_type(UC_plot::UTE_frame_type frame_type);
@@ -364,7 +374,7 @@ public slots:
     void U_set_roi(int x_min, int x_max, int y_min, int y_max);
     void U_set_rebin(int rebin_x, int rebin_y, int rebin_thl);
     void U_set_id_thresholds(int thl_id_1, int thl_id_2, int thl_id_3, int thl_id_4);
-    void U_set_threshold_range(int thl_start, int thl_finish);
+    void U_set_threshold_range(int thl_index_min, int thl_index_max);
     //
     void U_set_using_calibraion(bool enable);
     void U_set_threshold_level(double level);
@@ -373,22 +383,21 @@ public slots:
     void U_save_calibration(QString file_name);
     void U_load_calibration(QString file_name);
     //
-    void U_get_max_thl_range();
-    void U_get_common_thl_range();
-    void U_get_max_energy_range();
-    void U_get_common_energy_range();
+    void U_get_thl_index_range(int thl_min, int thl_max);
+    void U_get_thl_vector();
+    void U_get_energy_range(int thl_min, int thl_max);
 //////////////////////////////////////////////////////////////////////
-    void U_set_mask(bool mask, bool more, double value, bool in_roi, int thl);
+    void U_set_mask(bool mask, bool more, double value, bool in_roi, int thl_vector);
     void U_set_mask(bool mask, bool more, double value, bool in_roi);
-    void U_count_mask(bool more, double value, bool in_roi, int thl);
+    void U_count_mask(bool more, double value, bool in_roi, int thl_index);
     void U_count_mask(bool more, double value, bool in_roi);
-    void U_set_mask_overflowed(bool in_roi, int thl);
+    void U_set_mask_overflowed(bool in_roi, int thl_index);
     void U_set_mask_overflowed(bool in_roi);
     void U_reset_mask();
     void U_mask_selected(int x_min, int x_max, int y_min, int y_max);
     void U_mask_selected_value(double value_min, double value_max, bool in_roi);
-    void U_mask_selected_value(double value_min, double value_max, bool in_roi, int thl);
-    void U_set_mask_sd_from_mean(bool mask, bool more, double value, bool in_roi, int thl);
+    void U_mask_selected_value(double value_min, double value_max, bool in_roi, int thl_index);
+    void U_set_mask_sd_from_mean(bool mask, bool more, double value, bool in_roi, int thl_index);
     void U_set_mask_sd_from_mean(bool mask, bool more, double value, bool in_roi);
     void U_save_mask(QString);
     void U_load_mask(QString);

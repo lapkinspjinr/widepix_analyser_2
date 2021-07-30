@@ -5,6 +5,8 @@
 #include <QVector>
 #include <QRect>
 
+#include <TH1D.h>
+
 #include <vector>
 #include <algorithm>
 
@@ -47,6 +49,8 @@ private :
     int masked;                     ///< Число маскированных пикселей в данной области
     double std_dev;                 ///< Стандартное отклонение
     double snr;                     ///< Отношение сигнал - шум
+    double max_density;
+    double variance;
     QVector<double> data;
 
 public :
@@ -165,6 +169,8 @@ public :
      * \return Отношение сигнал - шум.
      */
     double U_get_snr();
+    double U_get_max_density();
+    double U_get_variance();
 
     //
 

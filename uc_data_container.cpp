@@ -139,6 +139,15 @@ double UC_data_container::U_get_corrected_cnt1_scaled(int thl, int x, int y, dou
 }
 /////
 
+void UC_data_container::U_set_thl_vector(QVector<int> thl_vector) {
+    this->thl_vector << thl_vector;
+}
+
+QVector<int> * UC_data_container::U_get_thl_vector() {
+    return &thl_vector;
+}
+
+//
 int UC_data_container::U_get_thl_max() {
     return settings.thl_max;
 }

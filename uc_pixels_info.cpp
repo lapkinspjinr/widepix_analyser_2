@@ -120,6 +120,7 @@ void UC_pixels_info::U_finalize() {
         double z2 = data_stdv[static_cast<unsigned long>(n / 2)];
         median = (z1 + z2) / 2;
     }
+    max_density = data[0];
     if (n == 1) {
         data.clear();
         return;
@@ -128,9 +129,22 @@ void UC_pixels_info::U_finalize() {
         std_dev += (mean - data[i]) * (mean - data[i]);
     }
     if (std_dev <= 0) return;
-    std_dev = qSqrt(std_dev / (n - 1));
+    variance = std_dev / (n - 1);
+    std_dev = qSqrt(variance);
     if (mean < 0) return;
     snr = qSqrt(mean) / std_dev;
+
+    const int density = 100;
+    int bins;
+    if (n < 100) bins = 20;
+        else bins = n / density;
+    TH1D * h = new TH1D("h", "h", bins, min, max);
+    for (int i = 0; i < n; i++) {
+        h->Fill(data[i]);
+    }
+    max_density = h->GetBinCenter(h->GetMaximumBin());
+    delete h;
+
     data.clear();
 }
 
@@ -179,6 +193,14 @@ double UC_pixels_info::U_get_std_dev() {
 
 double UC_pixels_info::U_get_snr() {
     return snr;
+}
+
+double UC_pixels_info::U_get_max_density() {
+    return max_density;
+}
+
+double UC_pixels_info::U_get_variance() {
+    return variance;
 }
 //
 

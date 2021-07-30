@@ -98,7 +98,7 @@ UC_wai::UC_wai(QObject *parent) : QObject(parent)
     connect(this, SIGNAL(US_set_rebin(int, int, int)),                                  plot, SLOT(U_set_rebin(int, int, int)),                 Qt::DirectConnection);
     connect(this, SIGNAL(US_set_id_type(UC_plot::UTE_id_type)),                         plot, SLOT(U_set_id_type(UC_plot::UTE_id_type)),        Qt::DirectConnection);
     connect(this, SIGNAL(US_set_thresholds(int, int, int, int)),                        plot, SLOT(U_set_id_thresholds(int, int, int, int)),    Qt::DirectConnection);
-    connect(this, SIGNAL(US_set_threshold_range(int, int)),                             plot, SLOT(U_set_threshold_range(int, int)),            Qt::DirectConnection);
+    connect(this, SIGNAL(US_set_thl_range(int, int)),                                   plot, SLOT(U_get_thl_index_range(int, int)),            Qt::DirectConnection);
     connect(this, SIGNAL(US_set_smoothing(int)),                                        plot, SLOT(U_set_smoothing(int)),                       Qt::DirectConnection);
 
     connect(this, SIGNAL(US_set_mask(bool, bool, double, bool, int)),               plot, SLOT(U_set_mask(bool, bool, double, bool, int)),              Qt::DirectConnection);
@@ -302,7 +302,7 @@ void UC_wai::U_set_table(QTableView * table) {
     this->table = table;
     QStringList headers;
 
-    table_model = new QStandardItemModel(0, 12);
+    table_model = new QStandardItemModel(0, 14);
     headers << "Name of area";
     headers << "Number of pixel";
     headers << "Minimum";
@@ -315,6 +315,8 @@ void UC_wai::U_set_table(QTableView * table) {
     headers << "Masked";
     headers << "Standard deviation";
     headers << "Signal to noise resolution";
+    headers << "Maximum density";
+    headers << "Variance";
     headers << "x min";
     headers << "x max";
     headers << "y min";
@@ -399,6 +401,7 @@ void UC_wai::U_generate_spectra(QString graph_name, int n) {
 void UC_wai::U_delete_last_spectra() {
     bool deleted = false;
     int n = spectra_qcp->legend->itemCount();
+    if (n == 0) return;
     QCPAbstractLegendItem * item;
     for (int i = 0; i < n; i++) {
         item = spectra_qcp->legend->item(i);
@@ -464,6 +467,7 @@ void UC_wai::U_generate_distribution(int n_bins, double min, double max, int thl
 void UC_wai::U_delete_last_distribution() {
     bool deleted = false;
     int n = distribution_qcp->legend->itemCount();
+    if (n == 0) return;
     QCPAbstractLegendItem * item;
     for (int i = 0; i < n; i++) {
         item = distribution_qcp->legend->item(i);
@@ -573,7 +577,7 @@ void UC_wai::U_generate_spectra_2d(UStr_spectra_2d_settings settings) {
     connect(spectra_2d_qcp->xAxis,              SIGNAL(rangeChanged(QCPRange)),     this, SLOT(U_set_spectra_2d_x_axis_range(QCPRange)), Qt::DirectConnection);
     connect(spectra_2d_qcp->yAxis,              SIGNAL(rangeChanged(QCPRange)),     this, SLOT(U_set_spectra_2d_y_axis_range(QCPRange)), Qt::DirectConnection);
     connect(color_scale_spectra_2d_qcp->axis(), SIGNAL(rangeChanged(QCPRange)),     this, SLOT(U_set_spectra_2d_z_axis_range(QCPRange)), Qt::DirectConnection);
-    connect(spectra_2d_qcp,                     SIGNAL(mouseRelease(QMouseEvent*)), this, SLOT(U_mouse_move_spectra_2d(QMouseEvent*)));
+    connect(spectra_2d_qcp,                     SIGNAL(mouseRelease(QMouseEvent*)), this, SLOT(U_mouse_select_spectra_2d(QMouseEvent*)));
 
     int thl_min = static_cast<int>(round(settings.x_min));
     int thl_max = static_cast<int>(round(settings.x_max));
@@ -613,7 +617,7 @@ void UC_wai::U_generate_spectra_2d_energy(UStr_spectra_2d_settings settings) {
     connect(spectra_2d_qcp->xAxis,              SIGNAL(rangeChanged(QCPRange)),     this, SLOT(U_set_spectra_2d_x_axis_range(QCPRange)), Qt::DirectConnection);
     connect(spectra_2d_qcp->yAxis,              SIGNAL(rangeChanged(QCPRange)),     this, SLOT(U_set_spectra_2d_y_axis_range(QCPRange)), Qt::DirectConnection);
     connect(color_scale_spectra_2d_qcp->axis(), SIGNAL(rangeChanged(QCPRange)),     this, SLOT(U_set_spectra_2d_z_axis_range(QCPRange)), Qt::DirectConnection);
-    connect(spectra_2d_qcp,                     SIGNAL(mouseRelease(QMouseEvent*)), this, SLOT(U_mouse_move_spectra_2d(QMouseEvent*)));
+    connect(spectra_2d_qcp,                     SIGNAL(mouseRelease(QMouseEvent*)), this, SLOT(U_mouse_select_spectra_2d(QMouseEvent*)));
 
     emit US_generate_spectra_2d(settings.x_min, settings.x_max);
 }
@@ -708,7 +712,7 @@ void UC_wai::U_set_roi(int x_min, int x_max, int y_min, int y_max) {
 void UC_wai::U_set_threshold_range(int thl_min, int thl_max) {
     thl_start = thl_min;
     thl_finish = thl_max;
-    emit US_set_threshold_range(thl_min, thl_max);
+//    emit US_set_threshold_range(thl_min, thl_max);
 }
 //
 
@@ -965,6 +969,24 @@ void UC_wai::U_save_spectra_txt(QString file_name) {
     file.close();
 }
 
+void UC_wai::U_save_spectra_root(QString file_name) {
+    if (spectra_qcp->graphCount() == 0) return;
+    TFile file(file_name.toStdString().c_str(), "new");
+    int n_graph = spectra_qcp->graphCount();
+    for (int i = 0; i < n_graph; i++) {
+        QVector<double> x;
+        QVector<double> y;
+        int n = spectra_qcp->graph(i)->dataCount();
+        for (int j = 0; j < n; j++) {
+            x << spectra_qcp->graph(i)->data()->at(j)->key;
+            y << spectra_qcp->graph(i)->data()->at(j)->value;
+        }
+        TGraph gr(n, x.data(), y.data());
+        gr.SetName(spectra_qcp->graph(i)->name().toStdString().c_str());
+        gr.Write(file_name.toStdString().c_str());
+    }
+}
+
 void UC_wai::U_save_spectra(QString file_name, UTE_file_type file_type) {
     if (file_name.right(4).left(1) == ".") file_name = file_name.mid(0, file_name.length() - 4);
     switch (file_type) {
@@ -988,6 +1010,10 @@ void UC_wai::U_save_spectra(QString file_name, UTE_file_type file_type) {
             spectra_qcp->saveBmp(file_name + ".bmp");
             break;
         }
+        case UTE_FT_root : {
+            U_save_spectra_root(file_name + ".root");
+            break;
+        }
     }
 }
 
@@ -1000,7 +1026,7 @@ void UC_wai::U_automatic_save_spectra(QString file_name, QString name, UTE_file_
     UC_roi * roi;
     U_delete_mask_plots();
     spectra_qcp->xAxis->setLabel("thl");
-    if (file_type == UTE_FT_txt) {
+    if ((file_type == UTE_FT_txt) || (file_type == UTE_FT_root)) {
         for (int i = 0; i < n; i++) {
             roi = &(list_roi[i]);
             emit US_set_roi(roi->U_get_x_min(), roi->U_get_x_max(), roi->U_get_y_min(), roi->U_get_y_max());
@@ -1048,6 +1074,18 @@ void UC_wai::U_save_frame_txt(QString file_name) {
     file.close();
 }
 
+void UC_wai::U_save_frame_root(QString file_name) {
+    TFile file(file_name.toStdString().c_str(), "new");
+    TH2D * frame = new TH2D("frame", "frame", color_map_data_frame_qcp->keySize(), color_map_data_frame_qcp->keyRange().lower, color_map_data_frame_qcp->keyRange().upper,
+                                              color_map_data_frame_qcp->valueSize(), color_map_data_frame_qcp->valueRange().lower, color_map_data_frame_qcp->valueRange().upper);
+    for (int y = 0; y < 256; y++) {
+        for (int x = 0; x < 3840; x++) {
+            frame->Fill(x, y, color_map_frame_qcp->data()->data(x, y));
+        }
+    }
+    frame->Write(file_name.toStdString().c_str());
+}
+
 void UC_wai::U_save_frame(QString file_name, UTE_file_type file_type) {
     if (file_name.right(4).left(1) == ".") file_name = file_name.mid(0, file_name.length() - 4);
     switch (file_type) {
@@ -1069,6 +1107,10 @@ void UC_wai::U_save_frame(QString file_name, UTE_file_type file_type) {
         }
         case UTE_FT_bmp : {
             frame_qcp->saveBmp(file_name + ".bmp");
+            break;
+        }
+        case UTE_FT_root : {
+            U_save_frame_root(file_name + ".root");
             break;
         }
     }
@@ -1144,6 +1186,24 @@ void UC_wai::U_save_distribution_txt(QString file_name) {
     file.close();
 }
 
+void UC_wai::U_save_distribution_root(QString file_name) {
+    if (distribution_qcp->graphCount() == 0) return;
+    TFile file(file_name.toStdString().c_str(), "new");
+    int n_graph = distribution_qcp->graphCount();
+    for (int i = 0; i < n_graph; i++) {
+        QVector<double> x;
+        QVector<double> y;
+        int n = distribution_qcp->graph(i)->dataCount();
+        for (int j = 0; j < n; j++) {
+            x << distribution_qcp->graph(i)->data()->at(j)->key;
+            y << distribution_qcp->graph(i)->data()->at(j)->value;
+        }
+        TGraph gr(n, x.data(), y.data());
+        gr.SetName(distribution_qcp->graph(i)->name().toStdString().c_str());
+        gr.Write(file_name.toStdString().c_str());
+    }
+}
+
 void UC_wai::U_save_distribution(QString file_name, UTE_file_type file_type) {
     if (file_name.right(4).left(1) == ".") file_name = file_name.mid(0, file_name.length() - 4);
     switch (file_type) {
@@ -1165,6 +1225,10 @@ void UC_wai::U_save_distribution(QString file_name, UTE_file_type file_type) {
         }
         case UTE_FT_bmp : {
             distribution_qcp->saveBmp(file_name + ".bmp");
+            break;
+        }
+        case UTE_FT_root : {
+            U_save_distribution_root(file_name + ".root");
             break;
         }
     }
@@ -1271,6 +1335,24 @@ void UC_wai::U_save_chip_fit_txt(QString file_name) {
     file.close();
 }
 
+void UC_wai::U_save_chip_fit_root(QString file_name) {
+    if (chip_fit_qcp->graphCount() == 0) return;
+    TFile file(file_name.toStdString().c_str(), "new");
+    int n_graph = chip_fit_qcp->graphCount();
+    for (int i = 0; i < n_graph; i++) {
+        QVector<double> x;
+        QVector<double> y;
+        int n = chip_fit_qcp->graph(i)->dataCount();
+        for (int j = 0; j < n; j++) {
+            x << chip_fit_qcp->graph(i)->data()->at(j)->key;
+            y << chip_fit_qcp->graph(i)->data()->at(j)->value;
+        }
+        TGraph gr(n, x.data(), y.data());
+        gr.SetName(chip_fit_qcp->graph(i)->name().toStdString().c_str());
+        gr.Write(file_name.toStdString().c_str());
+    }
+}
+
 void UC_wai::U_save_chip_fit(QString file_name, UTE_file_type file_type) {
     if (file_name.right(4).left(1) == ".") file_name = file_name.mid(0, file_name.length() - 4);
     switch (file_type) {
@@ -1292,6 +1374,10 @@ void UC_wai::U_save_chip_fit(QString file_name, UTE_file_type file_type) {
         }
         case UTE_FT_bmp : {
             chip_fit_qcp->saveBmp(file_name + ".bmp");
+            break;
+        }
+        case UTE_FT_root : {
+            U_save_chip_fit_root(file_name + ".root");
             break;
         }
     }
@@ -1320,6 +1406,24 @@ void UC_wai::U_save_calibration_txt(QString file_name) {
     file.close();
 }
 
+void UC_wai::U_save_calibration_root(QString file_name) {
+    if (calibration_qcp->graphCount() == 0) return;
+    TFile file(file_name.toStdString().c_str(), "new");
+    int n_graph = calibration_qcp->graphCount();
+    for (int i = 0; i < n_graph; i++) {
+        QVector<double> x;
+        QVector<double> y;
+        int n = calibration_qcp->graph(i)->dataCount();
+        for (int j = 0; j < n; j++) {
+            x << calibration_qcp->graph(i)->data()->at(j)->key;
+            y << calibration_qcp->graph(i)->data()->at(j)->value;
+        }
+        TGraph gr(n, x.data(), y.data());
+        gr.SetName(calibration_qcp->graph(i)->name().toStdString().c_str());
+        gr.Write(file_name.toStdString().c_str());
+    }
+}
+
 void UC_wai::U_save_calibration(QString file_name, UTE_file_type file_type) {
     if (file_name.right(4).left(1) == ".") file_name = file_name.mid(0, file_name.length() - 4);
     switch (file_type) {
@@ -1341,6 +1445,10 @@ void UC_wai::U_save_calibration(QString file_name, UTE_file_type file_type) {
         }
         case UTE_FT_bmp : {
             calibration_qcp->saveBmp(file_name + ".bmp");
+            break;
+        }
+        case UTE_FT_root : {
+            U_save_calibration_root(file_name + ".root");
             break;
         }
     }
@@ -1369,6 +1477,18 @@ void UC_wai::U_save_spectra_2d_txt(QString file_name) {
     file.close();
 }
 
+void UC_wai::U_save_spectra_2d_root(QString file_name) {
+    TFile file(file_name.toStdString().c_str(), "new");
+    TH2D * frame = new TH2D("spectra_2d", "spectra_2d", color_map_data_spectra_2d_qcp->keySize(), color_map_data_spectra_2d_qcp->keyRange().lower, color_map_data_spectra_2d_qcp->keyRange().upper,
+                                              color_map_data_spectra_2d_qcp->valueSize(), color_map_data_spectra_2d_qcp->valueRange().lower, color_map_data_spectra_2d_qcp->valueRange().upper);
+    for (int y = 0; y < 256; y++) {
+        for (int x = 0; x < 3840; x++) {
+            frame->Fill(x, y, color_map_spectra_2d_qcp->data()->data(x, y));
+        }
+    }
+    frame->Write(file_name.toStdString().c_str());
+}
+
 void UC_wai::U_save_spectra_2d(QString file_name, UTE_file_type file_type) {
     if (spectra_2d_qcp->plottableCount() == 0) return;
     if (file_name.right(4).left(1) == ".") file_name = file_name.mid(0, file_name.length() - 4);
@@ -1391,6 +1511,10 @@ void UC_wai::U_save_spectra_2d(QString file_name, UTE_file_type file_type) {
         }
         case UTE_FT_bmp : {
             spectra_2d_qcp->saveBmp(file_name + ".bmp");
+            break;
+        }
+        case UTE_FT_root : {
+            U_save_spectra_2d_root(file_name + ".root");
             break;
         }
     }
@@ -1683,7 +1807,7 @@ void UC_wai::U_load_spectra_2d_txt(QString file_name) {
     spectra_2d_qcp->axisRect()->setMarginGroup(QCP::msBottom|QCP::msTop, margin_group_spectra_2d_qcp);
     color_scale_spectra_2d_qcp->setMarginGroup(QCP::msBottom|QCP::msTop, margin_group_spectra_2d_qcp);
 
-    double z;
+    double z = 0;
     for (int y = 0; y < 256; y ++) {
         for (int x = 0; x < (15 * 256); x++) {
             str >> z;
@@ -1696,19 +1820,19 @@ void UC_wai::U_load_spectra_2d_txt(QString file_name) {
     spectra_2d_qcp->rescaleAxes();
     spectra_2d_qcp->replot(QCustomPlot::rpQueuedReplot);
 
-    connect(spectra_2d_qcp->xAxis,              SIGNAL(rangeChanged(QCPRange)),     this, SLOT(U_set_spectra_2d_x_axis_range(QCPRange)), Qt::DirectConnection);
-    connect(spectra_2d_qcp->yAxis,              SIGNAL(rangeChanged(QCPRange)),     this, SLOT(U_set_spectra_2d_y_axis_range(QCPRange)), Qt::DirectConnection);
-    connect(color_scale_spectra_2d_qcp->axis(), SIGNAL(rangeChanged(QCPRange)),     this, SLOT(U_set_spectra_2d_z_axis_range(QCPRange)), Qt::DirectConnection);
-    connect(spectra_2d_qcp,                     SIGNAL(mouseRelease(QMouseEvent*)), this, SLOT(U_mouse_move_spectra_2d(QMouseEvent*)));
+//    connect(spectra_2d_qcp->xAxis,              SIGNAL(rangeChanged(QCPRange)),     this, SLOT(U_set_spectra_2d_x_axis_range(QCPRange)), Qt::DirectConnection);
+//    connect(spectra_2d_qcp->yAxis,              SIGNAL(rangeChanged(QCPRange)),     this, SLOT(U_set_spectra_2d_y_axis_range(QCPRange)), Qt::DirectConnection);
+//    connect(color_scale_spectra_2d_qcp->axis(), SIGNAL(rangeChanged(QCPRange)),     this, SLOT(U_set_spectra_2d_z_axis_range(QCPRange)), Qt::DirectConnection);
+//    connect(spectra_2d_qcp,                     SIGNAL(mouseRelease(QMouseEvent*)), this, SLOT(U_mouse_move_spectra_2d(QMouseEvent*)));
 
 
-    if (renew_renges) spectra_2d_qcp->rescaleAxes();
-    if (renew_renges) U_rescale_spectra_2d();
+//    if (renew_renges) spectra_2d_qcp->rescaleAxes();
+//    if (renew_renges) U_rescale_spectra_2d();
     spectra_2d_qcp->replot(QCustomPlot::rpQueuedReplot);
-    connect(spectra_2d_qcp->xAxis,              SIGNAL(rangeChanged(QCPRange)),     this, SLOT(U_set_spectra_2d_x_axis_range(QCPRange)), Qt::DirectConnection);
-    connect(spectra_2d_qcp->yAxis,              SIGNAL(rangeChanged(QCPRange)),     this, SLOT(U_set_spectra_2d_y_axis_range(QCPRange)), Qt::DirectConnection);
-    connect(color_scale_spectra_2d_qcp->axis(), SIGNAL(rangeChanged(QCPRange)),     this, SLOT(U_set_spectra_2d_z_axis_range(QCPRange)), Qt::DirectConnection);
-    connect(spectra_2d_qcp,                     SIGNAL(mouseRelease(QMouseEvent*)), this, SLOT(U_mouse_move_spectra_2d(QMouseEvent*)));
+//    connect(spectra_2d_qcp->xAxis,              SIGNAL(rangeChanged(QCPRange)),     this, SLOT(U_set_spectra_2d_x_axis_range(QCPRange)), Qt::DirectConnection);
+//    connect(spectra_2d_qcp->yAxis,              SIGNAL(rangeChanged(QCPRange)),     this, SLOT(U_set_spectra_2d_y_axis_range(QCPRange)), Qt::DirectConnection);
+//    connect(color_scale_spectra_2d_qcp->axis(), SIGNAL(rangeChanged(QCPRange)),     this, SLOT(U_set_spectra_2d_z_axis_range(QCPRange)), Qt::DirectConnection);
+    connect(spectra_2d_qcp,                     SIGNAL(mouseRelease(QMouseEvent*)), this, SLOT(U_mouse_select_spectra_2d(QMouseEvent*)));
     connect(spectra_2d_qcp,                     SIGNAL(mouseMove(QMouseEvent*)),    this, SLOT(U_mouse_move_spectra_2d(QMouseEvent*)));
     file.close();
 }
@@ -1735,11 +1859,12 @@ void UC_wai::U_load_id_frame_txt(QString file_name) {
 
 
 void UC_wai::U_load_table_tsv(QString file_name) {
+    table_model->removeRows(0, table_model->rowCount());
     QFile file(file_name);
     file.open(QFile::ReadOnly);
     QTextStream str(&file);
-    QString line = str.readLine();
-    QStringList list_str = line.split('\t');
+    QString line;
+    QStringList list_str;
     QList<QStandardItem *> list;
     int n;
     QStandardItem * item;
@@ -1760,6 +1885,7 @@ void UC_wai::U_load_table_tsv(QString file_name) {
 
 
 void UC_wai::U_load_table_csv(QString file_name) {
+    table_model->removeRows(0, table_model->rowCount());
     QFile file(file_name);
     file.open(QFile::ReadOnly);
     QTextStream str(&file);
@@ -1781,6 +1907,12 @@ void UC_wai::U_load_table_csv(QString file_name) {
     }
     table->resizeColumnsToContents();
     file.close();
+}
+
+void UC_wai::U_load_table(QString file_name) {
+    QString str = file_name.right(3);
+    if (str == "csv") U_load_table_csv(file_name);
+    if (str == "tsv") U_load_table_tsv(file_name);
 }
 //
 
@@ -2020,75 +2152,358 @@ void UC_wai::U_calculating_spectra(UTE_calculating_spectras calc_type, int index
 
 void UC_wai::U_calculating_spectra_1(QVector<double> &x1, QVector<double> &y1, QVector<double> &x2, QVector<double> &y2) {
     QVector<double> x, y;
-    for (int thl = thl_start; thl <= thl_finish; thl++) {
-        int i1 = x1.indexOf(thl);
-        int i2 = x2.indexOf(thl);
-        double data1 = 0;
-        if (i1 != -1) data1 = y1[i1];
-        double data2 = 0;
-        if (i2 != -1) data2 = y2[i2];
+    int n_1 = x1.size();
+    int n_2 = x2.size();
+    x << x1;
+    x << x2;
+    int n = x.size();
+    double z;
+    for (int i = 0; i < n - 1; i++) {
+        for (int j = i + 1; j < n; j++) {
+            if (x[i] > x[j]) {
+                z = x[i];
+                x[i] = x[j];
+                x[j] = z;
+            }
+        }
+    }
+    for (int i = 0; i < n - 1; i++) {
+        if (qAbs(x[i] - x[i + 1]) < 1e-10) {
+            x.remove(i);
+            i--;
+            n--;
+        }
+    }
+    for (int i = 0; i < n; i++) {
+        double thl = x[i];
+        double data_1 = 0;
+        if ((thl >= x1[0]) && (thl <= x1[n_1 - 1])) {
+            int index_1 = x1.indexOf(thl);
+            if (index_1 == -1) {
+                index_1 = 0;
+                while (x1[index_1] < thl) {
+                    index_1++;
+                }
+                data_1 = (y1[index_1] - y1[index_1 - 1]) * (thl - x1[index_1 - 1]);
+                data_1 /= (x1[index_1] - x1[index_1 - 1]);
+                data_1 += y1[index_1 - 1];
+            } else {
+                data_1 = y1[index_1];
+            }
+        } else {
+            data_1 = 0;
+        }
+        double data_2;
+        if ((thl >= x2[0]) && (thl <= x2[n_2 - 1])) {
+            int index_2 = x2.indexOf(thl);
+            if (index_2 == -1) {
+                index_2 = 0;
+                while (x2[index_2] < thl) {
+                    index_2++;
+                }
+                data_2 = (y2[index_2] - y2[index_2 - 1]) * (thl - x2[index_2 - 1]);
+                data_2 /= (x2[index_2] - x2[index_2 - 1]);
+                data_2 += y2[index_2 - 1];
+            } else {
+                data_2 = y1[index_2];
+            }
+        } else {
+           data_2 = 0;
+        }
         x << thl;
         double data;
-        data = data1 + data2;
+        data = data_1 + data_2;
         y << data;
     }
     x1 = x;
     y1 = y;
+
+//    int thl_min = thl_start;
+//    int thl_max = thl_finish;
+//    int thl_min_1 = x1[0];
+
+//    int thl_max_1 = x1[n_1 - 1];
+//    int thl_min_2 = x2[0];
+
+//    int thl_max_2 = x2[n_2 - 1];
+//    if (thl_min)
+
+//    for (int thl = thl_start; thl <= thl_finish; thl++) {
+
+//        int i1 = 0;
+
+
+//        int i1 = x1.indexOf(thl);
+//        int i2 = x2.indexOf(thl);
+//        double data1 = 0;
+//        if (i1 != -1) data1 = y1[i1];
+//        double data2 = 0;
+//        if (i2 != -1) data2 = y2[i2];
+//        x << thl;
+//        double data;
+//        data = data1 + data2;
+//        y << data;
+//    }
+//    x1 = x;
+//    y1 = y;
 }
 
 void UC_wai::U_calculating_spectra_2(QVector<double> &x1, QVector<double> &y1, QVector<double> &x2, QVector<double> &y2) {
     QVector<double> x, y;
-    for (int thl = thl_start; thl <= thl_finish; thl++) {
-        int i1 = x1.indexOf(thl);
-        int i2 = x2.indexOf(thl);
-        double data1 = 0;
-        if (i1 != -1) data1 = y1[i1];
-        double data2 = 0;
-        if (i2 != -1) data2 = y2[i2];
+    int n_1 = x1.size();
+    int n_2 = x2.size();
+    x << x1;
+    x << x2;
+    int n = x.size();
+    double z;
+    for (int i = 0; i < n - 1; i++) {
+        for (int j = i + 1; j < n; j++) {
+            if (x[i] > x[j]) {
+                z = x[i];
+                x[i] = x[j];
+                x[j] = z;
+            }
+        }
+    }
+    for (int i = 0; i < n - 1; i++) {
+        if (qAbs(x[i] - x[i + 1]) < 1e-10) {
+            x.remove(i);
+            i--;
+            n--;
+        }
+    }
+    for (int i = 0; i < n; i++) {
+        double thl = x[i];
+        double data_1 = 0;
+        if ((thl >= x1[0]) && (thl <= x1[n_1 - 1])) {
+            int index_1 = x1.indexOf(thl);
+            if (index_1 == -1) {
+                index_1 = 0;
+                while (x1[index_1] < thl) {
+                    index_1++;
+                }
+                data_1 = (y1[index_1] - y1[index_1 - 1]) * (thl - x1[index_1 - 1]);
+                data_1 /= (x1[index_1] - x1[index_1 - 1]);
+                data_1 += y1[index_1 - 1];
+            } else {
+                data_1 = y1[index_1];
+            }
+        } else {
+            data_1 = 0;
+        }
+        double data_2;
+        if ((thl >= x2[0]) && (thl <= x2[n_2 - 1])) {
+            int index_2 = x2.indexOf(thl);
+            if (index_2 == -1) {
+                index_2 = 0;
+                while (x2[index_2] < thl) {
+                    index_2++;
+                }
+                data_2 = (y2[index_2] - y2[index_2 - 1]) * (thl - x2[index_2 - 1]);
+                data_2 /= (x2[index_2] - x2[index_2 - 1]);
+                data_2 += y2[index_2 - 1];
+            } else {
+                data_2 = y1[index_2];
+            }
+        } else {
+           data_2 = 0;
+        }
         x << thl;
         double data;
-        data = data1 * data2;
+        data = data_1 * data_2;
         y << data;
     }
     x1 = x;
     y1 = y;
+
+//    QVector<double> x, y;
+//    for (int thl = thl_start; thl <= thl_finish; thl++) {
+//        int i1 = x1.indexOf(thl);
+//        int i2 = x2.indexOf(thl);
+//        double data1 = 0;
+//        if (i1 != -1) data1 = y1[i1];
+//            else data1 =
+//        double data2 = 0;
+//        if (i2 != -1) data2 = y2[i2];
+//        x << thl;
+//        double data;
+//        data = data1 * data2;
+//        y << data;
+//    }
+//    x1 = x;
+//    y1 = y;
 }
 
 void UC_wai::U_calculating_spectra_3(QVector<double> &x1, QVector<double> &y1, QVector<double> &x2, QVector<double> &y2) {
     QVector<double> x, y;
-    for (int thl = thl_start; thl <= thl_finish; thl++) {
-        int i1 = x1.indexOf(thl);
-        int i2 = x2.indexOf(thl);
-        double data1 = 0;
-        if (i1 != -1) data1 = y1[i1];
-        double data2 = 0;
-        if (i2 != -1) data2 = y2[i2];
+    int n_1 = x1.size();
+    int n_2 = x2.size();
+    x << x1;
+    x << x2;
+    int n = x.size();
+    double z;
+    for (int i = 0; i < n - 1; i++) {
+        for (int j = i + 1; j < n; j++) {
+            if (x[i] > x[j]) {
+                z = x[i];
+                x[i] = x[j];
+                x[j] = z;
+            }
+        }
+    }
+    for (int i = 0; i < n - 1; i++) {
+        if (qAbs(x[i] - x[i + 1]) < 1e-10) {
+            x.remove(i);
+            i--;
+            n--;
+        }
+    }
+    for (int i = 0; i < n; i++) {
+        double thl = x[i];
+        double data_1 = 0;
+        if ((thl >= x1[0]) && (thl <= x1[n_1 - 1])) {
+            int index_1 = x1.indexOf(thl);
+            if (index_1 == -1) {
+                index_1 = 0;
+                while (x1[index_1] < thl) {
+                    index_1++;
+                }
+                data_1 = (y1[index_1] - y1[index_1 - 1]) * (thl - x1[index_1 - 1]);
+                data_1 /= (x1[index_1] - x1[index_1 - 1]);
+                data_1 += y1[index_1 - 1];
+            } else {
+                data_1 = y1[index_1];
+            }
+        } else {
+            data_1 = 0;
+        }
+        double data_2;
+        if ((thl >= x2[0]) && (thl <= x2[n_2 - 1])) {
+            int index_2 = x2.indexOf(thl);
+            if (index_2 == -1) {
+                index_2 = 0;
+                while (x2[index_2] < thl) {
+                    index_2++;
+                }
+                data_2 = (y2[index_2] - y2[index_2 - 1]) * (thl - x2[index_2 - 1]);
+                data_2 /= (x2[index_2] - x2[index_2 - 1]);
+                data_2 += y2[index_2 - 1];
+            } else {
+                data_2 = y1[index_2];
+            }
+        } else {
+           data_2 = 0;
+        }
         x << thl;
         double data;
-        data = data1 - data2;
+        data = data_1 - data_2;
         y << data;
     }
     x1 = x;
     y1 = y;
+
+//    QVector<double> x, y;
+//    for (int thl = thl_start; thl <= thl_finish; thl++) {
+//        int i1 = x1.indexOf(thl);
+//        int i2 = x2.indexOf(thl);
+//        double data1 = 0;
+//        if (i1 != -1) data1 = y1[i1];
+//        double data2 = 0;
+//        if (i2 != -1) data2 = y2[i2];
+//        x << thl;
+//        double data;
+//        data = data1 - data2;
+//        y << data;
+//    }
+//    x1 = x;
+//    y1 = y;
 }
 
 void UC_wai::U_calculating_spectra_4(QVector<double> &x1, QVector<double> &y1, QVector<double> &x2, QVector<double> &y2) {
     QVector<double> x, y;
-    for (int thl = thl_start; thl <= thl_finish; thl++) {
-        int i1 = x1.indexOf(thl);
-        int i2 = x2.indexOf(thl);
-        double data1 = 0;
-        if (i1 != -1) data1 = y1[i1];
-        double data2 = 0;
-        if (i2 != -1) data2 = y2[i2];
+    int n_1 = x1.size();
+    int n_2 = x2.size();
+    x << x1;
+    x << x2;
+    int n = x.size();
+    double z;
+    for (int i = 0; i < n - 1; i++) {
+        for (int j = i + 1; j < n; j++) {
+            if (x[i] > x[j]) {
+                z = x[i];
+                x[i] = x[j];
+                x[j] = z;
+            }
+        }
+    }
+    for (int i = 0; i < n - 1; i++) {
+        if (qAbs(x[i] - x[i + 1]) < 1e-10) {
+            x.remove(i);
+            i--;
+            n--;
+        }
+    }
+    for (int i = 0; i < n; i++) {
+        double thl = x[i];
+        double data_1 = 0;
+        if ((thl >= x1[0]) && (thl <= x1[n_1 - 1])) {
+            int index_1 = x1.indexOf(thl);
+            if (index_1 == -1) {
+                index_1 = 0;
+                while (x1[index_1] < thl) {
+                    index_1++;
+                }
+                data_1 = (y1[index_1] - y1[index_1 - 1]) * (thl - x1[index_1 - 1]);
+                data_1 /= (x1[index_1] - x1[index_1 - 1]);
+                data_1 += y1[index_1 - 1];
+            } else {
+                data_1 = y1[index_1];
+            }
+        } else {
+            data_1 = 0;
+        }
+        double data_2;
+        if ((thl >= x2[0]) && (thl <= x2[n_2 - 1])) {
+            int index_2 = x2.indexOf(thl);
+            if (index_2 == -1) {
+                index_2 = 0;
+                while (x2[index_2] < thl) {
+                    index_2++;
+                }
+                data_2 = (y2[index_2] - y2[index_2 - 1]) * (thl - x2[index_2 - 1]);
+                data_2 /= (x2[index_2] - x2[index_2 - 1]);
+                data_2 += y2[index_2 - 1];
+            } else {
+                data_2 = y1[index_2];
+            }
+        } else {
+           data_2 = 0;
+        }
         x << thl;
         double data;
-        if (qAbs(data2) < 1e-10) data = 0;
-            else data = data1 / data2;
+        if (qAbs(data_2) < 1e-10) data = 0;
+            else data = data_1 / data_2;
         y << data;
     }
     x1 = x;
     y1 = y;
+
+//    QVector<double> x, y;
+//    for (int thl = thl_start; thl <= thl_finish; thl++) {
+//        int i1 = x1.indexOf(thl);
+//        int i2 = x2.indexOf(thl);
+//        double data1 = 0;
+//        if (i1 != -1) data1 = y1[i1];
+//        double data2 = 0;
+//        if (i2 != -1) data2 = y2[i2];
+//        x << thl;
+//        double data;
+//        if (qAbs(data2) < 1e-10) data = 0;
+//            else data = data1 / data2;
+//        y << data;
+//    }
+//    x1 = x;
+//    y1 = y;
 }
 
 void UC_wai::U_calculating_spectra_5(QVector<double> &x1, QVector<double> &y1) {
@@ -2247,6 +2662,10 @@ void UC_wai::U_add_table_data(UC_pixels_info pixels_info) {
     item = new QStandardItem(QString("%1").arg(pixels_info.U_get_std_dev()));
     list << item;
     item = new QStandardItem(QString("%1").arg(pixels_info.U_get_snr()));
+    list << item;
+    item = new QStandardItem(QString("%1").arg(pixels_info.U_get_max_density()));
+    list << item;
+    item = new QStandardItem(QString("%1").arg(pixels_info.U_get_variance()));
     list << item;
     item = new QStandardItem(QString("%1").arg(pixels_info.U_get_x_min()));
     list << item;
@@ -2641,27 +3060,38 @@ void UC_wai::U_mouse_move_spectra(QMouseEvent * event) {
     int n = spectra_qcp->graphCount();
     if (n == 0) return;
 
-    QCPGraphDataContainer::const_iterator it = spectra_qcp->graph(0)->data()->constEnd();
-    QVariant details;
-    double data = spectra_qcp->graph(0)->selectTest(event->pos(), false, &details);
-    if (data > 0) {
-        QCPDataSelection dataPoints = details.value<QCPDataSelection>();
-        if (dataPoints.dataPointCount() > 0) it = spectra_qcp->graph(0)->data()->at(dataPoints.dataRange().begin());
-    }
-    str = "%1 = %2." + QString("\n") + "%3 = %4.";
-    str = str.arg(spectra_qcp->xAxis->label()).arg(static_cast<int>(it->key));
-    str = str.arg(spectra_qcp->graph(0)->name()).arg(it->value);
+    str = "%1 = %2\n";
 
-    for (int i = 1; i < n; i++) {
-        QCPGraphDataContainer::const_iterator it = spectra_qcp->graph(i)->data()->constEnd();
-        QVariant details;
-        double data = spectra_qcp->graph(i)->selectTest(event->pos(), false, &details);
-        if (data > 0) {
-            QCPDataSelection dataPoints = details.value<QCPDataSelection>();
-            if (dataPoints.dataPointCount() > 0) it = spectra_qcp->graph(i)->data()->at(dataPoints.dataRange().begin());
+    double x, y;
+    spectra_qcp->graph(0)->pixelsToCoords(event->pos().x(), event->pos().y(), x, y);
+    str = str.arg(spectra_qcp->xAxis->label()).arg(static_cast<int>(x + 0.5));
+
+    for (int i = 0; i < n; i++) {
+        double x, y;
+        spectra_qcp->graph(i)->pixelsToCoords(event->pos().x(), event->pos().y(), x, y);
+        bool result;
+        QCPRange x_range = spectra_qcp->graph(i)->getKeyRange(result);
+        if (result == false) continue;
+        if (x_range.contains(x)) {
+            QCPGraphDataContainer::const_iterator it0 = spectra_qcp->graph(i)->data()->findBegin(x);
+            QCPGraphDataContainer::const_iterator it1 = it0 + 1;
+            double x0 = it0->key;
+            double x1 = it1->key;
+            double half = (x0 + x1) / 2;
+            if (x < half) {
+                y = it0->value;
+            } else {
+                if (x1 > x_range.upper) {
+                    y = it0->value;
+                } else {
+                    y = it1->value;
+                }
+
+            }
+            str += QString("%1 = %2\n").arg(spectra_qcp->graph(i)->name()).arg(y);
+        } else {
+            str += QString("%1 = %2\n").arg(spectra_qcp->graph(i)->name()).arg(0);
         }
-        str += "\n" + QString("%1 = %2.").arg(spectra_qcp->graph(i)->name()).arg(it->value);
-
     };
     US_mouse_data(str);
     QToolTip::showText(event->globalPos(), str, spectra_qcp);
@@ -2692,14 +3122,36 @@ void UC_wai::U_mouse_move_distribution(QMouseEvent * event) {
     QString str;
 
     for (int i = 0; i < n; i++) {
-        QCPGraphDataContainer::const_iterator it = distribution_qcp->graph(i)->data()->constEnd();
-        QVariant details;
-        double data = distribution_qcp->graph(i)->selectTest(event->pos(), false, &details);
-        if (data > 0) {
-            QCPDataSelection dataPoints = details.value<QCPDataSelection>();
-            if (dataPoints.dataPointCount() > 0) it = distribution_qcp->graph(i)->data()->at(dataPoints.dataRange().begin());
+        double x, y;
+        distribution_qcp->graph(i)->pixelsToCoords(event->pos().x(), event->pos().y(), x, y);
+        bool result;
+        QCPRange x_range = distribution_qcp->graph(i)->getKeyRange(result);
+        if (result == false) continue;
+
+        if (x_range.contains(x)) {
+            QCPGraphDataContainer::const_iterator it0 = distribution_qcp->graph(i)->data()->findBegin(x);
+            QCPGraphDataContainer::const_iterator it1 = it0 + 1;
+            double x0 = it0->key;
+            double x1 = it1->key;
+            double half = (x0 + x1) / 2;
+            if (x < half) {
+                x = it0->key;
+                y = it0->value;
+            } else {
+                x = it1->key;
+                y = it1->value;
+                if (x1 > x_range.upper) {
+                    x = it0->key;
+                    y = it0->value;
+                } else {
+                    x = it1->key;
+                    y = it1->value;
+                }
+            }
+            str += QString("%1: bin value = %2; count = %3.\n").arg(distribution_qcp->graph(i)->name()).arg(x).arg(y);
+        } else {
+            str += QString("%1: bin value = %2; count = %3.\n").arg(distribution_qcp->graph(i)->name()).arg(x).arg(0);
         }
-        str += QString("%1; bin value = %2; count = %3.\n").arg(distribution_qcp->graph(i)->name()).arg(it->key).arg(it->value);
     };
     US_mouse_data(str);
     QToolTip::showText(event->globalPos(), str, distribution_qcp);
@@ -2710,27 +3162,38 @@ void UC_wai::U_mouse_move_chip_fit(QMouseEvent * event) {
     int n = chip_fit_qcp->graphCount();
     if (n == 0) return;
 
-    QCPGraphDataContainer::const_iterator it = chip_fit_qcp->graph(0)->data()->constEnd();
-    QVariant details;
-    double data = chip_fit_qcp->graph(0)->selectTest(event->pos(), false, &details);
-    if (data > 0) {
-        QCPDataSelection dataPoints = details.value<QCPDataSelection>();
-        if (dataPoints.dataPointCount() > 0) it = chip_fit_qcp->graph(0)->data()->at(dataPoints.dataRange().begin());
-    }
-    str = "%1 = %2." + QString("\n") + "%3 = %4.";
-    str = str.arg(chip_fit_qcp->xAxis->label()).arg(static_cast<int>(it->key));
-    str = str.arg(chip_fit_qcp->graph(0)->name()).arg(it->value);
+    str = "%1 = %2\n";
 
-    for (int i = 1; i < n; i++) {
-        QCPGraphDataContainer::const_iterator it = chip_fit_qcp->graph(i)->data()->constEnd();
-        QVariant details;
-        double data = chip_fit_qcp->graph(i)->selectTest(event->pos(), false, &details);
-        if (data > 0) {
-            QCPDataSelection dataPoints = details.value<QCPDataSelection>();
-            if (dataPoints.dataPointCount() > 0) it = chip_fit_qcp->graph(i)->data()->at(dataPoints.dataRange().begin());
+    double x, y;
+    chip_fit_qcp->graph(0)->pixelsToCoords(event->pos().x(), event->pos().y(), x, y);
+    str = str.arg(chip_fit_qcp->xAxis->label()).arg(static_cast<int>(x + 0.5));
+
+    for (int i = 0; i < n; i++) {
+        double x, y;
+        chip_fit_qcp->graph(i)->pixelsToCoords(event->pos().x(), event->pos().y(), x, y);
+        bool result;
+        QCPRange x_range = chip_fit_qcp->graph(i)->getKeyRange(result);
+        if (result == false) continue;
+        if (x_range.contains(x)) {
+            QCPGraphDataContainer::const_iterator it0 = chip_fit_qcp->graph(i)->data()->findBegin(x);
+            QCPGraphDataContainer::const_iterator it1 = it0 + 1;
+            double x0 = it0->key;
+            double x1 = it1->key;
+            double half = (x0 + x1) / 2;
+            if (x < half) {
+                y = it0->value;
+            } else {
+                if (x1 > x_range.upper) {
+                    y = it0->value;
+                } else {
+                    y = it1->value;
+                }
+
+            }
+            str += QString("%1 = %2\n").arg(chip_fit_qcp->graph(i)->name()).arg(y);
+        } else {
+            str += QString("%1 = %2\n").arg(chip_fit_qcp->graph(i)->name()).arg(0);
         }
-        str += "\n" + QString("%1 = %2.").arg(chip_fit_qcp->graph(i)->name()).arg(it->value);
-
     };
     US_mouse_data(str);
     QToolTip::showText(event->globalPos(), str, chip_fit_qcp);
@@ -2741,27 +3204,38 @@ void UC_wai::U_mouse_move_calibration(QMouseEvent * event) {
     int n = calibration_qcp->graphCount();
     if (n == 0) return;
 
-    QCPGraphDataContainer::const_iterator it = calibration_qcp->graph(0)->data()->constEnd();
-    QVariant details;
-    double data = calibration_qcp->graph(0)->selectTest(event->pos(), false, &details);
-    if (data > 0) {
-        QCPDataSelection dataPoints = details.value<QCPDataSelection>();
-        if (dataPoints.dataPointCount() > 0) it = calibration_qcp->graph(0)->data()->at(dataPoints.dataRange().begin());
-    }
-    str = "%1 = %2." + QString("\n") + "%3 = %4.";
-    str = str.arg(calibration_qcp->xAxis->label()).arg(static_cast<int>(it->key));
-    str = str.arg(calibration_qcp->graph(0)->name()).arg(it->value);
+    str = "%1 = %2\n";
 
-    for (int i = 1; i < n; i++) {
-        QCPGraphDataContainer::const_iterator it = calibration_qcp->graph(i)->data()->constEnd();
-        QVariant details;
-        double data = calibration_qcp->graph(i)->selectTest(event->pos(), false, &details);
-        if (data > 0) {
-            QCPDataSelection dataPoints = details.value<QCPDataSelection>();
-            if (dataPoints.dataPointCount() > 0) it = calibration_qcp->graph(i)->data()->at(dataPoints.dataRange().begin());
+    double x, y;
+    calibration_qcp->graph(0)->pixelsToCoords(event->pos().x(), event->pos().y(), x, y);
+    str = str.arg(calibration_qcp->xAxis->label()).arg(static_cast<int>(x + 0.5));
+
+    for (int i = 0; i < n; i++) {
+        double x, y;
+        calibration_qcp->graph(i)->pixelsToCoords(event->pos().x(), event->pos().y(), x, y);
+        bool result;
+        QCPRange x_range = calibration_qcp->graph(i)->getKeyRange(result);
+        if (result == false) continue;
+        if (x_range.contains(x)) {
+            QCPGraphDataContainer::const_iterator it0 = calibration_qcp->graph(i)->data()->findBegin(x);
+            QCPGraphDataContainer::const_iterator it1 = it0 + 1;
+            double x0 = it0->key;
+            double x1 = it1->key;
+            double half = (x0 + x1) / 2;
+            if (x < half) {
+                y = it0->value;
+            } else {
+                if (x1 > x_range.upper) {
+                    y = it0->value;
+                } else {
+                    y = it1->value;
+                }
+
+            }
+            str += QString("%1 = %2\n").arg(calibration_qcp->graph(i)->name()).arg(y);
+        } else {
+            str += QString("%1 = %2\n").arg(calibration_qcp->graph(i)->name()).arg(0);
         }
-        str += "\n" + QString("%1 = %2.").arg(calibration_qcp->graph(i)->name()).arg(it->value);
-
     };
     US_mouse_data(str);
     QToolTip::showText(event->globalPos(), str, calibration_qcp);
@@ -2857,7 +3331,11 @@ void UC_wai::U_mouse_select_spectra_2d(QMouseEvent * event) {
     xmin = static_cast<int>(std::round(sr_spectra_2d_qcp->range(spectra_2d_qcp->xAxis).lower));
     ymax = static_cast<int>(std::round(sr_spectra_2d_qcp->range(spectra_2d_qcp->yAxis).upper));
     ymin = static_cast<int>(std::round(sr_spectra_2d_qcp->range(spectra_2d_qcp->yAxis).lower));
+    value_max = ymax;
+    value_min = ymin;
     //emit US_set_roi_range(xmin, xmax, ymin, ymax);
+    thl_start = xmin;
+    thl_finish = xmax;
     emit US_set_distribution_range(ymin, ymax);
     emit US_set_thl_range(xmin, xmax);
 }
