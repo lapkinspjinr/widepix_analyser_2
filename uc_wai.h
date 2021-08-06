@@ -28,6 +28,7 @@ class UC_wai : public QObject
     bool renew_renges;
     bool renew_roi_renges;
     bool mask_tick;
+    bool energy_spectra;
 
     double value_min;
     double value_max;
@@ -84,9 +85,7 @@ class UC_wai : public QObject
     QStandardItemModel *    id_LC_table_model;
     QModelIndex             id_table_index;
 
-    QListView *             list;
-    QStandardItemModel *    list_model;
-    QModelIndex             list_index;
+    QTableWidget * table_widget;
 
 public :
     typedef enum {
@@ -142,7 +141,7 @@ public:
     void U_set_id_frame_qcp(QCustomPlot *id_frame_qcp);
     void U_set_table(QTableView * table);
     void U_set_id_table(QTableView * id_table);
-    void U_set_list(QListView * list);
+    void U_set_table_widget(QTableWidget * table_widget);
 ////////////////////////////////////////////////////////////////
     void U_reset_data();
 ////////////////////////////////////////////////////////////////////////
@@ -311,7 +310,7 @@ signals:
     void US_delete_scan(int index);
     void US_set_scan(int index);
     void US_get_settings(int index);
-    void US_set_settings(int index, UC_data_container::UTStr_data_container_settings settings);
+    void US_set_settings(int index, UC_data_container::UTStr_data_container_settings * settings);
     void US_renew_scan_settings(UC_data_container::UTStr_data_container_settings settings);
 ///////////////////////////////////////////////////////////////////////////
     void US_generate_spectra();
@@ -330,8 +329,8 @@ signals:
     void US_generate_range(int thl_index);
     void US_generate_chip_fit(int chip);
     void US_generate_calibration();
-    void US_generate_spectra_2d(int thl_min, int thl_max);
-    void US_generate_spectra_2d_direct(int thl_min, int thl_max);
+    void US_generate_spectra_2d();
+    void US_generate_spectra_2d_direct();
     void US_generate_spectra_2d(double energy_min, double energy_max);
     void US_generate_spectra_2d_range(int thl_min, int thl_max);
     void US_generate_spectra_2d_range(double energy_min, double energy_max);
@@ -410,6 +409,8 @@ signals:
     void US_add_roi(QString);
     void US_delete_roi(int index);
     void US_get_roi(int index);
+    //
+
 
 
 
@@ -503,6 +504,10 @@ public slots:
     void U_mouse_select_spectra_2d(QMouseEvent * event);
     //////////////////////////////////////////////////////////////////////
     void U_renew_scans(QList<UC_data_container> * list_scans_ptr, int active_index);
+    void U_add_scan(UC_data_container::UTStr_data_container_settings settings);
+    void U_table_widget_changed();
+    void U_table_widget_active();
+    void U_table_widget_delete();
 };
 
 #endif // UC_WAI_H

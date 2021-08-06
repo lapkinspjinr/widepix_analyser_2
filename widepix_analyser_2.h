@@ -56,6 +56,7 @@ signals :
     void US_delete_scan(int index);
     void US_reset_data();
     void US_get_scan_settings(int index);
+    void US_scan_changed();
     //
     void US_stop();
     //
@@ -74,6 +75,7 @@ signals :
     void US_get_max_range();
     //
     void US_set_threshold_range(int thl_index_min, int thl_index_max);
+    void US_set_energy_range(double energy_min, double energy_max);
 
 private slots:
 
@@ -113,8 +115,6 @@ private slots:
 
     void on_pushButton_17_clicked();
 
-    void on_pushButton_21_clicked();
-
     void on_pushButton_5_clicked();
 
     void on_pushButton_22_clicked();
@@ -132,8 +132,6 @@ private slots:
     void on_pushButton_27_clicked();
 
     void on_pushButton_28_clicked();
-
-    void on_pushButton_29_clicked();
 
     void on_pushButton_31_clicked();
 
@@ -225,8 +223,6 @@ private slots:
 
     void on_pushButton_66_clicked();
 
-    void on_pushButton_67_clicked();
-
     void on_listView_clicked(const QModelIndex &index);
 
     void on_spinBox_3_valueChanged(int arg1);
@@ -298,6 +294,10 @@ private slots:
     void on_comboBox_21_currentIndexChanged(int index);
 
     void on_comboBox_28_currentIndexChanged(int index);
+
+    void on_doubleSpinBox_20_valueChanged(double arg1);
+
+    void on_doubleSpinBox_21_valueChanged(double arg1);
 
 private:
     Ui::widepix_analyser_2 *ui;

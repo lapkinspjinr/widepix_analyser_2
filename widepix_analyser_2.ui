@@ -21,7 +21,7 @@
        <enum>QTabWidget::West</enum>
       </property>
       <property name="currentIndex">
-       <number>5</number>
+       <number>0</number>
       </property>
       <widget class="QWidget" name="tab_2">
        <attribute name="title">
@@ -427,27 +427,6 @@
              </widget>
             </item>
             <item>
-             <widget class="QPushButton" name="pushButton_29">
-              <property name="text">
-               <string>Set scan</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QPushButton" name="pushButton_67">
-              <property name="text">
-               <string>Change scan settings</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QPushButton" name="pushButton_21">
-              <property name="text">
-               <string>Delete scan</string>
-              </property>
-             </widget>
-            </item>
-            <item>
              <widget class="QPushButton" name="pushButton_5">
               <property name="text">
                <string>Reset</string>
@@ -459,10 +438,27 @@
          </layout>
         </item>
         <item>
-         <widget class="QListView" name="listView">
-          <property name="editTriggers">
-           <set>QAbstractItemView::NoEditTriggers</set>
+         <widget class="QTableWidget" name="tableWidget">
+          <property name="rowCount">
+           <number>0</number>
           </property>
+          <property name="columnCount">
+           <number>14</number>
+          </property>
+          <column/>
+          <column/>
+          <column/>
+          <column/>
+          <column/>
+          <column/>
+          <column/>
+          <column/>
+          <column/>
+          <column/>
+          <column/>
+          <column/>
+          <column/>
+          <column/>
          </widget>
         </item>
         <item>

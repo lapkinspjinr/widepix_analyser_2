@@ -16,6 +16,7 @@ UC_wai::UC_wai(QObject *parent) : QObject(parent)
     renew_renges = true;
     renew_roi_renges = true;
     mask_tick = false;
+    energy_spectra = false;
 
     plot = new UC_plot();
     thread = new QThread();
@@ -80,8 +81,8 @@ UC_wai::UC_wai(QObject *parent) : QObject(parent)
     connect(this, SIGNAL(US_generate_distribution_direct(int, double, double, int)),plot, SLOT(U_generate_frame_distribution(int, double, double, int)),    Qt::DirectConnection);
     connect(this, SIGNAL(US_generate_chip_fit(int)),                                plot, SLOT(U_generate_calibration(int))/*,                                Qt::DirectConnection*/);
     connect(this, SIGNAL(US_generate_calibration()),                                plot, SLOT(U_generate_calibration())/*,                                   Qt::DirectConnection*/);
-    connect(this, SIGNAL(US_generate_spectra_2d(int, int)),                         plot, SLOT(U_generate_spectra_2d(int, int))/*,                                      Qt::DirectConnection*/);
-    connect(this, SIGNAL(US_generate_spectra_2d_direct(int, int)),                  plot, SLOT(U_generate_spectra_2d(int, int)),                            Qt::DirectConnection);
+    connect(this, SIGNAL(US_generate_spectra_2d()),                                 plot, SLOT(U_generate_spectra_2d())/*,                                      Qt::DirectConnection*/);
+    connect(this, SIGNAL(US_generate_spectra_2d_direct()),                          plot, SLOT(U_generate_spectra_2d()),                            Qt::DirectConnection);
     connect(this, SIGNAL(US_generate_spectra_2d(double, double)),                   plot, SLOT(U_generate_spectra_2d(double, double))/*,                                      Qt::DirectConnection*/);
     connect(this, SIGNAL(US_generate_id_roi()),                                     plot, SLOT(U_generate_id_roi()),                                        Qt::DirectConnection);
     connect(this, SIGNAL(US_generate_additional_data()),                            plot, SLOT(U_generate_additional_data()),                               Qt::DirectConnection);
@@ -132,6 +133,11 @@ UC_wai::UC_wai(QObject *parent) : QObject(parent)
 
     connect(this, SIGNAL(US_add_roi(UC_roi)),   plot, SLOT(U_add_roi(UC_roi)), Qt::DirectConnection);
     connect(this, SIGNAL(US_delete_roi(int)),   plot, SLOT(U_delete_roi(int)), Qt::DirectConnection);
+
+    connect(this, SIGNAL(US_set_settings(int, UC_data_container::UTStr_data_container_settings *)), plot, SLOT(U_set_settings(int, UC_data_container::UTStr_data_container_settings *)),    Qt::DirectConnection);
+    connect(this, SIGNAL(US_set_scan(int)),                                                         plot, SLOT(U_set_scan(int)),                                                            Qt::DirectConnection);
+    connect(this, SIGNAL(US_delete_scan(int)),                                                      plot, SLOT(U_delete_scan(int)),                                                         Qt::DirectConnection);
+
 
     plot->moveToThread(thread);
 }
@@ -365,19 +371,38 @@ void UC_wai::U_set_id_table(QTableView * id_table) {
     id_LC_table_model->setData(id_table_index, "sample data");
 }
 
-void UC_wai::U_set_list(QListView * list) {
-    this->list = list;
-    list_model = new QStandardItemModel();
-    list->setModel(list_model);
+void UC_wai::U_set_table_widget(QTableWidget * table_widget) {
+    this->table_widget = table_widget;
+    table_widget->setHorizontalHeaderItem(0, new QTableWidgetItem("Name"));
+    table_widget->setHorizontalHeaderItem(1, new QTableWidgetItem("Path"));
+    table_widget->setHorizontalHeaderItem(2, new QTableWidgetItem("Flat field"));
+    table_widget->setHorizontalHeaderItem(3, new QTableWidgetItem("Dark_field"));
+    table_widget->setHorizontalHeaderItem(4, new QTableWidgetItem("Count"));
+    table_widget->setHorizontalHeaderItem(5, new QTableWidgetItem("Time"));
+    table_widget->setHorizontalHeaderItem(6, new QTableWidgetItem("Counters"));
+    table_widget->setHorizontalHeaderItem(7, new QTableWidgetItem("N files"));
+    table_widget->setHorizontalHeaderItem(8, new QTableWidgetItem("Calibration"));
+    table_widget->setHorizontalHeaderItem(9, new QTableWidgetItem("Energy"));
+    table_widget->setHorizontalHeaderItem(10, new QTableWidgetItem("Identification"));
+    table_widget->setHorizontalHeaderItem(11, new QTableWidgetItem("THL"));
+    table_widget->setHorizontalHeaderItem(12, new QTableWidgetItem("Active"));
+    table_widget->setHorizontalHeaderItem(13, new QTableWidgetItem("Delete"));
 }
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void UC_wai::U_reset_data() {
-    list_model->clear();
+    int n = table_widget->rowCount();
+    for (int i = 0; i < n; i++) {
+        table_widget->removeRow(0);
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
 void UC_wai::U_generate_spectra(QString graph_name) {
+    if (energy_spectra) {
+        spectra_qcp->clearGraphs();
+        energy_spectra = false;
+    }
     U_delete_mask_plots();
     spectra_qcp->xAxis->setLabel("thl");
     spectra_qcp->addGraph();
@@ -389,6 +414,10 @@ void UC_wai::U_generate_spectra(QString graph_name) {
 }
 
 void UC_wai::U_generate_spectra(QString graph_name, int n) {
+    if (!energy_spectra) {
+        spectra_qcp->clearGraphs();
+        energy_spectra = true;
+    }
     U_delete_mask_plots();
     spectra_qcp->xAxis->setLabel("energy");
     spectra_qcp->addGraph();
@@ -579,9 +608,7 @@ void UC_wai::U_generate_spectra_2d(UStr_spectra_2d_settings settings) {
     connect(color_scale_spectra_2d_qcp->axis(), SIGNAL(rangeChanged(QCPRange)),     this, SLOT(U_set_spectra_2d_z_axis_range(QCPRange)), Qt::DirectConnection);
     connect(spectra_2d_qcp,                     SIGNAL(mouseRelease(QMouseEvent*)), this, SLOT(U_mouse_select_spectra_2d(QMouseEvent*)));
 
-    int thl_min = static_cast<int>(round(settings.x_min));
-    int thl_max = static_cast<int>(round(settings.x_max));
-    emit US_generate_spectra_2d(thl_min, thl_max);
+    emit US_generate_spectra_2d();
 }
 
 void UC_wai::U_generate_spectra_2d_energy(UStr_spectra_2d_settings settings) {
@@ -1562,9 +1589,7 @@ void UC_wai::U_automatic_save_spectra_2d(QString file_name, UTE_file_type file_t
         connect(color_scale_spectra_2d_qcp->axis(), SIGNAL(rangeChanged(QCPRange)),     this, SLOT(U_set_spectra_2d_z_axis_range(QCPRange)), Qt::DirectConnection);
         connect(spectra_2d_qcp,                     SIGNAL(mouseRelease(QMouseEvent*)), this, SLOT(U_mouse_move_spectra_2d(QMouseEvent*)));
 
-        int thl_min = static_cast<int>(round(settings.x_min));
-        int thl_max = static_cast<int>(round(settings.x_max));
-        emit US_generate_spectra_2d_direct(thl_min, thl_max);
+        emit US_generate_spectra_2d_direct();
         U_save_spectra_2d(file_name + "." + roi->U_get_name(), file_type);
     }
     U_save_spectra(file_name, file_type);
@@ -2205,7 +2230,7 @@ void UC_wai::U_calculating_spectra_1(QVector<double> &x1, QVector<double> &y1, Q
                 data_2 /= (x2[index_2] - x2[index_2 - 1]);
                 data_2 += y2[index_2 - 1];
             } else {
-                data_2 = y1[index_2];
+                data_2 = y2[index_2];
             }
         } else {
            data_2 = 0;
@@ -2303,7 +2328,7 @@ void UC_wai::U_calculating_spectra_2(QVector<double> &x1, QVector<double> &y1, Q
                 data_2 /= (x2[index_2] - x2[index_2 - 1]);
                 data_2 += y2[index_2 - 1];
             } else {
-                data_2 = y1[index_2];
+                data_2 = y2[index_2];
             }
         } else {
            data_2 = 0;
@@ -2389,7 +2414,7 @@ void UC_wai::U_calculating_spectra_3(QVector<double> &x1, QVector<double> &y1, Q
                 data_2 /= (x2[index_2] - x2[index_2 - 1]);
                 data_2 += y2[index_2 - 1];
             } else {
-                data_2 = y1[index_2];
+                data_2 = y2[index_2];
             }
         } else {
            data_2 = 0;
@@ -2474,7 +2499,7 @@ void UC_wai::U_calculating_spectra_4(QVector<double> &x1, QVector<double> &y1, Q
                 data_2 /= (x2[index_2] - x2[index_2 - 1]);
                 data_2 += y2[index_2 - 1];
             } else {
-                data_2 = y1[index_2];
+                data_2 = y2[index_2];
             }
         } else {
            data_2 = 0;
@@ -3060,39 +3085,77 @@ void UC_wai::U_mouse_move_spectra(QMouseEvent * event) {
     int n = spectra_qcp->graphCount();
     if (n == 0) return;
 
-    str = "%1 = %2\n";
+    if (!energy_spectra) {
 
-    double x, y;
-    spectra_qcp->graph(0)->pixelsToCoords(event->pos().x(), event->pos().y(), x, y);
-    str = str.arg(spectra_qcp->xAxis->label()).arg(static_cast<int>(x + 0.5));
+        str = "%1 = %2\n";
 
-    for (int i = 0; i < n; i++) {
         double x, y;
-        spectra_qcp->graph(i)->pixelsToCoords(event->pos().x(), event->pos().y(), x, y);
-        bool result;
-        QCPRange x_range = spectra_qcp->graph(i)->getKeyRange(result);
-        if (result == false) continue;
-        if (x_range.contains(x)) {
-            QCPGraphDataContainer::const_iterator it0 = spectra_qcp->graph(i)->data()->findBegin(x);
-            QCPGraphDataContainer::const_iterator it1 = it0 + 1;
-            double x0 = it0->key;
-            double x1 = it1->key;
-            double half = (x0 + x1) / 2;
-            if (x < half) {
-                y = it0->value;
-            } else {
-                if (x1 > x_range.upper) {
+        spectra_qcp->graph(0)->pixelsToCoords(event->pos().x(), event->pos().y(), x, y);
+        str = str.arg(spectra_qcp->xAxis->label()).arg(static_cast<int>(x + 0.5));
+
+        for (int i = 0; i < n; i++) {
+            double x, y;
+            spectra_qcp->graph(i)->pixelsToCoords(event->pos().x(), event->pos().y(), x, y);
+            bool result;
+            QCPRange x_range = spectra_qcp->graph(i)->getKeyRange(result);
+            if (result == false) continue;
+            if (x_range.contains(x)) {
+                QCPGraphDataContainer::const_iterator it0 = spectra_qcp->graph(i)->data()->findBegin(x);
+                QCPGraphDataContainer::const_iterator it1 = it0 + 1;
+                double x0 = it0->key;
+                double x1 = it1->key;
+                double half = (x0 + x1) / 2;
+                if (x < half) {
                     y = it0->value;
                 } else {
-                    y = it1->value;
-                }
+                    if (x1 > x_range.upper) {
+                        y = it0->value;
+                    } else {
+                        y = it1->value;
+                    }
 
+                }
+                str += QString("%1 = %2\n").arg(spectra_qcp->graph(i)->name()).arg(y);
+            } else {
+                str += QString("%1 = %2\n").arg(spectra_qcp->graph(i)->name()).arg(0);
             }
-            str += QString("%1 = %2\n").arg(spectra_qcp->graph(i)->name()).arg(y);
-        } else {
-            str += QString("%1 = %2\n").arg(spectra_qcp->graph(i)->name()).arg(0);
         }
-    };
+
+    } else {
+
+        for (int i = 0; i < n; i++) {
+            double x, y;
+            spectra_qcp->graph(i)->pixelsToCoords(event->pos().x(), event->pos().y(), x, y);
+            bool result;
+            QCPRange x_range = spectra_qcp->graph(i)->getKeyRange(result);
+            if (result == false) continue;
+
+            if (x_range.contains(x)) {
+                QCPGraphDataContainer::const_iterator it0 = spectra_qcp->graph(i)->data()->findBegin(x);
+                QCPGraphDataContainer::const_iterator it1 = it0 + 1;
+                double x0 = it0->key;
+                double x1 = it1->key;
+                double half = (x0 + x1) / 2;
+                if (x < half) {
+                    x = it0->key;
+                    y = it0->value;
+                } else {
+                    x = it1->key;
+                    y = it1->value;
+                    if (x1 > x_range.upper) {
+                        x = it0->key;
+                        y = it0->value;
+                    } else {
+                        x = it1->key;
+                        y = it1->value;
+                    }
+                }
+                str += QString("%1: energy bin value = %2; count = %3.\n").arg(spectra_qcp->graph(i)->name()).arg(x).arg(y);
+            } else {
+                str += QString("%1: energy bin value = %2; count = %3.\n").arg(spectra_qcp->graph(i)->name()).arg(x).arg(0);
+            }
+        }
+    }
     US_mouse_data(str);
     QToolTip::showText(event->globalPos(), str, spectra_qcp);
 }
@@ -3152,7 +3215,7 @@ void UC_wai::U_mouse_move_distribution(QMouseEvent * event) {
         } else {
             str += QString("%1: bin value = %2; count = %3.\n").arg(distribution_qcp->graph(i)->name()).arg(x).arg(0);
         }
-    };
+    }
     US_mouse_data(str);
     QToolTip::showText(event->globalPos(), str, distribution_qcp);
 }
@@ -3341,17 +3404,241 @@ void UC_wai::U_mouse_select_spectra_2d(QMouseEvent * event) {
 }
 //
 void UC_wai::U_renew_scans(QList<UC_data_container> * list_scans_ptr, int active_index) {
-    list_model->clear();
-    const int n_scans = list_scans_ptr->size();
-    if (n_scans == 0) return;
-    for (int i = 0; i < n_scans; i++) {
-        list_model->appendRow(new QStandardItem((*list_scans_ptr)[i].U_get_name()));
+    disconnect(table_widget, SIGNAL(cellChanged(int, int)), this, SLOT(U_table_widget_changed()));
+    const int n = list_scans_ptr->size();
+    const int row_count = table_widget->rowCount();
+
+    QStringList name_list;
+    name_list << "disable";
+    for (int i = 0; i < n; i++) {
+        name_list << (*list_scans_ptr)[i].U_get_name();
     }
-    if (active_index != -1) {
-        list_model->item(active_index)->setBackground(QBrush(Qt::green));
-        int ff = (*list_scans_ptr)[active_index].U_get_settings().ff_int;
-        if (ff != -1) list_model->item(ff)->setBackground(QBrush(Qt::red));
-        int df = (*list_scans_ptr)[active_index].U_get_settings().df_int;
-        if (df != -1) list_model->item(df)->setBackground(QBrush(Qt::blue));
+
+    for (int i = 0; i < row_count; i++) {
+        if (i >= n) {
+            table_widget->removeRow(i);
+            continue;
+        }
+
+        UC_data_container::UTStr_data_container_settings settings = (*list_scans_ptr)[i].U_get_settings();
+
+        table_widget->item(i, 0)->setText(settings.name);
+        table_widget->item(i, 1)->setText(settings.path);
+
+        QComboBox * combo_box_ff = reinterpret_cast<QComboBox *>(table_widget->cellWidget(i, 2));
+        disconnect(combo_box_ff, SIGNAL(currentIndexChanged(int)), this, SLOT(U_table_widget_changed()));
+        combo_box_ff->clear();
+        combo_box_ff->addItems(name_list);
+        combo_box_ff->setCurrentIndex(settings.ff_int + 1);
+        connect(combo_box_ff, SIGNAL(currentIndexChanged(int)), this, SLOT(U_table_widget_changed()));
+
+        QComboBox * combo_box_df = reinterpret_cast<QComboBox *>(table_widget->cellWidget(i, 3));
+        disconnect(combo_box_df, SIGNAL(currentIndexChanged(int)), this, SLOT(U_table_widget_changed()));
+        combo_box_df->clear();
+        combo_box_df->addItems(name_list);
+        combo_box_df->setCurrentIndex(settings.df_int + 1);
+        connect(combo_box_df, SIGNAL(currentIndexChanged(int)), this, SLOT(U_table_widget_changed()));
+
+        QSpinBox * spin_box_count = reinterpret_cast<QSpinBox *>(table_widget->cellWidget(i, 4));
+        disconnect(spin_box_count, SIGNAL(valueChanged(int)), this, SLOT(U_table_widget_changed()));
+        spin_box_count->setValue(settings.count);
+        connect(spin_box_count, SIGNAL(valueChanged(int)), this, SLOT(U_table_widget_changed()));
+
+        QDoubleSpinBox * spin_box_time = reinterpret_cast<QDoubleSpinBox *>(table_widget->cellWidget(i, 5));
+        disconnect(spin_box_time, SIGNAL(valueChanged(double)), this, SLOT(U_table_widget_changed()));
+        spin_box_time->setValue(settings.time);
+        connect(spin_box_time, SIGNAL(valueChanged(double)), this, SLOT(U_table_widget_changed()));
+
+        if (settings.both_counters) {
+            table_widget->item(i, 6)->setText("two counters");
+        } else {
+            table_widget->item(i, 6)->setText("one counter");
+        }
+
+        table_widget->item(i, 7)->setText(QString("%1").arg(settings.n_thl));
+
+        QComboBox * combo_box_calibration = reinterpret_cast<QComboBox *>(table_widget->cellWidget(i, 8));
+        disconnect(combo_box_calibration, SIGNAL(currentIndexChanged(int)), this, SLOT(U_table_widget_changed()));
+        if (settings.calibration) {
+            combo_box_calibration->setCurrentIndex(0);
+        } else {
+            combo_box_calibration->setCurrentIndex(1);
+        }
+        connect(combo_box_calibration, SIGNAL(currentIndexChanged(int)), this, SLOT(U_table_widget_changed()));
+
+        QDoubleSpinBox * double_spin_box_energy = reinterpret_cast<QDoubleSpinBox *>(table_widget->cellWidget(i, 9));
+        disconnect(double_spin_box_energy, SIGNAL(valueChanged(double)), this, SLOT(U_table_widget_changed()));
+        double_spin_box_energy->setValue(settings.energy);
+        connect(double_spin_box_energy, SIGNAL(valueChanged(double)), this, SLOT(U_table_widget_changed()));
+
+        QComboBox * combo_box_identification = reinterpret_cast<QComboBox *>(table_widget->cellWidget(i, 10));
+        disconnect(combo_box_identification, SIGNAL(currentIndexChanged(int)), this, SLOT(U_table_widget_changed()));
+        if (settings.sample_of_element) {
+            combo_box_identification->setCurrentIndex(0);
+        } else {
+            combo_box_identification->setCurrentIndex(1);
+        }
+        connect(combo_box_identification, SIGNAL(currentIndexChanged(int)), this, SLOT(U_table_widget_changed()));
+
+        QSpinBox * spin_box_thl = reinterpret_cast<QSpinBox *>(table_widget->cellWidget(i, 11));
+        disconnect(spin_box_thl, SIGNAL(valueChanged(int)), this, SLOT(U_table_widget_changed()));
+        spin_box_thl->setMinimum(settings.thl_min);
+        spin_box_thl->setMaximum(settings.thl_max);
+        spin_box_thl->setValue(settings.thl_sample);
+        connect(spin_box_thl, SIGNAL(valueChanged(int)), this, SLOT(U_table_widget_changed()));
+
+        table_widget->item(i, 1)->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled);
+        table_widget->item(i, 6)->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled);
+        table_widget->item(i, 7)->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled);
     }
+
+    for (int i = row_count; i < n; i++) {
+        table_widget->insertRow(i);
+        UC_data_container::UTStr_data_container_settings settings = (*list_scans_ptr)[i].U_get_settings();
+
+        table_widget->setItem(i, 0, new QTableWidgetItem(settings.name));
+        table_widget->setItem(i, 1, new QTableWidgetItem(settings.path));
+
+        QComboBox * combo_box_ff = new QComboBox(table_widget);
+        combo_box_ff->addItems(name_list);
+        combo_box_ff->setCurrentIndex(settings.ff_int + 1);
+        table_widget->setCellWidget(i, 2, combo_box_ff);
+        connect(combo_box_ff, SIGNAL(currentIndexChanged(int)), this, SLOT(U_table_widget_changed()));
+
+        QComboBox * combo_box_df = new QComboBox(table_widget);
+        combo_box_df->addItems(name_list);
+        combo_box_df->setCurrentIndex(settings.df_int + 1);
+        table_widget->setCellWidget(i, 3, combo_box_df);
+        connect(combo_box_df, SIGNAL(currentIndexChanged(int)), this, SLOT(U_table_widget_changed()));
+
+        QSpinBox * spin_box_count = new QSpinBox(table_widget);
+        spin_box_count->setRange(1, 999999999);
+        spin_box_count->setValue(settings.count);
+        table_widget->setCellWidget(i, 4, spin_box_count);
+        connect(spin_box_count, SIGNAL(valueChanged(int)), this, SLOT(U_table_widget_changed()));
+
+        QDoubleSpinBox * double_spin_box_time = new QDoubleSpinBox(table_widget);
+        double_spin_box_time->setRange(1e-10, 1e10);
+        double_spin_box_time->setValue(settings.time);
+        table_widget->setCellWidget(i, 5, double_spin_box_time);
+        connect(double_spin_box_time, SIGNAL(valueChanged(double)), this, SLOT(U_table_widget_changed()));
+
+        if (settings.both_counters) {
+            table_widget->setItem(i, 6, new QTableWidgetItem("two counters"));
+        } else {
+            table_widget->setItem(i, 6, new QTableWidgetItem("one counter"));
+        }
+
+        table_widget->setItem(i, 7, new QTableWidgetItem(QString("%1").arg(settings.n_thl)));
+
+        QComboBox * combo_box_calibration = new QComboBox(table_widget);
+        combo_box_calibration->addItem("enable");
+        combo_box_calibration->addItem("disable");
+        if (settings.calibration) {
+            combo_box_calibration->setCurrentIndex(0);
+        } else {
+            combo_box_calibration->setCurrentIndex(1);
+        }
+        table_widget->setCellWidget(i, 8, combo_box_calibration);
+        connect(combo_box_calibration, SIGNAL(currentIndexChanged(int)), this, SLOT(U_table_widget_changed()));
+
+        QDoubleSpinBox * double_spin_box_energy = new QDoubleSpinBox(table_widget);
+        double_spin_box_energy->setRange(1, 1000);
+        double_spin_box_energy->setValue(settings.energy);
+        table_widget->setCellWidget(i, 9, double_spin_box_energy);
+        connect(double_spin_box_energy, SIGNAL(valueChanged(double)), this, SLOT(U_table_widget_changed()));
+
+        QComboBox * combo_box_identification = new QComboBox(table_widget);
+        combo_box_identification->addItem("enable");
+        combo_box_identification->addItem("disable");
+        if (settings.sample_of_element) {
+            combo_box_identification->setCurrentIndex(0);
+        } else {
+            combo_box_identification->setCurrentIndex(1);
+        }
+        table_widget->setCellWidget(i, 10, combo_box_identification);
+        connect(combo_box_identification, SIGNAL(currentIndexChanged(int)), this, SLOT(U_table_widget_changed()));
+
+        QSpinBox * spin_box_thl = new QSpinBox(table_widget);
+        spin_box_thl->setRange(settings.thl_min, settings.thl_max);
+        spin_box_thl->setValue(settings.thl_sample);
+        table_widget->setCellWidget(i, 11, spin_box_thl);
+        connect(spin_box_thl, SIGNAL(valueChanged(int)), this, SLOT(U_table_widget_changed()));
+
+        QPushButton * push_button_active = new QPushButton(table_widget);
+        push_button_active->setText("Active");
+        table_widget->setCellWidget(i, 12, push_button_active);
+        connect(push_button_active, SIGNAL(clicked()), this, SLOT(U_table_widget_active()));
+
+        QPushButton * push_button_delete = new QPushButton(table_widget);
+        push_button_delete->setText("Delete");
+        table_widget->setCellWidget(i, 13, push_button_delete);
+        connect(push_button_delete, SIGNAL(clicked()), this, SLOT(U_table_widget_delete()));
+
+        table_widget->item(i, 1)->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled);
+        table_widget->item(i, 6)->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled);
+        table_widget->item(i, 7)->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled);
+    }
+
+    if (active_index == -1) return;
+    if (active_index < table_widget->rowCount()) {
+        for (int i = 0; i < table_widget->rowCount(); i++) {
+            table_widget->item(i, 0)->setBackground(QBrush(Qt::white));
+        }
+        table_widget->item(active_index, 0)->setBackground(QBrush(Qt::green));
+    }
+
+    connect(table_widget, SIGNAL(cellChanged(int, int)), this, SLOT(U_table_widget_changed()));
+    table_widget->resizeColumnsToContents();
+}
+
+void UC_wai::U_add_scan(UC_data_container::UTStr_data_container_settings settings) {
+}
+
+void UC_wai::U_table_widget_changed() {
+    int row = table_widget->currentRow();
+    if (row == -1) return;
+    UC_data_container::UTStr_data_container_settings settings;
+    settings.name = table_widget->item(row, 0)->text();
+    QComboBox * combo_box_ff = reinterpret_cast<QComboBox *>(table_widget->cellWidget(row, 2));
+    settings.ff_int = combo_box_ff->currentIndex() - 1;
+    QComboBox * combo_box_df = reinterpret_cast<QComboBox *>(table_widget->cellWidget(row, 3));
+    settings.df_int = combo_box_df->currentIndex() - 1;
+    if (settings.ff_int == -2) return;
+    if (settings.df_int == -2) return;
+    QSpinBox * spin_box_count = reinterpret_cast<QSpinBox *>(table_widget->cellWidget(row, 4));
+    settings.count = spin_box_count->value();
+    settings.time = reinterpret_cast<QDoubleSpinBox*>(table_widget->cellWidget(row, 5))->value();
+    int calibration = reinterpret_cast<QComboBox*>(table_widget->cellWidget(row, 8))->currentIndex();
+    if (calibration == 0) {
+        settings.calibration = true;
+    } else {
+        settings.calibration = false;
+    }
+    settings.energy = reinterpret_cast<QDoubleSpinBox*>(table_widget->cellWidget(row, 9))->value();
+    int identification = reinterpret_cast<QComboBox*>(table_widget->cellWidget(row, 10))->currentIndex();
+    if (identification == 0) {
+        settings.sample_of_element = true;
+    } else {
+        settings.sample_of_element = false;
+    }
+    settings.thl_sample = reinterpret_cast<QSpinBox*>(table_widget->cellWidget(row, 11))->value();
+    emit US_set_settings(row, &settings);
+}
+
+void UC_wai::U_table_widget_active() {
+    int row = table_widget->currentRow();
+    if (row == -1) return;
+    for (int i = 0; i < table_widget->rowCount(); i++) {
+        table_widget->item(i, 0)->setBackground(QBrush(Qt::white));
+    }
+    table_widget->item(row, 0)->setBackground(QBrush(Qt::green));
+    emit US_set_scan(row);
+}
+
+void UC_wai::U_table_widget_delete() {
+    int row = table_widget->currentRow();
+    if (row == -1) return;
+    //table_widget->removeRow(row);
+    emit US_delete_scan(row);
 }

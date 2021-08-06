@@ -355,7 +355,7 @@ public slots:
     void U_generate_frame_distribution(int n_bins, double min, double max, int thl_index);
     void U_generate_calibration(int chip);
     void U_generate_calibration();
-    void U_generate_spectra_2d(int thl_index_min, int thl_index_max);
+    void U_generate_spectra_2d();
     void U_generate_spectra_2d(double energy_min, double energy_max);
     void U_generate_id_roi();
     void U_generate_additional_data();
@@ -375,6 +375,7 @@ public slots:
     void U_set_rebin(int rebin_x, int rebin_y, int rebin_thl);
     void U_set_id_thresholds(int thl_id_1, int thl_id_2, int thl_id_3, int thl_id_4);
     void U_set_threshold_range(int thl_index_min, int thl_index_max);
+    void U_set_energy_range(double energy_min, double energy_max);
     //
     void U_set_using_calibraion(bool enable);
     void U_set_threshold_level(double level);
