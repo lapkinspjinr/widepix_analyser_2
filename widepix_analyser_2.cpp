@@ -1345,3 +1345,8 @@ void widepix_analyser_2::on_doubleSpinBox_21_valueChanged(double arg1)
         ui->doubleSpinBox_20->setValue(arg1);
     }
 }
+
+void widepix_analyser_2::on_pushButton_85_clicked()
+{
+    wai->U_spectra_2d_normalize();
+}

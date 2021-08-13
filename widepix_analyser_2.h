@@ -299,6 +299,8 @@ private slots:
 
     void on_doubleSpinBox_21_valueChanged(double arg1);
 
+    void on_pushButton_85_clicked();
+
 private:
     Ui::widepix_analyser_2 *ui;
 };

@@ -81,15 +81,73 @@ QVector<double> U_vector_minus(QVector<double> y) {
     return y_out;
 }
 
-QVector<double> U_vector_divide(QVector<double> x, QVector<double> y) {
-    QVector<double> y_out;
-    int size = y.size();
-    if (x.size() < size) size = x.size();
-    for (int i = 0; i < size; i++) {
-        if (y[i] < 1e-10) y_out << 0;
-            else y_out << x[i] / y[i];
+void U_vector_divide(QVector<double> &x1, QVector<double> &y1, QVector<double> &x2, QVector<double> &y2) {
+    QVector<double> x, y;
+    int n_1 = x1.size();
+    int n_2 = x2.size();
+    x << x1;
+    x << x2;
+    int n = x.size();
+    double z;
+    for (int i = 0; i < n - 1; i++) {
+        for (int j = i + 1; j < n; j++) {
+            if (x[i] > x[j]) {
+                z = x[i];
+                x[i] = x[j];
+                x[j] = z;
+            }
+        }
     }
-    return y_out;
+    for (int i = 0; i < n - 1; i++) {
+        if (qAbs(x[i] - x[i + 1]) < 1e-10) {
+            x.remove(i);
+            i--;
+            n--;
+        }
+    }
+    for (int i = 0; i < n; i++) {
+        double thl = x[i];
+        double data_1 = 0;
+        if ((thl >= x1[0]) && (thl <= x1[n_1 - 1])) {
+            int index_1 = x1.indexOf(thl);
+            if (index_1 == -1) {
+                index_1 = 0;
+                while (x1[index_1] < thl) {
+                    index_1++;
+                }
+                data_1 = (y1[index_1] - y1[index_1 - 1]) * (thl - x1[index_1 - 1]);
+                data_1 /= (x1[index_1] - x1[index_1 - 1]);
+                data_1 += y1[index_1 - 1];
+            } else {
+                data_1 = y1[index_1];
+            }
+        } else {
+            data_1 = 0;
+        }
+        double data_2;
+        if ((thl >= x2[0]) && (thl <= x2[n_2 - 1])) {
+            int index_2 = x2.indexOf(thl);
+            if (index_2 == -1) {
+                index_2 = 0;
+                while (x2[index_2] < thl) {
+                    index_2++;
+                }
+                data_2 = (y2[index_2] - y2[index_2 - 1]) * (thl - x2[index_2 - 1]);
+                data_2 /= (x2[index_2] - x2[index_2 - 1]);
+                data_2 += y2[index_2 - 1];
+            } else {
+                data_2 = y2[index_2];
+            }
+        } else {
+           data_2 = 0;
+        }
+        double data;
+        if (qAbs(data_2) < 1e-10) data = 0;
+            else data = data_1 / data_2;
+        y << data;
+    }
+    x1 = x;
+    y1 = y;
 }
 
 QVector<double> U_vector_log(QVector<double> x) {

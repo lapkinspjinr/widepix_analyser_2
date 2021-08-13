@@ -213,8 +213,6 @@ public:
     //
     void U_enable_ff_df();
     //
-//    void U_add_thl(QVector<int> thl_vector);
-//    void U_sort_thl_vector();
     //
     double U_get_data_rebin(UC_data_container * scan, int thl_index, int x, int y, int cnt);
     double U_get_data_rebin_scaled(UC_data_container * scan, int thl_index, int x, int y, int cnt);
@@ -255,7 +253,7 @@ public:
     int U_get_pixel_data_23(int thl_index, int x, int y); //UTE_PT_cnt1_act
     int U_get_pixel_data_24(int thl_index, int x, int y); //UTE_PT_cnt0_act
     int U_get_pixel_data_25(int thl_index, int x, int y); //UTE_PT_cnt1_rejected
-    int U_get_pixel_data_26(int thl_index, int x, int y); //UTE_PT_diff_cnt1_rejected
+    double U_get_pixel_data_26(int thl_index, int x, int y); //UTE_PT_diff_cnt1_rejected
     //
     double U_get_pixel_data_27(int thl_index, int x, int y); //UTE_PT_cnt1ffc_div_cnt0ffc
     //
@@ -283,7 +281,8 @@ public:
     QVector<double> U_calculating_samples_value(UC_data_container * scan, QVector<int> thl_samples);
     void U_id_roi_2();
     //
-    void U_calculating_xmu(UC_data_container * scan, int i, int j, int rebin_x, int rebin_y, int rebin_thl);
+    void U_generate_additional_data();
+    void U_calculating_xmu(int x, int y);
     void U_calculating_id(UC_data_container * scan, QList<UC_data_container *> id_samples);
 
 signals:
@@ -358,8 +357,9 @@ public slots:
     void U_generate_spectra_2d();
     void U_generate_spectra_2d(double energy_min, double energy_max);
     void U_generate_id_roi();
-    void U_generate_additional_data();
-    void U_generate_id_data();
+
+//    void U_generate_id_data();
+    void U_generate_id_frame();
     void U_generate_id_frame(int element_index);
     void U_generate_range(int thl_index);
     void U_generate_range();

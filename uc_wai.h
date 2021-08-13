@@ -219,6 +219,7 @@ public:
     //
     void U_resize_spectra_2d();
     void U_rescale_spectra_2d();
+    void U_spectra_2d_normalize();
     ///////////////////////////////////////////////////////////////////
     void U_save_spectra_txt(QString file_name);
     void U_save_spectra_root(QString file_name);
@@ -251,6 +252,7 @@ public:
     void U_save_spectra_2d_root(QString file_name);
     void U_save_spectra_2d(QString file_name, UTE_file_type file_type);
     void U_automatic_save_spectra_2d(QString file_name, UTE_file_type file_type, UStr_spectra_2d_settings settings);
+
     //
     void U_save_id_frame_txt(QString file_name);
     void U_save_id_frame(QString file_name, UTE_file_type file_type);

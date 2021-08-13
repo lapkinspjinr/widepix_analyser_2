@@ -208,7 +208,7 @@ int UC_data_container::U_get_thl_sample() {
 void UC_data_container::U_create_data_additional() {
     if (data_additional_using) return;
     data_additional = new QHash<int, UTStr_frame_double>();
-    for (int thl = settings.thl_min; thl <= settings.thl_max; thl++) {
+    for (int thl = 0; thl <= settings.n_thl; thl++) {
         UTStr_frame_double * frame = new UTStr_frame_double;
         for (int y = 0; y < 256; y++) {
             for (int x = 0; x < (15 * 256); x++) {
@@ -225,6 +225,7 @@ void UC_data_container::U_set_data_additional(int thl, int x, int y, double data
 }
 
 double UC_data_container::U_get_data_additional(int thl, int x, int y) {
+    if (!data_additional_using) return 0;
     if (!(data_additional->contains(thl))) return 0;
     return (*data_additional)[thl].pixel_double[x][y];
 }

@@ -21,7 +21,7 @@
        <enum>QTabWidget::West</enum>
       </property>
       <property name="currentIndex">
-       <number>0</number>
+       <number>7</number>
       </property>
       <widget class="QWidget" name="tab_2">
        <attribute name="title">
@@ -2199,6 +2199,13 @@
              <widget class="QPushButton" name="pushButton_80">
               <property name="text">
                <string>Load txt</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="pushButton_85">
+              <property name="text">
+               <string>Normalize</string>
               </property>
              </widget>
             </item>
