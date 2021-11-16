@@ -233,9 +233,8 @@ public:
     double U_get_frame_data_10(QVector<double> data); //UTE_FT_max_density
     double U_get_frame_data_11(QVector<double> data); //UTE_FT_variance
 ////////////////////////////////////////////////////////////////////////////////////
-    QVector<double> U_calculating_samples_value(UC_data_container * scan, QVector<int> thl_samples);
-   //
-    void U_calculating_xmu(int x, int y);
+    void U_set_data_1file(UC_data_container::UTStr_data_container_settings * settings_ptr, QStringList file_names);
+    void U_set_data_2file(UC_data_container::UTStr_data_container_settings * settings_ptr, QStringList file_names);
 
 signals:
     void US_spectra_data(double x, double y);

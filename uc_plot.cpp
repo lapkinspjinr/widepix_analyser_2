@@ -1171,65 +1171,12 @@ double UC_plot::U_get_frame_data_11(QVector<double> data) { //UTE_FT_variance
     return std_dev / (cnt - 1);
 }
 
-
-////////////////////////////!!!!!!!!!!SLOTS!!!!!!!!!!!///////////////////////////////////////////////////////////////////////////
-
-void UC_plot::U_set_data(UC_data_container::UTStr_data_container_settings * settings_ptr) {
-    //UC_data_container::UTStr_data_container_settings settings = * settings_ptr;
-//    QString path = settings.path;
-    QString path = settings_ptr->path;
-    QDir dir(path);
-    QStringList file_names = dir.entryList(QDir::Files, QDir::Name);
-
+void UC_plot::U_set_data_1file(UC_data_container::UTStr_data_container_settings * settings_ptr, QStringList file_names) {
+    UC_data_container::UTStr_data_container_settings settings = * settings_ptr;
     QString str;
-    QString name;
 
-    int n = file_names.size();
-
-    int i = 0;
-    while (i < n) {
-        name = file_names[i];
-        str = name.right(4);
-        if (str == ".pmf") {
-            str = name.right(8);
-            if (str == "THL0.pmf") {
-                file_names.removeAt(i);
-                n--;
-                continue;
-            }
-            if (str == "THL1.pmf") {
-                file_names.removeAt(i);
-                n--;
-                continue;
-            }
-            i++;
-        } else {
-            file_names.removeAt(i);
-            n--;
-        }
-    }
-
-    if (n == 0) {
-        return;
-    }
-
-    if (n != 0) {
-//        settings.thl_min = file_names[0].left(3).toInt();
-//        settings.thl_max = file_names[file_names.size() - 1].left(3).toInt();
-        settings_ptr->thl_min = file_names[0].left(3).toInt();
-        settings_ptr->thl_max = file_names[file_names.size() - 1].left(3).toInt();
-    }
-
-//    settings.n_thl = file_names.size();
-//    U_set_total_progress_bar(settings.n_thl);
-//    UC_data_container * data_container;
-//    data_container = new UC_data_container(settings);
-//    emit US_n_files(settings.n_thl);
-    settings_ptr->n_thl = file_names.size();
-    U_set_total_progress_bar(settings_ptr->n_thl);
     UC_data_container * data_container;
-    data_container = new UC_data_container(*settings_ptr);
-    emit US_n_files(settings_ptr->n_thl);
+    data_container = new UC_data_container(settings);
 
     int adr_cnt0 = 1;
     int adr_cnt1 = 0;
@@ -1253,7 +1200,7 @@ void UC_plot::U_set_data(UC_data_container::UTStr_data_container_settings * sett
 
         str = file_names[i];
         emit US_file_found(str);
-        file.setFileName(path + "/" + str);
+        file.setFileName(settings.path + "/" + str);
         file.open(QFile::ReadOnly);
         txt_str.setDevice(&file);
         thl = str.left(3).toInt();
@@ -1287,10 +1234,99 @@ void UC_plot::U_set_data(UC_data_container::UTStr_data_container_settings * sett
         return;
     }
 
-    if (settings_ptr->both_counters) {
-        data_container->U_calculate_mean();
+    data_container->U_set_thl_vector(thl_vector);
+    scans_list << *data_container;
+    if (scan_enable == false) {
+        scan_index = scans_list.length() - 1;
+        scan_enable = true;
+        U_enable_ff_df();
+        this->thl_vector = &thl_vector;
+        thl_index_min = 0;
+        thl_index_max = thl_vector.size() - 1;
+        n_thl = thl_vector.size();
+        emit US_thl_vector(thl_vector);
+    }
+    U_set_scan(scan_index);
+}
+
+void UC_plot::U_set_data_2file(UC_data_container::UTStr_data_container_settings * settings_ptr, QStringList file_names) {
+    UC_data_container::UTStr_data_container_settings settings = * settings_ptr;
+    QString str;
+
+    UC_data_container * data_container;
+    data_container = new UC_data_container(settings);
+
+    int adr_cnt0 = 0;
+    int adr_cnt1 = 1;
+    if (!settings_ptr->both_counters) {
+        adr_cnt0 = 1;
+        adr_cnt1 = 0;
     }
 
+    QFile file;
+    QTextStream txt_str;
+    int cnt0 = 0;
+    int cnt1 = 0;
+    int thl = 0;
+    qulonglong pixel_data = 0;
+    UC_data_container::UTStr_frame frame_0;
+    UC_data_container::UTStr_frame frame_1;
+    QVector<int> thl_vector;
+
+    int thl_index = 0;
+    for (int i = 0; i < file_names.size(); i += 2) {
+
+        str = file_names[i];
+        emit US_file_found(str);
+        file.setFileName(settings.path + "/" + str);
+        file.open(QFile::ReadOnly);
+        txt_str.setDevice(&file);
+        thl = str.left(3).toInt();
+        for (int y = 0; y < 256; y++) {
+            for (int x = 0; x < (15 * 256); x++) {
+                txt_str >> pixel_data;
+                cnt0 = static_cast<int>(pixel_data);
+                frame_0.pixel[x][y] = cnt0;
+                if (stop) break;
+            }
+        }
+        file.close();
+        data_container->U_set_data(thl_index, frame_0, adr_cnt0);
+
+        str = file_names[i + 1];
+        emit US_file_found(str);
+        file.setFileName(settings.path + "/" + str);
+        file.open(QFile::ReadOnly);
+        txt_str.setDevice(&file);
+
+        if (settings_ptr->both_counters) {
+            for (int y = 0; y < 256; y++) {
+                for (int x = 0; x < (15 * 256); x++) {
+                    txt_str >> pixel_data;
+                    cnt1 = static_cast<int>(pixel_data);
+                    frame_1.pixel[x][y] = cnt1;
+                    if (stop) break;
+                }
+                if (stop) break;
+            }
+            file.close();
+            data_container->U_set_data(thl_index, frame_1, adr_cnt1);
+        }
+
+        thl_vector << thl;
+        emit US_new_thl(thl);
+        thl_index++;
+
+        if (stop) break;
+        U_renew_progress_bar();
+    }
+
+    if (stop) {
+        emit US_list_scans(&scans_list, scan_index);
+        emit US_ready();
+        stop = false;
+        return;
+    }
 
     data_container->U_set_thl_vector(thl_vector);
     scans_list << *data_container;
@@ -1305,9 +1341,198 @@ void UC_plot::U_set_data(UC_data_container::UTStr_data_container_settings * sett
         emit US_thl_vector(thl_vector);
     }
     U_set_scan(scan_index);
+}
+
+
+////////////////////////////!!!!!!!!!!SLOTS!!!!!!!!!!!///////////////////////////////////////////////////////////////////////////
+
+void UC_plot::U_set_data(UC_data_container::UTStr_data_container_settings * settings_ptr) {
+    UC_data_container::UTStr_data_container_settings settings = * settings_ptr;
+    QString path = settings.path;
+    QDir dir(path);
+    QStringList file_names = dir.entryList(QDir::Files, QDir::Name);
+    bool file1 = true;
+
+    QString str;
+    QString name;
+
+    int n = file_names.size();
+    QRegExp rx("[012345][0123456789][0123456789].pmf");
+    rx.setPatternSyntax(QRegExp::Wildcard);
+    int i = 0;
+    while (i < n) {
+        if (rx.exactMatch(file_names[i])) {
+            i++;
+        } else {
+            file_names.removeAt(i);
+            n--;
+        }
+    }
+
+    if (n == 0) {
+        //return;
+        file1 = false;
+        file_names = dir.entryList(QDir::Files, QDir::Name);
+        n = file_names.size();
+        rx.setPattern("[012345][0123456789][0123456789]_THL[01].pmf");
+        i = 0;
+        while (i < n) {
+            if (rx.exactMatch(file_names[i])) {
+                i++;
+            } else {
+                file_names.removeAt(i);
+                n--;
+            }
+        }
+    }
+
+    if (n != 0) {
+        settings.thl_min = file_names[0].left(3).toInt();
+        settings.thl_max = file_names[file_names.size() - 1].left(3).toInt();
+    }
+
+    settings.n_thl = file_names.size();
+    if (file1) {
+        U_set_total_progress_bar(settings.n_thl);
+    } else {
+        U_set_total_progress_bar(settings.n_thl / 2);
+    }
+    emit US_n_files(settings.n_thl);
+
+    if (file1) {
+        U_set_data_1file(&settings, file_names);
+    } else {
+        U_set_data_2file(&settings, file_names);
+    }
 
     emit US_list_scans(&scans_list, scan_index);
     emit US_ready();
+
+//    UC_data_container::UTStr_data_container_settings settings = * settings_ptr;
+//    QString path = settings.path;
+//    QDir dir(path);
+//    QStringList file_names = dir.entryList(QDir::Files, QDir::Name);
+
+//    QString str;
+//    QString name;
+
+//    int n = file_names.size();
+
+//    int i = 0;
+//    while (i < n) {
+//        name = file_names[i];
+//        str = name.right(4);
+//        if (str == ".pmf") {
+//            str = name.right(8);
+//            if (str == "THL0.pmf") {
+//                file_names.removeAt(i);
+//                n--;
+//                continue;
+//            }
+//            if (str == "THL1.pmf") {
+//                file_names.removeAt(i);
+//                n--;
+//                continue;
+//            }
+//            i++;
+//        } else {
+//            file_names.removeAt(i);
+//            n--;
+//        }
+//    }
+
+//    if (n == 0) {
+//        return;
+//    }
+
+//    if (n != 0) {
+//        settings.thl_min = file_names[0].left(3).toInt();
+//        settings.thl_max = file_names[file_names.size() - 1].left(3).toInt();
+//    }
+
+//    settings.n_thl = file_names.size();
+//    U_set_total_progress_bar(settings.n_thl);
+//    UC_data_container * data_container;
+//    data_container = new UC_data_container(settings);
+//    emit US_n_files(settings.n_thl);
+
+//    int adr_cnt0 = 1;
+//    int adr_cnt1 = 0;
+//    if (!settings_ptr->both_counters) {
+//        adr_cnt0 = 0;
+//        adr_cnt1 = 1;
+//    }
+
+//    QFile file;
+//    QTextStream txt_str;
+//    int cnt0 = 0;
+//    int cnt1 = 0;
+//    int thl = 0;
+//    qulonglong pixel_data = 0;
+//    UC_data_container::UTStr_frame frame_0;
+//    UC_data_container::UTStr_frame frame_1;
+//    QVector<int> thl_vector;
+
+//    int thl_index = 0;
+//    for (int i = 0; i < file_names.size(); i++) {
+
+//        str = file_names[i];
+//        emit US_file_found(str);
+//        file.setFileName(path + "/" + str);
+//        file.open(QFile::ReadOnly);
+//        txt_str.setDevice(&file);
+//        thl = str.left(3).toInt();
+
+//        for (int y = 0; y < 256; y++) {
+//            for (int x = 0; x < (15 * 256); x++) {
+//                txt_str >> pixel_data;
+//                cnt1 = static_cast<int>(pixel_data & 0xffffffff);
+//                cnt0 = static_cast<int>((pixel_data >> 32) & 0xffffffff);
+//                frame_0.pixel[x][y] = cnt0;
+//                frame_1.pixel[x][y] = cnt1;
+//                if (stop) break;
+//            }
+//            if (stop) break;
+//        }
+//        if (stop) break;
+//        data_container->U_set_data(thl_index, frame_0, adr_cnt0);
+//        data_container->U_set_data(thl_index, frame_1, adr_cnt1);
+//        thl_vector << thl;
+//        emit US_new_thl(thl);
+//        thl_index++;
+
+//        file.close();
+//        U_renew_progress_bar();
+//    }
+
+//    if (stop) {
+//        emit US_list_scans(&scans_list, scan_index);
+//        emit US_ready();
+//        stop = false;
+//        return;
+//    }
+
+//    if (settings_ptr->both_counters) {
+//        data_container->U_calculate_mean();
+//    }
+
+
+//    data_container->U_set_thl_vector(thl_vector);
+//    scans_list << *data_container;
+//    if (scan_enable == false) {
+//        scan_index = scans_list.length() - 1;
+//        scan_enable = true;
+//        U_enable_ff_df();
+//        this->thl_vector = &thl_vector;
+//        thl_index_min = 0;
+//        thl_index_max = thl_vector.size() - 1;
+//        n_thl = thl_vector.size();
+//        emit US_thl_vector(thl_vector);
+//    }
+//    U_set_scan(scan_index);
+
+//    emit US_list_scans(&scans_list, scan_index);
+//    emit US_ready();
 }
 
 void UC_plot::U_reset_data() {
