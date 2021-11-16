@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1823</width>
+    <width>1840</width>
     <height>1078</height>
    </rect>
   </property>
@@ -21,7 +21,7 @@
        <enum>QTabWidget::West</enum>
       </property>
       <property name="currentIndex">
-       <number>7</number>
+       <number>0</number>
       </property>
       <widget class="QWidget" name="tab_2">
        <attribute name="title">
@@ -113,63 +113,6 @@
             </item>
             <item>
              <layout class="QHBoxLayout" name="horizontalLayout_41">
-              <item>
-               <widget class="QGroupBox" name="groupBox_51">
-                <property name="maximumSize">
-                 <size>
-                  <width>16777215</width>
-                  <height>70</height>
-                 </size>
-                </property>
-                <property name="title">
-                 <string>Sample for identification</string>
-                </property>
-                <layout class="QHBoxLayout" name="horizontalLayout_40">
-                 <item>
-                  <widget class="QCheckBox" name="checkBox_14">
-                   <property name="text">
-                    <string>enable</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QLabel" name="label_11">
-                   <property name="text">
-                    <string>Element</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QComboBox" name="comboBox_19">
-                   <item>
-                    <property name="text">
-                     <string>In</string>
-                    </property>
-                   </item>
-                   <item>
-                    <property name="text">
-                     <string>Mo</string>
-                    </property>
-                   </item>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QLabel" name="label_14">
-                   <property name="text">
-                    <string>THL</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QSpinBox" name="spinBox_9">
-                   <property name="maximum">
-                    <number>512</number>
-                   </property>
-                  </widget>
-                 </item>
-                </layout>
-               </widget>
-              </item>
               <item>
                <widget class="QGroupBox" name="groupBox_50">
                 <property name="maximumSize">
@@ -443,10 +386,8 @@
            <number>0</number>
           </property>
           <property name="columnCount">
-           <number>14</number>
+           <number>12</number>
           </property>
-          <column/>
-          <column/>
           <column/>
           <column/>
           <column/>
@@ -995,7 +936,7 @@
            <widget class="QGroupBox" name="groupBox_21">
             <property name="maximumSize">
              <size>
-              <width>100</width>
+              <width>125</width>
               <height>70</height>
              </size>
             </property>
@@ -1005,6 +946,12 @@
             <layout class="QVBoxLayout" name="verticalLayout_26">
              <item>
               <widget class="QDoubleSpinBox" name="doubleSpinBox_10">
+               <property name="minimumSize">
+                <size>
+                 <width>100</width>
+                 <height>0</height>
+                </size>
+               </property>
                <property name="decimals">
                 <number>5</number>
                </property>
@@ -1023,7 +970,7 @@
            <widget class="QGroupBox" name="groupBox_20">
             <property name="maximumSize">
              <size>
-              <width>100</width>
+              <width>125</width>
               <height>70</height>
              </size>
             </property>
@@ -1033,6 +980,12 @@
             <layout class="QVBoxLayout" name="verticalLayout_25">
              <item>
               <widget class="QDoubleSpinBox" name="doubleSpinBox_9">
+               <property name="minimumSize">
+                <size>
+                 <width>100</width>
+                 <height>0</height>
+                </size>
+               </property>
                <property name="wrapping">
                 <bool>true</bool>
                </property>
@@ -1579,7 +1532,13 @@
              </widget>
             </item>
             <item>
-             <widget class="QPushButton" name="pushButton_32">
+             <widget class="QPushButton" name="pushButton_17">
+              <property name="minimumSize">
+               <size>
+                <width>161</width>
+                <height>25</height>
+               </size>
+              </property>
               <property name="maximumSize">
                <size>
                 <width>16777215</width>
@@ -1587,7 +1546,7 @@
                </size>
               </property>
               <property name="text">
-               <string>Set range all frames</string>
+               <string>Distribution 1 frame</string>
               </property>
              </widget>
             </item>
@@ -1609,13 +1568,7 @@
           <item>
            <layout class="QVBoxLayout" name="verticalLayout_37">
             <item>
-             <widget class="QPushButton" name="pushButton_17">
-              <property name="minimumSize">
-               <size>
-                <width>161</width>
-                <height>25</height>
-               </size>
-              </property>
+             <widget class="QPushButton" name="pushButton_32">
               <property name="maximumSize">
                <size>
                 <width>16777215</width>
@@ -1623,7 +1576,7 @@
                </size>
               </property>
               <property name="text">
-               <string>Distribution 1 frame</string>
+               <string>Set range all frames</string>
               </property>
              </widget>
             </item>
@@ -1734,6 +1687,11 @@
               <item>
                <property name="text">
                 <string>bmp</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>root</string>
                </property>
               </item>
              </widget>
@@ -2187,6 +2145,11 @@
               <item>
                <property name="text">
                 <string>bmp</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>root</string>
                </property>
               </item>
              </widget>
@@ -2796,275 +2759,6 @@
         </item>
        </layout>
       </widget>
-      <widget class="QWidget" name="tab_7">
-       <attribute name="title">
-        <string>Identification</string>
-       </attribute>
-       <widget class="QPushButton" name="pushButton_55">
-        <property name="geometry">
-         <rect>
-          <x>160</x>
-          <y>440</y>
-          <width>131</width>
-          <height>25</height>
-         </rect>
-        </property>
-        <property name="text">
-         <string>generate id for RoI</string>
-        </property>
-       </widget>
-       <widget class="QPushButton" name="pushButton_56">
-        <property name="geometry">
-         <rect>
-          <x>340</x>
-          <y>440</y>
-          <width>101</width>
-          <height>25</height>
-         </rect>
-        </property>
-        <property name="text">
-         <string>reset</string>
-        </property>
-       </widget>
-       <widget class="QCustomPlot" name="widget_7" native="true">
-        <property name="geometry">
-         <rect>
-          <x>600</x>
-          <y>30</y>
-          <width>1111</width>
-          <height>401</height>
-         </rect>
-        </property>
-        <property name="minimumSize">
-         <size>
-          <width>0</width>
-          <height>400</height>
-         </size>
-        </property>
-       </widget>
-       <widget class="QPushButton" name="pushButton_51">
-        <property name="geometry">
-         <rect>
-          <x>700</x>
-          <y>490</y>
-          <width>171</width>
-          <height>25</height>
-         </rect>
-        </property>
-        <property name="text">
-         <string>generate</string>
-        </property>
-       </widget>
-       <widget class="QPushButton" name="pushButton_63">
-        <property name="geometry">
-         <rect>
-          <x>900</x>
-          <y>500</y>
-          <width>89</width>
-          <height>25</height>
-         </rect>
-        </property>
-        <property name="text">
-         <string>show frame</string>
-        </property>
-       </widget>
-       <widget class="QPushButton" name="pushButton_64">
-        <property name="geometry">
-         <rect>
-          <x>1240</x>
-          <y>500</y>
-          <width>89</width>
-          <height>25</height>
-         </rect>
-        </property>
-        <property name="text">
-         <string>identificate</string>
-        </property>
-       </widget>
-       <widget class="QLabel" name="label_12">
-        <property name="geometry">
-         <rect>
-          <x>1200</x>
-          <y>460</y>
-          <width>67</width>
-          <height>17</height>
-         </rect>
-        </property>
-        <property name="text">
-         <string>TextLabel</string>
-        </property>
-       </widget>
-       <widget class="QLabel" name="label_13">
-        <property name="geometry">
-         <rect>
-          <x>1280</x>
-          <y>460</y>
-          <width>67</width>
-          <height>17</height>
-         </rect>
-        </property>
-        <property name="text">
-         <string>TextLabel</string>
-        </property>
-       </widget>
-       <widget class="QComboBox" name="comboBox_24">
-        <property name="geometry">
-         <rect>
-          <x>920</x>
-          <y>460</y>
-          <width>51</width>
-          <height>25</height>
-         </rect>
-        </property>
-        <item>
-         <property name="text">
-          <string>In</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>Mo</string>
-         </property>
-        </item>
-       </widget>
-       <widget class="QTableView" name="tableView_2">
-        <property name="geometry">
-         <rect>
-          <x>10</x>
-          <y>20</y>
-          <width>571</width>
-          <height>361</height>
-         </rect>
-        </property>
-       </widget>
-       <widget class="QGroupBox" name="groupBox_29">
-        <property name="geometry">
-         <rect>
-          <x>20</x>
-          <y>480</y>
-          <width>151</width>
-          <height>69</height>
-         </rect>
-        </property>
-        <property name="title">
-         <string>Identification type</string>
-        </property>
-        <layout class="QVBoxLayout" name="verticalLayout_46">
-         <item>
-          <widget class="QComboBox" name="comboBox_4">
-           <item>
-            <property name="text">
-             <string>GA method</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>Linear combination method</string>
-            </property>
-           </item>
-          </widget>
-         </item>
-        </layout>
-       </widget>
-       <widget class="QLineEdit" name="lineEdit_2">
-        <property name="geometry">
-         <rect>
-          <x>20</x>
-          <y>440</y>
-          <width>113</width>
-          <height>25</height>
-         </rect>
-        </property>
-       </widget>
-       <widget class="QGroupBox" name="groupBox_54">
-        <property name="geometry">
-         <rect>
-          <x>170</x>
-          <y>470</y>
-          <width>396</width>
-          <height>96</height>
-         </rect>
-        </property>
-        <property name="title">
-         <string>window thl</string>
-        </property>
-        <layout class="QHBoxLayout" name="horizontalLayout_12">
-         <item>
-          <layout class="QHBoxLayout" name="horizontalLayout_13">
-           <item>
-            <layout class="QVBoxLayout" name="verticalLayout_47">
-             <item>
-              <widget class="QLabel" name="label_4">
-               <property name="text">
-                <string>first left</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QComboBox" name="comboBox_15"/>
-             </item>
-            </layout>
-           </item>
-           <item>
-            <layout class="QVBoxLayout" name="verticalLayout_49">
-             <item>
-              <widget class="QLabel" name="label_15">
-               <property name="text">
-                <string>first right</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QComboBox" name="comboBox_14"/>
-             </item>
-            </layout>
-           </item>
-           <item>
-            <layout class="QVBoxLayout" name="verticalLayout_50">
-             <item>
-              <widget class="QLabel" name="label_16">
-               <property name="text">
-                <string>second left</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QComboBox" name="comboBox_13"/>
-             </item>
-            </layout>
-           </item>
-           <item>
-            <layout class="QVBoxLayout" name="verticalLayout_51">
-             <item>
-              <widget class="QLabel" name="label_17">
-               <property name="text">
-                <string>second right</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QComboBox" name="comboBox_12"/>
-             </item>
-            </layout>
-           </item>
-          </layout>
-         </item>
-        </layout>
-       </widget>
-       <widget class="QPushButton" name="pushButton_68">
-        <property name="geometry">
-         <rect>
-          <x>700</x>
-          <y>520</y>
-          <width>171</width>
-          <height>25</height>
-         </rect>
-        </property>
-        <property name="text">
-         <string>generate ID</string>
-        </property>
-       </widget>
-      </widget>
      </widget>
     </item>
     <item>
@@ -3181,7 +2875,7 @@
                     </size>
                    </property>
                    <property name="currentIndex">
-                    <number>1</number>
+                    <number>0</number>
                    </property>
                    <item>
                     <property name="text">
@@ -3320,11 +3014,6 @@
                    </item>
                    <item>
                     <property name="text">
-                     <string>additional data</string>
-                    </property>
-                   </item>
-                   <item>
-                    <property name="text">
                      <string>GA request</string>
                     </property>
                    </item>
@@ -3385,63 +3074,6 @@
                 <layout class="QVBoxLayout" name="verticalLayout_57">
                  <item>
                   <widget class="QComboBox" name="comboBox_17"/>
-                 </item>
-                </layout>
-               </widget>
-              </item>
-              <item>
-               <widget class="QGroupBox" name="groupBox_62">
-                <property name="maximumSize">
-                 <size>
-                  <width>221</width>
-                  <height>71</height>
-                 </size>
-                </property>
-                <property name="title">
-                 <string>Rebining</string>
-                </property>
-                <layout class="QHBoxLayout" name="horizontalLayout_54">
-                 <item>
-                  <widget class="QLabel" name="label_18">
-                   <property name="text">
-                    <string>x</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QSpinBox" name="spinBox_3">
-                   <property name="minimum">
-                    <number>1</number>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QLabel" name="label_19">
-                   <property name="text">
-                    <string>y</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QSpinBox" name="spinBox_8">
-                   <property name="minimum">
-                    <number>1</number>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QLabel" name="label_23">
-                   <property name="text">
-                    <string>thl</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QSpinBox" name="spinBox_10">
-                   <property name="minimum">
-                    <number>1</number>
-                   </property>
-                  </widget>
                  </item>
                 </layout>
                </widget>
@@ -3912,7 +3544,7 @@
                     </size>
                    </property>
                    <property name="text">
-                    <string>Set ROI</string>
+                    <string>Set RoI</string>
                    </property>
                   </widget>
                  </item>
@@ -4562,7 +4194,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1823</width>
+     <width>1840</width>
      <height>22</height>
     </rect>
    </property>

@@ -37,7 +37,6 @@ private slots:
     void U_set_roi_range(int x_min, int x_max, int y_min, int y_max);
     void U_set_scans(QList<UC_data_container> * scans_list_ptr, int active_index);
     void U_change_scan_settings(UC_data_container::UTStr_data_container_settings *settings);
-    void U_renew_identification_elements(QList<QString> list);
     void U_new_spectra(QString name);
     void U_add_roi(QString name);
     void U_ready();
@@ -88,8 +87,6 @@ private slots:
     void on_comboBox_2_currentIndexChanged(int index);
 
     void on_comboBox_3_currentIndexChanged(int index);
-
-    void on_comboBox_4_currentIndexChanged(int index);
 
     void on_pushButton_6_clicked();
 
@@ -159,14 +156,6 @@ private slots:
 
     void on_pushButton_41_clicked();
 
-    void on_comboBox_15_currentIndexChanged(const QString &arg1);
-
-    void on_comboBox_14_currentIndexChanged(const QString &arg1);
-
-    void on_comboBox_13_currentIndexChanged(const QString &arg1);
-
-    void on_comboBox_12_currentIndexChanged(const QString &arg1);
-
     void on_radioButton_3_clicked(bool checked);
 
     void on_radioButton_4_clicked(bool checked);
@@ -199,17 +188,11 @@ private slots:
 
     void on_pushButton_57_clicked();
 
-    void on_pushButton_55_clicked();
-
-    void on_pushButton_56_clicked();
-
     void on_pushButton_60_clicked();
 
     void on_checkBox_13_toggled(bool checked);
 
     void on_pushButton_50_clicked();
-
-    void on_pushButton_51_clicked();
 
     void on_pushButton_53_clicked();
 
@@ -217,21 +200,11 @@ private slots:
 
     void on_pushButton_61_clicked();
 
-    void on_pushButton_63_clicked();
-
     void on_pushButton_65_clicked();
 
     void on_pushButton_66_clicked();
 
     void on_listView_clicked(const QModelIndex &index);
-
-    void on_spinBox_3_valueChanged(int arg1);
-
-    void on_spinBox_8_valueChanged(int arg1);
-
-    void on_spinBox_10_valueChanged(int arg1);
-
-    void on_pushButton_68_clicked();
 
     void on_spinBox_12_valueChanged(int arg1);
 

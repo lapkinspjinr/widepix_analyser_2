@@ -47,13 +47,19 @@ QVector<double> U_diff(QVector<double> x, QVector<double> y) {
         double yi2;
         if (i < (n - 2)) yi2 = y[i + 2];
             else yi2 = y[n - 1];
+        double xin2;
+        if (i < 3) xin2 = x[0];
+            else xin2 = x[i - 2];
         double xin1;
         if (i < 1) xin1 = x[0];
             else xin1 = x[i - 1];
         double xi1;
         if (i < (n - 1)) xi1 = x[i + 1];
             else xi1 = x[n - 1];
-        y_out << U_diff(yin2, yin1, yi1, yi2, xin1, xi1);
+        double xi2;
+        if (i < (n - 2)) xi2 = x[i + 2];
+            else xi2 = x[n - 1];
+        y_out << U_diff(yin2, yin1, yi1, yi2, xin2, xin1, xi1, xi2);
     }
 
 
@@ -65,10 +71,10 @@ QVector<double> U_diff(QVector<double> x, QVector<double> y) {
     return y_out;
 }
 
-double U_diff(double yin2, double yin1, double yi1, double yi2, double xin1, double xi1) {
-    double denom = xi1 - xin1;
+double U_diff(double yin2, double yin1, double yi1, double yi2, double xin2, double xin1, double xi1, double xi2) {
+    double denom = xin2 - xi2 + 8 * (xi1 - xin1);
     if (qAbs(denom) < 1e-10) return 0;
-    double result = yin2 - 8 * yin1 + 8 * yi1 - yi2;
+    double result = yin2 - yi2 + 8 * (yi1 - yin1);
     result /= 6 * denom;
     return result;
 }

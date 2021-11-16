@@ -5,8 +5,11 @@
 #include <QHash>
 #include <QVector>
 
-class UC_data_container
+class UC_data_container /*: public QObject*/
 {
+
+//    Q_OBJECT
+
 public :
     typedef struct {
         QString path;
@@ -19,9 +22,6 @@ public :
         bool both_counters;
         bool calibration;
         double energy;
-        bool sample_of_element;
-        int element;
-        int thl_sample;
         int ff_int;
         int df_int;
     } UTStr_data_container_settings;
@@ -38,15 +38,11 @@ private :
 
     UTStr_data_container_settings settings;
 
-    bool data_additional_using;
-
     double data_cnt0_mean[15 * 256][256];      ///< Массив средних значений нулевого счетчика для сканирования с образцом.
 
     QHash<int, UTStr_frame> * data_counter_0;
     QHash<int, UTStr_frame> * data_counter_1;
-    QHash<int, UTStr_frame_double> * data_additional;
 
-    QVector<double> id_data[256 * 15][256];
     QVector<int> thl_vector;
 
 public:
@@ -75,17 +71,6 @@ public:
     int U_get_count();
     bool U_get_calibration();
     double U_get_energy();
-    int U_get_element();
-    bool U_get_sample_of_element();
-    int U_get_thl_sample();
-    //
-    void U_create_data_additional();
-    void U_set_data_additional(int thl, int x, int y, double data);
-    double U_get_data_additional(int thl, int x, int y);
-    //
-    void U_clean_id_data(int x_min, int x_max, int y_min, int y_max);
-    void U_set_id_data(int x, int y, double value);
-    double U_get_id_data(int x, int y, int element_index);
 };
 
 #endif // UC_DATA_CONTAINER_H

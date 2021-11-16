@@ -8,6 +8,7 @@ widepix_analyser_2::widepix_analyser_2(QWidget *parent) :
     ui->setupUi(this);
 
     wai = new UC_wai();
+    wai->setParent(this);
 
     wai->U_set_spectra_qcp(ui->widget);
     wai->U_set_frame_qcp(ui->widget_2);
@@ -15,9 +16,7 @@ widepix_analyser_2::widepix_analyser_2(QWidget *parent) :
     wai->U_set_chip_fit_qcp(ui->widget_4);
     wai->U_set_calibration_qcp(ui->widget_5);
     wai->U_set_spectra_2d_qcp(ui->widget_6);
-    wai->U_set_id_frame_qcp(ui->widget_7);
     wai->U_set_table(ui->tableView);
-    wai->U_set_id_table(ui->tableView_2);
     wai->U_set_table_widget(ui->tableWidget);
 
     connect(ui->doubleSpinBox_4, SIGNAL(valueChanged(double)), wai, SLOT(U_set_spectra_max_x(double)));
@@ -67,7 +66,7 @@ widepix_analyser_2::widepix_analyser_2(QWidget *parent) :
     connect(this, SIGNAL(US_save_calibration(QString)),     wai->U_get_plot(), SLOT(U_save_calibration(QString)));
     connect(this, SIGNAL(US_load_calibration(QString)),     wai->U_get_plot(), SLOT(U_load_calibration(QString)));
 
-    connect(this,               SIGNAL(US_set_data(UC_data_container::UTStr_data_container_settings *)),                    wai->U_get_plot(),  SLOT(U_set_data(UC_data_container::UTStr_data_container_settings *)));
+    connect(this,               SIGNAL(US_set_data(UC_data_container::UTStr_data_container_settings *)),                    wai->U_get_plot(),  SLOT(U_set_data(UC_data_container::UTStr_data_container_settings *)), Qt::QueuedConnection);
     connect(this,               SIGNAL(US_set_scan(int)),                                                                   wai->U_get_plot(),  SLOT(U_set_scan(int)),                                                              Qt::DirectConnection);
     connect(this,               SIGNAL(US_change_scan_settings(int, UC_data_container::UTStr_data_container_settings *)),   wai->U_get_plot(),  SLOT(U_set_settings(int, UC_data_container::UTStr_data_container_settings*)),       Qt::DirectConnection);
     connect(this,               SIGNAL(US_delete_scan(int)),                                                                wai->U_get_plot(),  SLOT(U_delete_scan(int)),                                                           Qt::DirectConnection);
@@ -101,7 +100,6 @@ widepix_analyser_2::widepix_analyser_2(QWidget *parent) :
     connect(wai->U_get_plot(), SIGNAL(US_range_data(double, double)),               this, SLOT(U_set_distribution_range(double, double)));
     connect(wai->U_get_plot(), SIGNAL(US_spectra_2d_range_data(double, double)),    this, SLOT(U_set_spectra_2D_range(double, double)));
     connect(wai->U_get_plot(), SIGNAL(US_count_mask(int)),                          this, SLOT(U_set_count_mask(int)));
-    connect(wai->U_get_plot(), SIGNAL(US_id_scan_list(QList<QString>)),             this, SLOT(U_renew_identification_elements(QList<QString>)));
 
     connect(wai->U_get_plot(),  SIGNAL(US_ready()), this,               SLOT(U_ready()),    Qt::DirectConnection);
     connect(this,               SIGNAL(US_stop()),  wai->U_get_plot(),  SLOT(U_stop()),     Qt::DirectConnection);
@@ -180,7 +178,6 @@ widepix_analyser_2::widepix_analyser_2(QWidget *parent) :
 
 widepix_analyser_2::~widepix_analyser_2()
 {
-    wai->~UC_wai();
     delete ui;
 }
 
@@ -300,13 +297,6 @@ void widepix_analyser_2::U_change_scan_settings(UC_data_container::UTStr_data_co
 {
     ui->lineEdit_3->setText(settings->path);
     ui->lineEdit_4->setText(settings->name);
-    if (settings->sample_of_element) {
-        ui->checkBox_14->setCheckState(Qt::Checked);
-    } else {
-        ui->checkBox_14->setCheckState(Qt::Unchecked);
-    }
-    ui->comboBox_19->setCurrentIndex(settings->element);
-    ui->spinBox_9->setValue(settings->thl_sample);
     if (settings->calibration) {
         ui->checkBox_3->setCheckState(Qt::Checked);
     } else {
@@ -331,15 +321,6 @@ void widepix_analyser_2::U_change_scan_settings(UC_data_container::UTStr_data_co
     } else {
         ui->checkBox_16->setCheckState(Qt::Checked);
         ui->comboBox_23->setCurrentIndex(settings->df_int);
-    }
-}
-
-void widepix_analyser_2::U_renew_identification_elements(QList<QString> list)
-{
-    ui->comboBox_24->clear();
-    int n = list.size();
-    for (int i = 0; i < n; i++) {
-        ui->comboBox_24->addItem(list[i]);
     }
 }
 
@@ -395,7 +376,7 @@ void widepix_analyser_2::on_pushButton_3_clicked() ///< Spectra. Create spectra
 
 void widepix_analyser_2::on_pushButton_4_clicked() ///< Source. Browse
 {
-    QString str = QFileDialog::getExistingDirectory(nullptr, "Open scan direction");
+    QString str = QFileDialog::getExistingDirectory(this, "Open scan direction", "", QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
     if (str != "") {
         ui->lineEdit_3->setText(str);
         ui->pushButton_31->setEnabled(true);
@@ -410,11 +391,6 @@ void widepix_analyser_2::on_comboBox_2_currentIndexChanged(int index) ///< Frame
 void widepix_analyser_2::on_comboBox_3_currentIndexChanged(int index) ///< Pixel count type
 {
     wai->U_set_pixel_type(static_cast<UC_plot::UTE_pixel_type>(index));
-}
-
-void widepix_analyser_2::on_comboBox_4_currentIndexChanged(int index) ///< Identification type
-{
-    wai->U_set_id_type(static_cast<UC_plot::UTE_id_type>(index));
 }
 
 void widepix_analyser_2::on_pushButton_6_clicked() ///< Frame. Show frame
@@ -462,7 +438,7 @@ void widepix_analyser_2::on_pushButton_10_clicked() ///< Frame. Rescale
 
 void widepix_analyser_2::on_pushButton_12_clicked() ///< Frame. Save
 {
-    QString str = QFileDialog::getSaveFileName(nullptr, "Save frame");
+    QString str = QFileDialog::getSaveFileName(this, "Save frame", "", "Images (*.png *.bpm *.jpg);;Text files (*.txt);;PDF files (*.pdf);;ROOT files (*.root)");
     if (str != "") {
         wai->U_save_frame(str, static_cast<UC_wai::UTE_file_type>(ui->comboBox_7->currentIndex()));
     }
@@ -485,7 +461,7 @@ void widepix_analyser_2::on_pushButton_15_clicked() ///< Reset mask
 
 void widepix_analyser_2::on_pushButton_16_clicked() ///< Spectra. Save
 {
-    QString str = QFileDialog::getSaveFileName(nullptr, "Save spectra");
+    QString str = QFileDialog::getSaveFileName(this, "Save spectra", "", "Images (*.png *.bpm *.jpg);;Text files (*.txt);;PDF files (*.pdf);;ROOT files (*.root)");
     if (str != "") {
         wai->U_save_spectra(str, static_cast<UC_wai::UTE_file_type>(ui->comboBox_8->currentIndex()));
     }
@@ -522,10 +498,6 @@ void widepix_analyser_2::on_pushButton_5_clicked() ///< Source. Reset
     emit US_reset_data();
     ui->lineEdit_3->setText("");
     ui->comboBox->clear();
-    ui->comboBox_12->clear();
-    ui->comboBox_13->clear();
-    ui->comboBox_14->clear();
-    ui->comboBox_15->clear();
     ui->comboBox_17->clear();
 
     ui->comboBox_22->clear();
@@ -560,7 +532,7 @@ void widepix_analyser_2::on_pushButton_23_clicked() ///< Mask overflow
 
 void widepix_analyser_2::on_pushButton_19_clicked() ///< Distribution. Save
 {
-    QString str = QFileDialog::getSaveFileName(nullptr, "Save distribution");
+    QString str = QFileDialog::getSaveFileName(this, "Save distribution", "", "Images (*.png *.bpm *.jpg);;Text files (*.txt);;PDF files (*.pdf);;ROOT files (*.root)");
     if (str != "") {
         wai->U_save_distribution(str, static_cast<UC_wai::UTE_file_type>(ui->comboBox_9->currentIndex()));
     }
@@ -568,7 +540,7 @@ void widepix_analyser_2::on_pushButton_19_clicked() ///< Distribution. Save
 
 void widepix_analyser_2::on_pushButton_25_clicked() ///< Table. Save
 {
-    QString str = QFileDialog::getSaveFileName(nullptr, "Save table");
+    QString str = QFileDialog::getSaveFileName(this, "Save table", "", "Tables (*.csv *.tsv)");
     if (str != "") {
         wai->U_save_table(str, static_cast<UC_wai::UTE_table_file_type>(ui->comboBox_10->currentIndex()));
     }
@@ -601,9 +573,6 @@ void widepix_analyser_2::on_pushButton_31_clicked() ///< Source. Add scan
     settings.both_counters = (ui->checkBox_2->checkState() == Qt::Checked);
     settings.calibration = (ui->checkBox_3->checkState() == Qt::Checked);
     settings.energy = ui->doubleSpinBox_19->value();
-    settings.sample_of_element = (ui->checkBox_14->checkState() == Qt::Checked);
-    settings.element = ui->comboBox_19->currentIndex();
-    settings.thl_sample = ui->spinBox_9->value();
     if (ui->checkBox_15->checkState() == Qt::Checked) {
         settings.ff_int = ui->comboBox_22->currentIndex();
     } else {
@@ -617,9 +586,6 @@ void widepix_analyser_2::on_pushButton_31_clicked() ///< Source. Add scan
     QString str;
     str = ui->lineEdit_4->text();
     if (str == "") {
-        if (settings.sample_of_element) {
-            str += ui->comboBox_19->currentText() + "; ";
-        }
         str += settings.path + "; ";
         str += QString("count = %1").arg(settings.count) + "; ";
         str += QString("time = %1").arg(settings.time) + "; ";
@@ -630,7 +596,6 @@ void widepix_analyser_2::on_pushButton_31_clicked() ///< Source. Add scan
         }
     }
     settings.name = str;
-//    wai->U_add_scan(settings);
 
     emit US_set_data(&settings);
 
@@ -681,7 +646,7 @@ void widepix_analyser_2::on_pushButton_32_clicked() ///< Distribution. Set range
 
 void widepix_analyser_2::on_pushButton_37_clicked() ///< Spectra. Load txt
 {
-    QString str = QFileDialog::getOpenFileName(nullptr, "Open spectra");
+    QString str = QFileDialog::getOpenFileName(this, "Open spectra", "", "Text files (*.txt)");
     if (str != "") {
         wai->U_load_spectra_txt(str);
     }
@@ -689,7 +654,7 @@ void widepix_analyser_2::on_pushButton_37_clicked() ///< Spectra. Load txt
 
 void widepix_analyser_2::on_pushButton_38_clicked() ///< Frame. Load txt
 {
-    QString str = QFileDialog::getOpenFileName(nullptr, "Open frame");
+    QString str = QFileDialog::getOpenFileName(this, "Open frame", "", "Text files (*.txt)");
     if (str != "") {
         wai->U_load_frame_txt(str);
     }
@@ -697,7 +662,7 @@ void widepix_analyser_2::on_pushButton_38_clicked() ///< Frame. Load txt
 
 void widepix_analyser_2::on_pushButton_39_clicked() ///< Distribution. Load txt
 {
-    QString str = QFileDialog::getOpenFileName(nullptr, "Open distribution");
+    QString str = QFileDialog::getOpenFileName(this, "Open distribution", "", "Text files (*.txt)");
     if (str != "") {
         wai->U_load_distribution_txt(str);
     }
@@ -712,30 +677,6 @@ void widepix_analyser_2::on_pushButton_40_clicked() ///< Table. Reload table all
 void widepix_analyser_2::on_pushButton_41_clicked() ///< Spectra. Normalize
 {
     wai->U_normalize_spectra();
-}
-
-void widepix_analyser_2::on_comboBox_15_currentIndexChanged(const QString &arg1) ///< Identification. Windows THL. first left
-{
-    QString str = arg1;
-    wai->U_set_thresholds(str.remove(0, 6).toInt(), ui->comboBox_14->currentText().remove(0, 6).toInt(), ui->comboBox_13->currentText().remove(0, 6).toInt(), ui->comboBox_12->currentText().remove(0, 6).toInt());
-}
-
-void widepix_analyser_2::on_comboBox_14_currentIndexChanged(const QString &arg1) ///< Identification. Windows THL. first right
-{
-    QString str = arg1;
-    wai->U_set_thresholds(ui->comboBox_15->currentText().remove(0, 6).toInt(), str.remove(0, 6).toInt(), ui->comboBox_13->currentText().remove(0, 6).toInt(), ui->comboBox_12->currentText().remove(0, 6).toInt());
-}
-
-void widepix_analyser_2::on_comboBox_13_currentIndexChanged(const QString &arg1) ///< Identification. Windows THL. Second left
-{
-    QString str = arg1;
-    wai->U_set_thresholds(ui->comboBox_15->currentText().remove(0, 6).toInt(), ui->comboBox_14->currentText().remove(0, 6).toInt(), str.remove(0, 6).toInt(), ui->comboBox_12->currentText().remove(0, 6).toInt());
-}
-
-void widepix_analyser_2::on_comboBox_12_currentIndexChanged(const QString &arg1) ///< Identification. Windows THL. Second right
-{
-    QString str = arg1;
-    wai->U_set_thresholds(ui->comboBox_15->currentText().remove(0, 6).toInt(), ui->comboBox_14->currentText().remove(0, 6).toInt(), ui->comboBox_13->currentText().remove(0, 6).toInt(), str.remove(0, 6).toInt());
 }
 
 void widepix_analyser_2::on_radioButton_3_clicked(bool checked) ///< Graphs interaction mode. Select
@@ -861,7 +802,7 @@ void widepix_analyser_2::on_pushButton_48_clicked() ///< Table. Reload table for
 
 void widepix_analyser_2::on_pushButton_49_clicked() ///< Calibration. Save // chip fit
 {
-    QString str = QFileDialog::getSaveFileName(nullptr, "Save chip fit");
+    QString str = QFileDialog::getSaveFileName(this, "Save chip fit", "", "Images (*.png *.bpm *.jpg);;Text files (*.txt);;PDF files (*.pdf);;ROOT files (*.root)");
     if (str != "") {
         wai->U_save_chip_fit(str, static_cast<UC_wai::UTE_file_type>(ui->comboBox_16->currentIndex()));
     }
@@ -874,7 +815,7 @@ void widepix_analyser_2::on_pushButton_52_clicked() ///< Calibration. Reset // c
 
 void widepix_analyser_2::on_pushButton_54_clicked() ///< Spectra. Automatic save by chip
 {
-    QString str = QFileDialog::getSaveFileName(nullptr, "Save spectra");
+    QString str = QFileDialog::getSaveFileName(this, "Save spectra", "", "Images (*.png *.bpm *.jpg);;Text files (*.txt);;PDF files (*.pdf);;ROOT files (*.root)");
     if (str != "") {
         QString graph_name = ui->lineEdit_5->text(); /// name
         if (graph_name == "") {
@@ -888,23 +829,10 @@ void widepix_analyser_2::on_pushButton_54_clicked() ///< Spectra. Automatic save
 
 void widepix_analyser_2::on_pushButton_57_clicked() ///< Calibration. Save
 {
-    QString str = QFileDialog::getSaveFileName(nullptr, "Save calibration");
+    QString str = QFileDialog::getSaveFileName(this, "Save calibration", "", "Images (*.png *.bpm *.jpg);;Text files (*.txt);;PDF files (*.pdf);;ROOT files (*.root)");
     if (str != "") {
         wai->U_save_calibration(str, static_cast<UC_wai::UTE_file_type>(ui->comboBox_20->currentIndex()));
     }
-}
-
-void widepix_analyser_2::on_pushButton_55_clicked() ///< Identification. generate id for Roi
-{
-    QString str;
-    str = ui->lineEdit_2->text();
-    if (str == "") str = "El";
-    wai->U_generate_id_roi(str, static_cast<UC_plot::UTE_id_type>(ui->comboBox_4->currentIndex()));
-}
-
-void widepix_analyser_2::on_pushButton_56_clicked() ///< Identification. reset
-{
-    wai->U_reset_id_roi(static_cast<UC_plot::UTE_id_type>(ui->comboBox_4->currentIndex()));
 }
 
 void widepix_analyser_2::on_pushButton_60_clicked() ///< Calibration. Reset
@@ -991,11 +919,6 @@ void widepix_analyser_2::on_pushButton_50_clicked() ///< Calibration. resize // 
     wai->U_resize_chip_fit();
 }
 
-void widepix_analyser_2::on_pushButton_51_clicked() ///< Identification. generate
-{
-    wai->U_generate_additional_data();
-}
-
 void widepix_analyser_2::on_pushButton_53_clicked() ///< Calibration. Set threshold level
 {
     emit US_set_threshold_level(ui->doubleSpinBox_31->value());
@@ -1003,7 +926,7 @@ void widepix_analyser_2::on_pushButton_53_clicked() ///< Calibration. Set thresh
 
 void widepix_analyser_2::on_pushButton_62_clicked() ///< Calibration. Save calibration
 {
-    QString str = QFileDialog::getSaveFileName(nullptr, "Save calibration");
+    QString str = QFileDialog::getSaveFileName(this, "Save calibration", "", "Text files (*.txt)");
     if (str != "") {
         emit US_save_calibration(str);
     }
@@ -1011,15 +934,10 @@ void widepix_analyser_2::on_pushButton_62_clicked() ///< Calibration. Save calib
 
 void widepix_analyser_2::on_pushButton_61_clicked() ///< Calibration. Load calibration
 {
-    QString str = QFileDialog::getOpenFileName(nullptr, "Load calibration");
+    QString str = QFileDialog::getOpenFileName(this, "Load calibration", "", "Text files (*.txt)");
     if (str != "") {
         emit US_load_calibration(str);
     }
-}
-
-void widepix_analyser_2::on_pushButton_63_clicked() ///< Identification. show frame
-{
-    wai->U_generate_id_frame(ui->comboBox_24->currentIndex());
 }
 
 void widepix_analyser_2::on_pushButton_65_clicked() ///< Add RoI
@@ -1048,26 +966,6 @@ void widepix_analyser_2::on_listView_clicked(const QModelIndex &index) ///< Sour
     emit US_get_scan_settings(index.row());
 }
 
-void widepix_analyser_2::on_spinBox_3_valueChanged(int arg1) ///< Identification. x rebin
-{
-    wai->U_set_rebin(arg1, ui->spinBox_8->value(), ui->spinBox_10->value());
-}
-
-void widepix_analyser_2::on_spinBox_8_valueChanged(int arg1) ///< Identification. y rebin
-{
-    wai->U_set_rebin(ui->spinBox_3->value(), arg1, ui->spinBox_10->value());
-}
-
-void widepix_analyser_2::on_spinBox_10_valueChanged(int arg1) ///< Identification. thl rebin
-{
-    wai->U_set_rebin(ui->spinBox_3->value(), ui->spinBox_8->value(), arg1);
-}
-
-void widepix_analyser_2::on_pushButton_68_clicked() ///< Identification. generate id
-{
-    wai->U_generate_id_data();
-}
-
 void widepix_analyser_2::on_spinBox_12_valueChanged(int arg1) ///< Smoothing
 {
     wai->U_set_smoothing(arg1);
@@ -1094,7 +992,7 @@ void widepix_analyser_2::on_comboBox_6_activated(int index) ///< ROI combo box
 
 void widepix_analyser_2::on_pushButton_2_clicked() ///< Save RoI
 {
-    QString str = QFileDialog::getSaveFileName(nullptr, "Save RoIs");
+    QString str = QFileDialog::getSaveFileName(this, "Save RoIs", "", "Text files (*.txt)");
     if (str != "") {
         wai->U_save_roi(str);
     }
@@ -1102,7 +1000,7 @@ void widepix_analyser_2::on_pushButton_2_clicked() ///< Save RoI
 
 void widepix_analyser_2::on_pushButton_14_clicked() ///< Load RoI
 {
-    QString str = QFileDialog::getOpenFileName(nullptr, "Load RoIs");
+    QString str = QFileDialog::getOpenFileName(this, "Load RoIs", "", "Text files (*.txt)");
     if (str != "") {
         wai->U_load_roi(str);
     }
@@ -1110,7 +1008,7 @@ void widepix_analyser_2::on_pushButton_14_clicked() ///< Load RoI
 
 void widepix_analyser_2::on_pushButton_30_clicked() ///< Save mask
 {
-    QString str = QFileDialog::getSaveFileName(nullptr, "Save mask");
+    QString str = QFileDialog::getSaveFileName(this, "Save mask", "", "Text files (*.txt)");
     if (str != "") {
         emit US_save_mask(str);
 //        wai->U_save_mask(str);
@@ -1119,7 +1017,7 @@ void widepix_analyser_2::on_pushButton_30_clicked() ///< Save mask
 
 void widepix_analyser_2::on_pushButton_69_clicked() ///< Load mask
 {
-    QString str = QFileDialog::getOpenFileName(nullptr, "Load mask");
+    QString str = QFileDialog::getOpenFileName(this, "Load mask", "", "Text files (*.txt)");
     if (str != "") {
         emit US_load_mask(str);
         //wai->U_load_mask(str);
@@ -1149,20 +1047,20 @@ void widepix_analyser_2::on_pushButton_70_clicked()
 
 void widepix_analyser_2::on_pushButton_71_clicked()
 {
-    QString str = QFileDialog::getSaveFileName(nullptr, "Save distribution");
+    QString str = QFileDialog::getSaveFileName(this, "Save distribution", "", "Images (*.png *.bpm *.jpg);;Text files (*.txt);;PDF files (*.pdf);;ROOT files (*.root)");
     if (str != "") {
         QString graph_name = ui->lineEdit_6->text(); /// name
         if (graph_name == "") {
             graph_name += ui->comboBox_17->currentText() + "; "; /// scan
             graph_name += ui->comboBox_3->currentText(); /// pixel count type
         }
-        wai->U_automatic_save_distribution(str, graph_name, static_cast<UC_wai::UTE_file_type>(ui->comboBox_8->currentIndex()), ui->spinBox->value(), ui->doubleSpinBox_17->value(), ui->doubleSpinBox_16->value(), ui->comboBox->currentIndex());
+        wai->U_automatic_save_distribution(str, graph_name, static_cast<UC_wai::UTE_file_type>(ui->comboBox_9->currentIndex()), ui->spinBox->value(), ui->doubleSpinBox_17->value(), ui->doubleSpinBox_16->value(), ui->comboBox->currentIndex());
         }
 }
 
 void widepix_analyser_2::on_pushButton_73_clicked()
 {
-    QString str = QFileDialog::getSaveFileName(nullptr, "Save distibution");
+    QString str = QFileDialog::getSaveFileName(this, "Save distribution", "", "Images (*.png *.bpm *.jpg);;Text files (*.txt);;PDF files (*.pdf);;ROOT files (*.root)");
     if (str != "") {
         QString graph_name = ui->lineEdit_6->text(); /// name
         if (graph_name == "") {
@@ -1237,7 +1135,7 @@ void widepix_analyser_2::on_pushButton_79_clicked() ///< Spectra 2D. Resize
 
 void widepix_analyser_2::on_pushButton_81_clicked() ///< Spectra 2D. Save
 {
-    QString str = QFileDialog::getSaveFileName(nullptr, "Save spectra 2D");
+    QString str = QFileDialog::getSaveFileName(this, "Save spectra 2D", "", "Images (*.png *.bpm *.jpg);;Text files (*.txt);;PDF files (*.pdf);;ROOT files (*.root)");
     if (str != "") {
         wai->U_save_spectra_2d(str, static_cast<UC_wai::UTE_file_type>(ui->comboBox_11->currentIndex()));
     }
@@ -1245,7 +1143,7 @@ void widepix_analyser_2::on_pushButton_81_clicked() ///< Spectra 2D. Save
 
 void widepix_analyser_2::on_pushButton_80_clicked() ///< Spectra 2D. Load
 {
-    QString str = QFileDialog::getOpenFileName(nullptr, "Open spectra 2D");
+    QString str = QFileDialog::getOpenFileName(this, "Load spectra 2D", "", "Images (*.png *.bpm *.jpg);;Text files (*.txt);;PDF files (*.pdf);;ROOT files (*.root)");
     if (str != "") {
         wai->U_load_spectra_2d_txt(str);
     }
@@ -1270,7 +1168,7 @@ void widepix_analyser_2::on_pushButton_78_clicked() ///< Spectra 2d. Automatic s
     settings.x_max = ui->comboBox_28->currentText().right(3).toInt();
     settings.y_max = ui->doubleSpinBox_37->value();
     settings.y_min = ui->doubleSpinBox_36->value();
-    QString str = QFileDialog::getSaveFileName(nullptr, "Save spectra 2D");
+    QString str = QFileDialog::getSaveFileName(this, "Save spectra 2D", "", "Images (*.png *.bpm *.jpg);;Text files (*.txt);;PDF files (*.pdf);;ROOT files (*.root)");
     if (str != "") {
         wai->U_automatic_save_spectra_2d(str, static_cast<UC_wai::UTE_file_type>(ui->comboBox_11->currentIndex()), settings);
     }
@@ -1288,7 +1186,7 @@ void widepix_analyser_2::on_pushButton_84_clicked() ///< Mask. Mask Gauss
 
 void widepix_analyser_2::on_pushButton_43_clicked() ///< Table. Load
 {
-    QString str = QFileDialog::getOpenFileName(nullptr, "Open table");
+    QString str = QFileDialog::getOpenFileName(this, "Load table", "", "Table files (*.csv *.tsv)");
     if (str != "") {
         wai->U_load_table(str);
     }

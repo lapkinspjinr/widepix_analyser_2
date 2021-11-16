@@ -14,6 +14,8 @@
 
 class UC_wai : public QObject
 {
+    Q_OBJECT
+
     int x_min;
     int x_max;
     int y_min;
@@ -62,13 +64,6 @@ class UC_wai : public QObject
     QCustomPlot *       calibration_qcp;
     QCPSelectionRect *  sr_calibration_qcp;
 
-    QCustomPlot *       id_frame_qcp;
-    QCPColorMap *       color_map_id_frame_qcp;
-    QCPColorScale *     color_scale_id_frame_qcp;
-    QCPColorMapData *   color_map_data_id_frame_qcp;
-    QCPMarginGroup *    margin_group_id_frame_qcp;
-    QCPSelectionRect *  sr_id_frame_qcp;
-
     QTableView *            table;
     QStandardItemModel *    table_model;
     QModelIndex             table_index;
@@ -79,11 +74,6 @@ class UC_wai : public QObject
     QCPColorMapData *   color_map_data_spectra_2d_qcp;
     QCPMarginGroup *    margin_group_spectra_2d_qcp;
     QCPSelectionRect *  sr_spectra_2d_qcp;
-
-    QTableView *            id_table;
-    QStandardItemModel *    id_GA_table_model;
-    QStandardItemModel *    id_LC_table_model;
-    QModelIndex             id_table_index;
 
     QTableWidget * table_widget;
 
@@ -124,7 +114,7 @@ private :
 
     UStr_spectra_2d_settings spectra_2d_settings;
 
-    Q_OBJECT
+
 public:
     explicit UC_wai(QObject *parent = nullptr);
     ~UC_wai();
@@ -138,9 +128,7 @@ public:
     void U_set_chip_fit_qcp(QCustomPlot * chip_fit_qcp);
     void U_set_calibration_qcp(QCustomPlot * calibration_qcp);
     void U_set_spectra_2d_qcp(QCustomPlot * spectra_2d_qcp);
-    void U_set_id_frame_qcp(QCustomPlot *id_frame_qcp);
     void U_set_table(QTableView * table);
-    void U_set_id_table(QTableView * id_table);
     void U_set_table_widget(QTableWidget * table_widget);
 ////////////////////////////////////////////////////////////////
     void U_reset_data();
@@ -175,16 +163,9 @@ public:
     void U_generate_spectra_2d_range(int thl_min, int thl_max);
     void U_generate_spectra_2d_range_energy(double energy_min, double energy_max);
     //
-    void U_generate_id_roi(QString id_GA_element, UC_plot::UTE_id_type type);
-    void U_reset_id_roi(UC_plot::UTE_id_type type);
-    //
-    void U_generate_additional_data();
-    void U_generate_id_data();
-    void U_generate_id_frame(int element_index);
 ///////////////////////////////////////////////////////////////////////
     void U_set_frame_type(UC_plot::UTE_frame_type frame_type_in);
     void U_set_pixel_type(UC_plot::UTE_pixel_type pixel_type_in);
-    void U_set_id_type(UC_plot::UTE_id_type id_type);
     //
     void U_set_roi(int x_min, int x_max, int y_min, int y_max);
     //
@@ -252,10 +233,6 @@ public:
     void U_save_spectra_2d_root(QString file_name);
     void U_save_spectra_2d(QString file_name, UTE_file_type file_type);
     void U_automatic_save_spectra_2d(QString file_name, UTE_file_type file_type, UStr_spectra_2d_settings settings);
-
-    //
-    void U_save_id_frame_txt(QString file_name);
-    void U_save_id_frame(QString file_name, UTE_file_type file_type);
     ////
     void U_load_spectra_txt(QString file_name);
     void U_load_frame_txt(QString file_name);
@@ -263,7 +240,6 @@ public:
     void U_load_calibr_chip_txt(QString file_name);
     void U_load_calibr_txt(QString file_name);
     void U_load_spectra_2d_txt(QString file_name);
-    void U_load_id_frame_txt(QString file_name);
     void U_load_table_tsv(QString file_name);
     void U_load_table_csv(QString file_name);
     void U_load_table(QString file_name);
@@ -336,19 +312,12 @@ signals:
     void US_generate_spectra_2d(double energy_min, double energy_max);
     void US_generate_spectra_2d_range(int thl_min, int thl_max);
     void US_generate_spectra_2d_range(double energy_min, double energy_max);
-    void US_generate_id_roi();
-    void US_generate_additional_data();
-    void US_generate_id_data();
-    void US_generate_id_frame(int thl);
 //
 ////////////////////////////////////////////////////////////////////////////
     void US_set_frame_type(UC_plot::UTE_frame_type frame_type_in);
     void US_set_pixel_type(UC_plot::UTE_pixel_type pixel_type_in);
     void US_set_roi(int x_min, int x_max, int y_min, int y_max);
-    void US_set_rebin(int rebin_x, int rebin_y, int rebin_thl);
-    void US_set_id_type(UC_plot::UTE_id_type id_type);
     void US_set_thresholds(int thl_id_1, int thl_id_2, int thl_id_3, int thl_id_4);
-    //void US_set_threshold_range(int thl_min, int thl_max);
     void US_set_smoothing(int smoothing);
     /////////////////////////////////////////////////////////////////
     void US_set_spectra_max_x(double value);
@@ -420,9 +389,6 @@ public slots:
     void U_add_spectra_data(double x, double y);
     void U_add_frame_data(double x, double y, double z);
     void U_add_table_data(UC_pixels_info pixels_info);
-    void U_add_id_roi_GA_data(UC_plot::UTStr_id_GA_data data);
-    void U_add_id_roi_LC_data(UC_plot::UTStr_id_LC_data data);
-    void U_add_id_frame_data(double x, double y, double z);
     void U_add_spectra_2d_data(double x, double y);
 //
 //////////////////////////////////////////////////////////////////////
@@ -433,7 +399,6 @@ public slots:
     void U_replot_distribution(QVector<double> x, QVector<double> y);
     void U_replot_chip_fit(QVector<double> x, QVector<double> y, bool fit);
     void U_replot_calibration(QVector<double> x, QVector<double> y, int chip, bool fit);
-    void U_replot_id_frame();
     void U_replot_spectra_2d();
     /////////////////////////////////////////////////
     void U_set_spectra_x_axis_range(QCPRange range);
@@ -496,7 +461,6 @@ public slots:
     void U_mouse_move_chip_fit(QMouseEvent * event);
     void U_mouse_move_calibration(QMouseEvent * event);
     void U_mouse_move_spectra_2d(QMouseEvent * event);
-//    void U_mouse_move_id_frame(QMouseEvent * event);
     //
     void U_mouse_select_spectra(QMouseEvent * event);
     void U_mouse_select_frame(QMouseEvent * event);

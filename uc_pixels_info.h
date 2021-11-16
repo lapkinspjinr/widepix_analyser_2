@@ -4,11 +4,14 @@
 #include <QtMath>
 #include <QVector>
 #include <QRect>
+#include <QtAlgorithms>
 
 #include <TH1D.h>
 
-#include <vector>
-#include <algorithm>
+//#include <vector>
+//#include <algorithm>
+
+
 
 class UC_roi {
 private :

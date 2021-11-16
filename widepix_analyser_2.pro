@@ -32,8 +32,7 @@ SOURCES += \
     uc_wai.cpp \
     uc_data_container.cpp \
     uc_pixels_info.cpp \
-    common_functions.cpp \
-    uc_identification.cpp
+    common_functions.cpp
 
 HEADERS += \
         widepix_analyser_2.h \
@@ -42,17 +41,13 @@ HEADERS += \
     uc_wai.h \
     uc_data_container.h \
     uc_pixels_info.h \
-    common_functions.h \
-    uc_identification.h
+    common_functions.h
 
 FORMS += \
         widepix_analyser_2.ui
 
 LIBS += -L/home/aleksandr/root/root_6.22/install/lib -lCore -lImt -lRIO -lNet -lHist -lGraf -lGraf3d -lGpad -lROOTVecOps -lTree -lTreePlayer -lRint -lPostscript -lMatrix -lPhysics -lMathCore -lThread -lMultiProc -lROOTDataFrame -pthread -lm -ldl -rdynamic
 INCLUDEPATH += /home/aleksandr/root/root_6.22/install/include/
-
-#LIBS += -L${ROOTSYS}/lib -lCore -lImt -lRIO -lNet -lHist -lGraf -lGraf3d -lGpad -lROOTVecOps -lTree -lTreePlayer -lRint -lPostscript -lMatrix -lPhysics -lMathCore -lThread -lMultiProc -lROOTDataFrame -pthread -lm -ldl -rdynamic
-#INCLUDEPATH += ${ROOTSYS}/include/
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

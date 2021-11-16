@@ -111,15 +111,15 @@ void UC_pixels_info::U_finalize() {
         return;
     }
     mean = sum / n;
-    std::vector<double> data_stdv = data.toStdVector();
-    std::sort(data_stdv.begin(), data_stdv.end());
-    if ((n % 2) == 1) {
-        median = data_stdv[static_cast<unsigned long>(n / 2)];
-    } else {
-        double z1 = data_stdv[static_cast<unsigned long>(n / 2 - 1)];
-        double z2 = data_stdv[static_cast<unsigned long>(n / 2)];
-        median = (z1 + z2) / 2;
-    }
+//    std::vector<double> data_stdv = data.toStdVector();
+//    std::sort(data_stdv.begin(), data_stdv.end());
+//    if ((n % 2) == 1) {
+//        median = data_stdv[static_cast<unsigned long>(n / 2)];
+//    } else {
+//        double z1 = data_stdv[static_cast<unsigned long>(n / 2 - 1)];
+//        double z2 = data_stdv[static_cast<unsigned long>(n / 2)];
+//        median = (z1 + z2) / 2;
+//    }
     max_density = data[0];
     if (n == 1) {
         data.clear();
@@ -144,6 +144,15 @@ void UC_pixels_info::U_finalize() {
     }
     max_density = h->GetBinCenter(h->GetMaximumBin());
     delete h;
+
+    qSort(data.begin(), data.end());
+    if ((n % 2) == 1) {
+        median = data[n / 2];
+    } else {
+        double z1 = data[n / 2 - 1];
+        double z2 = data[n / 2];
+        median = (z1 + z2) / 2;
+    }
 
     data.clear();
 }

@@ -15,14 +15,6 @@ UC_plot::UC_plot(QObject *parent) : QObject(parent) {
     thl_index_max = 511;
 
     threshold_level = 10;   /// Стандартное значение Pixet'а при эквилизации
-    rebin_x = 1;
-    rebin_y = 1;
-    rebin_thl = 1;
-
-    thl_id_1 = 0;
-    thl_id_2 = 511;
-    thl_id_3 = 0;
-    thl_id_4 = 511;
 
     stop = false;
     using_calibration = false;
@@ -35,7 +27,6 @@ UC_plot::UC_plot(QObject *parent) : QObject(parent) {
         mask[i] = false;
     }
 
-
     for (int i = 0; i < 15; i++) { /// Цикл для инициализации масок, индекс - i
         calibration_p0[i] = 0;
         calibration_p1[i] = 0;
@@ -44,7 +35,6 @@ UC_plot::UC_plot(QObject *parent) : QObject(parent) {
 
     frame_type = UTE_FT_average;
     pixel_type = UTE_PT_cnt1;
-    id_type = UTE_IT_GA_method;
     calibration_type = UTE_CT_with_fit;
 
     UC_pixels_info pixel_area("Widepix", 0, 0, 3840, 256);
@@ -60,7 +50,10 @@ UC_plot::UC_plot(QObject *parent) : QObject(parent) {
 }
 
 UC_plot::~UC_plot() {
-
+//    for (int i = 0; i < scans_list.size(); i++) {
+//        scans_list[i].~UC_data_container();
+//    }
+//    scans_list.~QList();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -152,10 +145,10 @@ void UC_plot::U_make_ff_minus_df_mean(int thl_index) {
         for (int y = 0; y < 256; y++) {
             if (U_get_mask(x, y)) continue;
             if (ff_enable) {
-                ff_value = U_get_data_rebin_scaled(ff, thl_index, x, y, 1);
+                ff_value = ff->U_get_data_scaled(thl_index, x, y, 1);
             }
             if (df_enable) {
-                df_value = U_get_data_rebin_scaled(df, thl_index, x, y, 1);
+                df_value = df->U_get_data_scaled(thl_index, x, y, 1);
             }
 
             mean_ff_minus_df += ff_value - df_value;
@@ -334,120 +327,6 @@ void UC_plot::U_enable_ff_df() {
 }
 
 //
-
-double UC_plot::U_get_data_rebin(UC_data_container * scan, int thl_index, int x, int y, int cnt) {
-    int thl_index_min_1 = thl_index - rebin_thl / 2;
-    int thl_index_max_1 = thl_index_min_1 + rebin_thl - 1;
-    if (thl_index_max_1 > (n_thl - 1)) thl_index_max_1 = (n_thl - 1);
-    int x_min = x - rebin_x / 2;
-    int x_max = x_min + rebin_x;
-    if (x_min < 0) x_min = 0;
-    if (x_max > 3840) x_max = 3840;
-    int y_min = y - rebin_y / 2;
-    int y_max = y_min + rebin_y;
-    if (y_min < 0) y_min = 0;
-    if (y_max > 256) y_max = 256;
-    double data = 0;
-    int count = 0;
-    for (int current_thl_index = thl_index_min_1; current_thl_index <= thl_index_max_1; current_thl_index++) {
-        for (int current_x = x_min; current_x < x_max; current_x++) {
-            for (int current_y = y_min; current_y < y_max; current_y++) {
-                data += scan->U_get_data(current_thl_index, current_x, current_y, cnt);
-                count++;
-            }
-        }
-    }
-    if (count == 0) {
-        return 0;
-    }
-    return data / count;
-}
-
-double UC_plot::U_get_data_rebin_scaled(UC_data_container * scan, int thl_index, int x, int y, int cnt) {
-    int thl_index_min_1 = thl_index - rebin_thl / 2;
-    int thl_index_max_1 = thl_index_min_1 + rebin_thl - 1;
-    if (thl_index_max_1 > (n_thl - 1)) thl_index_max_1 = (n_thl - 1);
-    int x_min = x - rebin_x / 2;
-    int x_max = x_min + rebin_x;
-    if (x_min < 0) x_min = 0;
-    if (x_max > 3840) x_max = 3840;
-    int y_min = y - rebin_y / 2;
-    int y_max = y_min + rebin_y;
-    if (y_min < 0) y_min = 0;
-    if (y_max > 256) y_max = 256;
-    double data = 0;
-    int count = 0;
-    for (int current_thl_index = thl_index_min_1; current_thl_index <= thl_index_max_1; current_thl_index++) {
-        for (int current_x = x_min; current_x < x_max; current_x++) {
-            for (int current_y = y_min; current_y < y_max; current_y++) {
-                data += scan->U_get_data_scaled(current_thl_index, current_x, current_y, cnt);
-                count++;
-            }
-        }
-    }
-    if (count == 0) {
-        return 0;
-    }
-    return data / count;
-}
-
-double UC_plot::U_get_data_rebin_corr(UC_data_container * scan, int thl_index, int x, int y) {
-    int thl_index_min_1 = thl_index - rebin_thl / 2;
-    int thl_index_max_1 = thl_index_min_1 + rebin_thl - 1;
-    if (thl_index_max_1 > (n_thl - 1)) thl_index_max_1 = (n_thl - 1);
-    int x_min = x - rebin_x / 2;
-    int x_max = x_min + rebin_x;
-    if (x_min < 0) x_min = 0;
-    if (x_max > 3840) x_max = 3840;
-    int y_min = y - rebin_y / 2;
-    int y_max = y_min + rebin_y;
-    if (y_min < 0) y_min = 0;
-    if (y_max > 256) y_max = 256;
-    double data = 0;
-    int count = 0;
-    for (int current_thl_index = thl_index_min_1; current_thl_index <= thl_index_max_1; current_thl_index++) {
-        for (int current_x = x_min; current_x < x_max; current_x++) {
-            for (int current_y = y_min; current_y < y_max; current_y++) {
-                data += scan->U_get_corrected_cnt1(current_thl_index, current_x, current_y);
-                count++;
-            }
-        }
-    }
-    if (count == 0) {
-        return 0;
-    }
-    return data / count;
-}
-
-double UC_plot::U_get_data_rebin_corr_scaled(UC_data_container * scan, int thl_index, int x, int y) {
-    int thl_index_min_1 = thl_index - rebin_thl / 2;
-    int thl_index_max_1 = thl_index_min_1 + rebin_thl - 1;
-    if (thl_index_max_1 > (n_thl - 1)) thl_index_max_1 = (n_thl - 1);
-    int x_min = x - rebin_x / 2;
-    int x_max = x_min + rebin_x;
-    if (x_min < 0) x_min = 0;
-    if (x_max > 3840) x_max = 3840;
-    int y_min = y - rebin_y / 2;
-    int y_max = y_min + rebin_y;
-    if (y_min < 0) y_min = 0;
-    if (y_max > 256) y_max = 256;
-    double data = 0;
-    int count = 0;
-    for (int current_thl_index = thl_index_min_1; current_thl_index <= thl_index_max_1; current_thl_index++) {
-        for (int current_x = x_min; current_x < x_max; current_x++) {
-            for (int current_y = y_min; current_y < y_max; current_y++) {
-                if (U_get_mask(x, y)) continue;
-                data += scan->U_get_corrected_cnt1_scaled(current_thl_index, current_x, current_y);
-                count++;
-            }
-        }
-    }
-    if (count == 0) {
-        return 0;
-    }
-    return data / count;
-}
-//
 double UC_plot::U_get_diff_data(UC_data_container * scan, int thl_index, int x, int y, int cnt) { //UTE_PT_diff_cnt1
     int tim2 = thl_index - 2;
     int tim1 = thl_index - 1;
@@ -467,11 +346,11 @@ double UC_plot::U_get_diff_data(UC_data_container * scan, int thl_index, int x, 
     if ((thl_index + 1) == thl_index_max) {
         ti2 = thl_index_max;
     }
-    double yin2 = U_get_data_rebin(scan, tim2, x, y, cnt);
-    double yin1 = U_get_data_rebin(scan, tim1, x, y, cnt);
-    double yi1 = U_get_data_rebin(scan, ti1, x, y, cnt);
-    double yi2 = U_get_data_rebin(scan, ti2, x, y, cnt);
-    return U_diff(yin2, yin1, yi1, yi2, (*thl_vector)[tim1], (*thl_vector)[ti1]);
+    double yin2 = scan->U_get_data(tim2, x, y, cnt);
+    double yin1 = scan->U_get_data(tim1, x, y, cnt);
+    double yi1 = scan->U_get_data(ti1, x, y, cnt);
+    double yi2 = scan->U_get_data(ti2, x, y, cnt);
+    return U_diff(yin2, yin1, yi1, yi2, (*thl_vector)[tim2], (*thl_vector)[tim1], (*thl_vector)[ti1], (*thl_vector)[ti2]);
 }
 
 double UC_plot::U_get_diff_data_scaled(UC_data_container * scan, int thl_index, int x, int y, int cnt) { //UTE_PT_diff_cnt1
@@ -493,11 +372,12 @@ double UC_plot::U_get_diff_data_scaled(UC_data_container * scan, int thl_index, 
     if ((thl_index + 1) == thl_index_max) {
         ti2 = thl_index_max;
     }
-    double yin2 = U_get_data_rebin_scaled(scan, tim2, x, y, cnt);
-    double yin1 = U_get_data_rebin_scaled(scan, tim1, x, y, cnt);
-    double yi1 = U_get_data_rebin_scaled(scan, ti1, x, y, cnt);
-    double yi2 = U_get_data_rebin_scaled(scan, ti2, x, y, cnt);
-    return U_diff(yin2, yin1, yi1, yi2, (*thl_vector)[tim1], (*thl_vector)[ti1]);
+
+    double yin2 = scan->U_get_data_scaled(tim2, x, y, cnt);
+    double yin1 = scan->U_get_data_scaled(tim1, x, y, cnt);
+    double yi1 = scan->U_get_data_scaled(ti1, x, y, cnt);
+    double yi2 = scan->U_get_data_scaled(ti2, x, y, cnt);
+    return U_diff(yin2, yin1, yi1, yi2, (*thl_vector)[tim2], (*thl_vector)[tim1], (*thl_vector)[ti1], (*thl_vector)[ti2]);
 }
 
 double UC_plot::U_get_diff_data_corr(UC_data_container * scan, int thl_index, int x, int y) { //UTE_PT_diff_cnt1
@@ -519,11 +399,12 @@ double UC_plot::U_get_diff_data_corr(UC_data_container * scan, int thl_index, in
     if ((thl_index + 1) == thl_index_max) {
         ti2 = thl_index_max;
     }
-    double yin2 = U_get_data_rebin_corr(scan, tim2, x, y);
-    double yin1 = U_get_data_rebin_corr(scan, tim1, x, y);
-    double yi1 = U_get_data_rebin_corr(scan, ti1, x, y);
-    double yi2 = U_get_data_rebin_corr(scan, ti2, x, y);
-    return U_diff(yin2, yin1, yi1, yi2, (*thl_vector)[tim1], (*thl_vector)[ti1]);
+
+    double yin2 = scan->U_get_corrected_cnt1(tim2, x, y);
+    double yin1 = scan->U_get_corrected_cnt1(tim1, x, y);
+    double yi1 = scan->U_get_corrected_cnt1(ti1, x, y);
+    double yi2 = scan->U_get_corrected_cnt1(ti2, x, y);
+    return U_diff(yin2, yin1, yi1, yi2, (*thl_vector)[tim2], (*thl_vector)[tim1], (*thl_vector)[ti1], (*thl_vector)[ti2]);
 }
 
 double UC_plot::U_get_diff_data_corr_scaled(UC_data_container * scan, int thl_index, int x, int y) { //UTE_PT_diff_cnt1
@@ -545,11 +426,12 @@ double UC_plot::U_get_diff_data_corr_scaled(UC_data_container * scan, int thl_in
     if ((thl_index + 1) == thl_index_max) {
         ti2 = thl_index_max;
     }
-    double yin2 = U_get_data_rebin_corr_scaled(scan, tim2, x, y);
-    double yin1 = U_get_data_rebin_corr_scaled(scan, tim1, x, y);
-    double yi1 = U_get_data_rebin_corr_scaled(scan, ti1, x, y);
-    double yi2 = U_get_data_rebin_corr_scaled(scan, ti2, x, y);
-    return U_diff(yin2, yin1, yi1, yi2, (*thl_vector)[tim1], (*thl_vector)[ti1]);
+
+    double yin2 = scan->U_get_corrected_cnt1_scaled(tim2, x, y);
+    double yin1 = scan->U_get_corrected_cnt1_scaled(tim1, x, y);
+    double yi1 = scan->U_get_corrected_cnt1_scaled(ti1, x, y);
+    double yi2 = scan->U_get_corrected_cnt1_scaled(ti2, x, y);
+    return U_diff(yin2, yin1, yi1, yi2, (*thl_vector)[tim2], (*thl_vector)[tim1], (*thl_vector)[ti1], (*thl_vector)[ti2]);
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////
 double UC_plot::U_get_pixel_data(UTE_pixel_type type, int thl_index, int x, int y) {
@@ -637,14 +519,11 @@ double UC_plot::U_get_pixel_data(UTE_pixel_type type, int thl_index, int x, int 
         case UTE_PT_cnt1ffc_div_cnt0ffc : {
             return U_get_pixel_data_27(thl_index, x, y);
         }
-        case UTE_PT_smoothing_mu_diff : {
+        case UTE_PT_GA_request : {
             return U_get_pixel_data_28(thl_index, x, y);
         }
-        case UTE_PT_GA_request : {
-            return U_get_pixel_data_29(thl_index, x, y);
-        }
         case UTE_PT_ffc_cnt0 : {
-            return U_get_pixel_data_30(thl_index, x, y);
+            return U_get_pixel_data_29(thl_index, x, y);
         }
     }
     return 0;
@@ -659,7 +538,7 @@ double UC_plot::U_get_pixel_data(UTE_pixel_type type, int thl_index, int x, int 
  * \return
  */
 int UC_plot::U_get_pixel_data_1(int thl_index, int x, int y) { //UTE_PT_cnt0
-    return static_cast<int>(U_get_data_rebin(scan, thl_index, x, y, 0));
+    return static_cast<int>(scan->U_get_data(thl_index, x, y, 0));
 }
 /*!
  * \brief UC_plot::U_get_pixel_data_2
@@ -670,17 +549,17 @@ int UC_plot::U_get_pixel_data_1(int thl_index, int x, int y) { //UTE_PT_cnt0
  * \return
  */
 int UC_plot::U_get_pixel_data_2(int thl_index, int x, int y) { //UTE_PT_cnt1
-    return static_cast<int>(U_get_data_rebin(scan, thl_index, x, y, 1));
+    return static_cast<int>(scan->U_get_data(thl_index, x, y, 1));
 }
 
 double UC_plot::U_get_pixel_data_3(int thl_index, int x, int y) { //UTE_PT_cnt1_divide_on_cnt0
-    double denom = U_get_data_rebin(scan, thl_index, x, y, 0);
+    double denom = scan->U_get_data(thl_index, x, y, 0);
     if (qAbs(denom) < 1e-10) return 0;
-    return U_get_data_rebin(scan, thl_index, x, y, 1) / denom;
+    return scan->U_get_data(thl_index, x, y, 1) / denom;
 }
 
 int UC_plot::U_get_pixel_data_4(int thl_index, int x, int y) { //UTE_PT_cnt0_subtr_cnt1
-    return static_cast<int>(U_get_data_rebin(scan, thl_index, x, y, 0) - U_get_data_rebin(scan, thl_index, x, y, 1));
+    return static_cast<int>(scan->U_get_data(thl_index, x, y, 0) - scan->U_get_data(thl_index, x, y, 1));
 }
 
 double UC_plot::U_get_pixel_data_5(int thl_index, int x, int y) { //UTE_PT_diff_cnt1
@@ -688,8 +567,8 @@ double UC_plot::U_get_pixel_data_5(int thl_index, int x, int y) { //UTE_PT_diff_
 }
 
 int UC_plot::U_get_pixel_data_6(int thl_index, int x, int y) { //UTE_PT_cnt1_subtr_cnt1_max_thl
-    int thl_data = static_cast<int>(U_get_data_rebin(scan, thl_index, x, y, 1));
-    int thl_max_data = static_cast<int>(U_get_data_rebin(scan, thl_index_max + 1, x, y, 1));
+    int thl_data = static_cast<int>(scan->U_get_data(thl_index, x, y, 1));
+    int thl_max_data = static_cast<int>(scan->U_get_data(thl_index_max + 1, x, y, 1));
     return thl_data - thl_max_data;
 }
 
@@ -697,14 +576,14 @@ double UC_plot::U_get_pixel_data_7(int thl_index, int x, int y) { //UTE_PT_ffc
     if (!ff_enable) return 0;
     double cnt1df;
     if (df_enable) {
-        cnt1df = U_get_data_rebin_scaled(df, thl_index, x, y, 1);
+        cnt1df = df->U_get_data_scaled(thl_index, x, y, 1);
     } else {
         cnt1df = 0;
     }
     double ffc = 0;
-    double denom = U_get_data_rebin_scaled(ff, thl_index, x, y, 1) - cnt1df;
+    double denom = ff->U_get_data_scaled(thl_index, x, y, 1) - cnt1df;
     if (qAbs(denom) < 1e-10) return 0;
-    ffc = U_get_data_rebin_scaled(scan, thl_index, x, y, 1) - cnt1df;
+    ffc = scan->U_get_data_scaled(thl_index, x, y, 1) - cnt1df;
     ffc /= denom;
     return ffc;
 }
@@ -713,14 +592,14 @@ double UC_plot::U_get_pixel_data_8(int thl_index, int x, int y) { //UTE_PT_mu
     if (!ff_enable) return 0;
     double cnt1df;
     if (df_enable) {
-        cnt1df = U_get_data_rebin_scaled(df, thl_index, x, y, 1);
+        cnt1df = df->U_get_data_scaled(thl_index, x, y, 1);
     } else {
         cnt1df = 0;
     }
     double mu = 0;
-    double denom = U_get_data_rebin_scaled(scan, thl_index, x, y, 1) - cnt1df;
+    double denom = scan->U_get_data_scaled(thl_index, x, y, 1) - cnt1df;
     if (qAbs(denom) < 1e-10) return 0;
-    mu = U_get_data_rebin_scaled(ff, thl_index, x, y, 1) - cnt1df;
+    mu = ff->U_get_data_scaled(thl_index, x, y, 1) - cnt1df;
     mu /= denom;
     if (mu < 1e-10) return 0;
     return qLn(mu);
@@ -749,7 +628,7 @@ double UC_plot::U_get_pixel_data_9(int thl_index, int x, int y) { //UTE_PT_diff_
     double yin1 = U_get_pixel_data_7(tim1, x, y);
     double yi1 = U_get_pixel_data_7(ti1, x, y);
     double yi2 = U_get_pixel_data_7(ti2, x, y);
-    return U_diff(yin2, yin1, yi1, yi2, (*thl_vector)[tim1], (*thl_vector)[ti1]);
+    return U_diff(yin2, yin1, yi1, yi2, (*thl_vector)[tim2], (*thl_vector)[tim1], (*thl_vector)[ti1], (*thl_vector)[ti2]);
 }
 
 double UC_plot::U_get_pixel_data_10(int thl_index, int x, int y) { //UTE_PT_diff_mu
@@ -775,7 +654,7 @@ double UC_plot::U_get_pixel_data_10(int thl_index, int x, int y) { //UTE_PT_diff
     double yin1 = U_get_pixel_data_8(tim1, x, y);
     double yi1 = U_get_pixel_data_8(ti1, x, y);
     double yi2 = U_get_pixel_data_8(ti2, x, y);
-    return U_diff(yin2, yin1, yi1, yi2, (*thl_vector)[tim1], (*thl_vector)[ti1]);
+    return U_diff(yin2, yin1, yi1, yi2, (*thl_vector)[tim2], (*thl_vector)[tim1], (*thl_vector)[ti1], (*thl_vector)[ti2]);
 }
 
 double UC_plot::U_get_pixel_data_11(int thl_index, int x, int y) { //UTE_PT_ffc_diff
@@ -811,11 +690,10 @@ double UC_plot::U_get_pixel_data_12(int thl_index, int x, int y) { //UTE_PT_mu_d
 ////
 
 double UC_plot::U_get_pixel_data_13(int thl_index, int x, int y) { //UTE_PT_cnt1_corr_cnt0
-    return U_get_data_rebin_corr(scan, thl_index, x, y);
+    return scan->U_get_corrected_cnt1(thl_index, x, y);
 }
 
 double UC_plot::U_get_pixel_data_14(int thl_index, int x, int y) { //UTE_PT_diff_cnt1_corr_cnt0
-
     return -U_get_diff_data_corr(scan, thl_index, x, y);
 }
 
@@ -823,13 +701,13 @@ double UC_plot::U_get_pixel_data_15(int thl_index, int x, int y) { //UTE_PT_ffc_
     if (!ff_enable) return 0;
     double cnt1df;
     if (df_enable) {
-        cnt1df = U_get_data_rebin_corr_scaled(df, thl_index, x, y);
+        cnt1df = df->U_get_corrected_cnt1_scaled(thl_index, x, y);
     } else {
         cnt1df = 0;
     }
-    double denom = U_get_data_rebin_corr_scaled(ff, thl_index, x, y) - cnt1df;
+    double denom = ff->U_get_corrected_cnt1_scaled(thl_index, x, y) - cnt1df;
     if (qAbs(denom) < 1e-10) return 0;
-    double ffc = U_get_data_rebin_corr_scaled(scan, thl_index, x, y) - cnt1df;
+    double ffc = scan->U_get_corrected_cnt1_scaled(thl_index, x, y) - cnt1df;
     ffc /= denom;
     return ffc;
 }
@@ -838,13 +716,13 @@ double UC_plot::U_get_pixel_data_16(int thl_index, int x, int y) { //UTE_PT_mu_c
     if (!ff_enable) return 0;
     double cnt1df;
     if (df_enable) {
-        cnt1df = U_get_data_rebin_corr_scaled(df, thl_index, x, y);
+        cnt1df = df->U_get_corrected_cnt1_scaled(thl_index, x, y);
     } else {
         cnt1df = 0;
     }
-    double denom = U_get_data_rebin_corr_scaled(scan, thl_index, x, y) - cnt1df;
+    double denom = scan->U_get_corrected_cnt1_scaled(thl_index, x, y) - cnt1df;
     if (qAbs(denom) < 1e-10) return 0;
-    double mu = U_get_data_rebin_corr_scaled(ff, thl_index, x, y) - cnt1df;
+    double mu = ff->U_get_corrected_cnt1_scaled(thl_index, x, y) - cnt1df;
     mu /= denom;
     if (mu < 1e-10) return 0;
     return qLn(mu);
@@ -873,7 +751,7 @@ double UC_plot::U_get_pixel_data_17(int thl_index, int x, int y) { //UTE_PT_diff
     double yin1 = U_get_pixel_data_15(tim1, x, y);
     double yi1 = U_get_pixel_data_15(ti1, x, y);
     double yi2 = U_get_pixel_data_15(ti2, x, y);
-    return U_diff(yin2, yin1, yi1, yi2, (*thl_vector)[tim1], (*thl_vector)[ti1]);
+    return U_diff(yin2, yin1, yi1, yi2, (*thl_vector)[tim2], (*thl_vector)[tim1], (*thl_vector)[ti1], (*thl_vector)[ti2]);
 }
 
 double UC_plot::U_get_pixel_data_18(int thl_index, int x, int y) { //UTE_PT_diff_mu_corr_cnt0
@@ -899,7 +777,7 @@ double UC_plot::U_get_pixel_data_18(int thl_index, int x, int y) { //UTE_PT_diff
     double yin1 = U_get_pixel_data_16(tim1, x, y);
     double yi1 = U_get_pixel_data_16(ti1, x, y);
     double yi2 = U_get_pixel_data_16(ti2, x, y);
-    return U_diff(yin2, yin1, yi1, yi2, (*thl_vector)[tim1], (*thl_vector)[ti1]);
+    return U_diff(yin2, yin1, yi1, yi2, (*thl_vector)[tim2], (*thl_vector)[tim1], (*thl_vector)[ti1], (*thl_vector)[ti2]);
 }
 
 double UC_plot::U_get_pixel_data_19(int thl_index, int x, int y) { //UTE_PT_ffc_diff_corr_cnt0
@@ -937,23 +815,23 @@ double UC_plot::U_get_pixel_data_21(int thl_index, int x, int y) { //UTE_PT_ffc_
     if (!ff_enable) return 0;
     double cnt1df;
     if (df_enable) {
-        cnt1df = U_get_data_rebin_scaled(df, thl_index, x, y, 1);
+        cnt1df = df->U_get_data_scaled(thl_index, x, y, 1);
     } else {
         cnt1df = 0;
     }
     double ffc = 0;
-    double denom = U_get_data_rebin_scaled(ff, thl_index, x, y, 1) - cnt1df;
+    double denom = ff->U_get_data_scaled(thl_index, x, y, 1) - cnt1df;
     if (qAbs(denom) < 1e-10) return 0;
-    ffc = U_get_data_rebin_scaled(scan, thl_index, x, y, 1) - cnt1df;
+    ffc = scan->U_get_data_scaled(thl_index, x, y, 1) - cnt1df;
     ffc /= denom;
     ffc *= U_get_ff_minus_df_mean(thl_index);
     return ffc;
 }
 
 double UC_plot::U_get_pixel_data_22(int thl_index, int x, int y) { //UTE_PT_cnt0_deviation
-    double denom = U_get_data_rebin_corr(scan, thl_index, x, y);
+    double denom = scan->U_get_corrected_cnt1(thl_index, x, y);
     if (qAbs(denom) < 1e-10) return 0;
-    return U_get_data_rebin(scan, thl_index, x, y, 1) / denom;
+    return scan->U_get_data(thl_index, x, y, 1) / denom;
 }
 
 int UC_plot::U_get_pixel_data_23(int thl_index, int x, int y) { //UTE_PT_cnt1_act
@@ -1005,45 +883,41 @@ double UC_plot::U_get_pixel_data_26(int thl_index, int x, int y) { //UTE_PT_diff
     double yin1 = U_get_pixel_data_25(tim1, x, y);
     double yi1 = U_get_pixel_data_25(ti1, x, y);
     double yi2 = U_get_pixel_data_25(ti2, x, y);
-    return U_diff(yin2, yin1, yi1, yi2, (*thl_vector)[tim1], (*thl_vector)[ti1]);
+    return U_diff(yin2, yin1, yi1, yi2, (*thl_vector)[tim2], (*thl_vector)[tim1], (*thl_vector)[ti1], (*thl_vector)[ti2]);
 }
 
 double UC_plot::U_get_pixel_data_27(int thl_index, int x, int y) { //UTE_PT_cnt1ffc_div_cnt0ffc
     if (!ff_enable) return 0;
-    double cnt0 = U_get_data_rebin_scaled(scan, thl_index, x, y, 0);
-    double cnt1 = U_get_data_rebin_scaled(scan, thl_index, x, y, 1);
-    double cnt0ff = U_get_data_rebin_scaled(ff, thl_index, x, y, 0);
-    double cnt1ff = U_get_data_rebin_scaled(ff, thl_index, x, y, 1);
+    double cnt0 = scan->U_get_data_scaled(thl_index, x, y, 0);
+    double cnt1 = scan->U_get_data_scaled(thl_index, x, y, 1);
+    double cnt0ff = ff->U_get_data_scaled(thl_index, x, y, 0);
+    double cnt1ff = ff->U_get_data_scaled(thl_index, x, y, 1);
     double denom = cnt0 * cnt1ff;
     if (qAbs(denom) < 1e-10) return 0;
     double nom = cnt1 * cnt0ff;
     return nom / denom;
 }
 
-double UC_plot::U_get_pixel_data_28(int thl_index, int x, int y) { //UTE_PT_smoothing_mu_diff
-    return scan->U_get_data_additional(thl_index, x, y);
-}
-
-double UC_plot::U_get_pixel_data_29(int thl_index, int x, int y) { //UTE_PT_GA_request
+double UC_plot::U_get_pixel_data_28(int thl_index, int x, int y) { //UTE_PT_GA_request
     if (!ff_enable) return 0;
     double delta_cnt1df;
     double delta_cnt1df38;
     if (df_enable) {
-        double cnt1df = U_get_data_rebin_scaled(df, thl_index, x, y, 1);
-        double cnt1df_thl_max = U_get_data_rebin_scaled(df, thl_index_max + 1, x, y, 1);
-        double cnt1df38 = U_get_data_rebin_scaled(df, 38, x, y, 1);
+        double cnt1df = df->U_get_data_scaled(thl_index, x, y, 1);
+        double cnt1df_thl_max = df->U_get_data_scaled(thl_index_max + 1, x, y, 1);
+        double cnt1df38 = df->U_get_data_scaled(38, x, y, 1);
         delta_cnt1df = cnt1df - cnt1df_thl_max;
         delta_cnt1df38 = cnt1df38 - cnt1df_thl_max;
     } else {
         delta_cnt1df = 0;
         delta_cnt1df38 = 0;
     }
-    double cnt1_thl_max = U_get_data_rebin_scaled(scan, thl_index_max + 1, x, y, 1);
-    double cnt1ff_thl_max = U_get_data_rebin_scaled(ff, thl_index_max + 1, x, y, 1);
-    double cnt1 = U_get_data_rebin_scaled(scan, thl_index, x, y, 1);
-    double cnt1ff = U_get_data_rebin_scaled(ff, thl_index, x, y, 1);
-    double cnt138 = U_get_data_rebin_scaled(scan, 38, x, y, 1);
-    double cnt1ff38 = U_get_data_rebin_scaled(ff, 38, x, y, 1);
+    double cnt1_thl_max = scan->U_get_data_scaled(thl_index_max + 1, x, y, 1);
+    double cnt1ff_thl_max = ff->U_get_data_scaled(thl_index_max + 1, x, y, 1);
+    double cnt1 = scan->U_get_data_scaled(thl_index, x, y, 1);
+    double cnt1ff = ff->U_get_data_scaled(thl_index, x, y, 1);
+    double cnt138 = scan->U_get_data_scaled(38, x, y, 1);
+    double cnt1ff38 = ff->U_get_data_scaled(38, x, y, 1);
     double delta_cnt1 = cnt1 - cnt1_thl_max;
     double delta_cnt138 = cnt138 - cnt1_thl_max;
     double delta_cnt1ff = cnt1ff - cnt1ff_thl_max;
@@ -1057,24 +931,20 @@ double UC_plot::U_get_pixel_data_29(int thl_index, int x, int y) { //UTE_PT_GA_r
     double ffc38 = (delta_cnt138 - delta_cnt1df38) / denom;
     double result = ffc38 / ffc;
     return result;
-
-//    double denom = U_get_pixel_data_7(thl, x, y);
-//    if (qAbs(denom) < 1e-10) return 0;
-//    return U_get_pixel_data_7(38, x, y) / denom;
 }
 
-double UC_plot::U_get_pixel_data_30(int thl_index, int x, int y) { //UTE_PT_ffc_cnt0
+double UC_plot::U_get_pixel_data_29(int thl_index, int x, int y) { //UTE_PT_ffc_cnt0
     if (!ff_enable) return 0;
     double cnt1df;
     if (df_enable) {
-        cnt1df = U_get_data_rebin_scaled(df, thl_index, x, y, 0);
+        cnt1df = df->U_get_data_scaled(thl_index, x, y, 0);
     } else {
         cnt1df = 0;
     }
     double ffc = 0;
-    double denom = U_get_data_rebin_scaled(ff, thl_index, x, y, 0) - cnt1df;
+    double denom = ff->U_get_data_scaled(thl_index, x, y, 0) - cnt1df;
     if (qAbs(denom) < 1e-10) return 0;
-    ffc = U_get_data_rebin_scaled(scan, thl_index, x, y, 0) - cnt1df;
+    ffc = scan->U_get_data_scaled(thl_index, x, y, 0) - cnt1df;
     ffc /= denom;
     return ffc;
 }
@@ -1300,331 +1170,14 @@ double UC_plot::U_get_frame_data_11(QVector<double> data) { //UTE_FT_variance
     }
     return std_dev / (cnt - 1);
 }
-//
-///////////////////////////////////////////////////////////////////////////////////////
-void UC_plot::U_id_roi_1() {    //UTE_IT_GA_method
-    UTStr_id_GA_data result;
-    int current = 0;
-    int total = thl_id_2 - thl_id_1 + thl_id_4 - thl_id_3;
-    for (int thl = thl_id_1; thl <= thl_id_2; thl++) {
-        result.sum_1_window += U_get_frame_data(frame_type, pixel_type, thl);
-        current++;
-        US_renew_progress_bar(current, total);
-    }
-    for (int thl = thl_id_3; thl <= thl_id_4; thl++) {
-        result.sum_2_window += U_get_frame_data(frame_type, pixel_type, thl);
-        current++;
-        US_renew_progress_bar(current, total);
-    }
-    if (qAbs(result.sum_2_window) > 1e-10) result.id_data = result.sum_1_window / result.sum_2_window;
-        else result.id_data = 0;
-    result.thl_1_window_left    =   (*thl_vector)[thl_id_1];
-    result.thl_1_window_right   =   (*thl_vector)[thl_id_2];
-    result.thl_2_window_left    =   (*thl_vector)[thl_id_3];
-    result.thl_2_window_right   =   (*thl_vector)[thl_id_4];
-    result.frame_type           =   frame_type;
-    result.pixel_type           =   pixel_type;
-    emit US_id_roi_GA_data(result);
-}
 
-//
-
-QVector<double> UC_plot::U_calculating_samples_value(UC_data_container * scan, QVector<int> thl_samples) {
-    UC_data_container * scan_reserved, * ff;
-    scan_reserved = this->scan;
-    ff = &scans_list[scan->U_get_settings().ff_int];
-
-    int n_scan = scan->U_get_n();
-    int n_ff = ff->U_get_n();
-
-    QVector<double> data_y_scan(n_scan);
-    QVector<double> data_y_ff(n_ff);
-    QVector<double> data_thl_scan(n_scan);
-    QVector<double> data_thl_ff(n_ff);
-    QVector<int> * data_thl_scan_int = scan->U_get_thl_vector();
-    QVector<int> * data_thl_ff_int = ff->U_get_thl_vector();
-    QVector<double> result;
-
-    for (int i = 0; i < n_scan; i++) {
-        data_thl_scan[i] = (*data_thl_scan_int)[i];
-    }
-    for (int i = 0; i < n_scan; i++) {
-        data_thl_ff[i] = (*data_thl_ff_int)[i];
-    }
-
-    this->scan = ff;
-    for (int thl_index = 0; thl_index < n_ff; thl_index++) {
-        data_y_ff[thl_index] = U_get_frame_data(frame_type, pixel_type, thl_index);
-    }
-    data_y_ff = U_smooth(data_thl_ff, data_y_ff, smoothing);
-    data_y_ff = U_diff(data_thl_ff, data_y_ff);
-    data_y_ff = U_vector_minus(data_y_ff);
-    data_y_ff = U_smooth(data_thl_ff, data_y_ff, smoothing);
-
-    this->scan = scan;
-    for (int thl_index = 0; thl_index < n_scan; thl_index++) {
-        data_y_scan[thl_index] = U_get_frame_data(frame_type, pixel_type, thl_index);
-    }
-    data_y_scan = U_smooth(data_thl_scan, data_y_scan, smoothing);
-    data_y_scan = U_diff(data_thl_scan, data_y_scan);
-    data_y_scan = U_vector_minus(data_y_scan);
-    data_y_scan = U_smooth(data_thl_scan, data_y_scan, smoothing);
-    U_vector_divide(data_thl_ff, data_y_ff, data_thl_scan, data_y_scan);
-    data_thl_scan = data_thl_ff;
-    data_y_scan = U_smooth(data_thl_ff, data_y_ff, smoothing);
-    data_y_scan = U_vector_log(data_y_scan);
-
-    for (int i = 0; i < thl_samples.size(); i++) {
-        int index = data_thl_scan.indexOf(thl_samples[i]);
-        double data = 0;
-        if ((thl_samples[i] >= data_thl_scan[0]) && (thl_samples[i] <= data_thl_scan[data_thl_scan.size() - 1])) {
-            if (index == -1) {
-                index = 0;
-                while (data_thl_scan[index] < thl_samples[i]) {
-                    index++;
-                }
-                data = (data_y_scan[index] - data_y_scan[index - 1]) * (thl_samples[i] - data_thl_scan[index - 1]);
-                data /= (data_thl_scan[index] - data_thl_scan[index - 1]);
-                data += data_y_scan[index - 1];
-            } else {
-                data = data_y_scan[index];
-            }
-        } else {
-            data = 0;
-        }
-        result << data;
-    }
-
-    this->scan = scan_reserved;
-    return result;
-}
-
-void UC_plot::U_id_roi_2() {    //UTE_IT_linear_combination
-    int reserved_scan = scan_index;
-    QList<int> id_list;
-    int n_scans = scans_list.size();
-    UC_data_container * current_scan = nullptr;
-    UTStr_id_LC_data result;
-
-    for (int i = 0; i < n_scans; i++) {
-        current_scan = &(scans_list[i]);
-        if (current_scan->U_get_settings().sample_of_element) {
-            id_list << i;
-        }
-    }
-
-    int number_of_samples = id_list.size();
-    for (int scan_i = 0; scan_i < number_of_samples; scan_i++) {
-        current_scan = &(scans_list[id_list[scan_i]]);
-        UC_data_container::UTStr_data_container_settings settings = current_scan->U_get_settings();
-        result.thl_samples << settings.thl_sample;
-        result.elements << settings.name;
-    }
-
-    result.frame_type = frame_type;
-    result.pixel_type = pixel_type;
-    U_set_total_progress_bar(number_of_samples + 2);
-
-    TMatrixD eqv_matr(number_of_samples, number_of_samples);
-    TVectorD scan_thl_data(number_of_samples);
-
-    QVector<double> data_scan = U_calculating_samples_value(scan, result.thl_samples);
-    U_renew_progress_bar();
-    for (int i = 0; i < number_of_samples; i++) {
-        scan_thl_data[i] = data_scan[i];
-        result.data << data_scan[i];
-    }
-    result.number_of_samples = number_of_samples;
-
-    result.matrix.resize(number_of_samples);
-    for (int index = 0; index < number_of_samples; index++) {
-        result.matrix[index].resize(number_of_samples);
-    }
-
-    int sample_index = 0;
-    for (int scan_i = 0; scan_i < number_of_samples; scan_i++) {
-        U_set_scan(id_list[scan_i]);
-        current_scan = &(scans_list[id_list[scan_i]]);
-        QVector<double> data_samples = U_calculating_samples_value(current_scan, result.thl_samples);
-        U_renew_progress_bar();
-        for (int thl_index = 0; thl_index < number_of_samples; thl_index++) {
-            eqv_matr[thl_index][sample_index] = data_samples[thl_index];
-            result.matrix[thl_index][sample_index] = data_samples[thl_index];
-        }
-        sample_index++;
-    }
-    U_set_scan(reserved_scan);
-
-    TDecompLU decomp(eqv_matr);
-    Bool_t ok;
-    TVectorD result_vector = decomp.Solve(scan_thl_data, ok);
-    int nr = 0;
-    while (!ok) {
-        decomp.SetMatrix(eqv_matr);
-        decomp.SetTol(0.1 * decomp.GetTol());
-        if (nr++ > 10) break;
-        result_vector = decomp.Solve(scan_thl_data, ok);
-    }
-    U_renew_progress_bar();
-
-    sample_index = 0;
-    for (int scan_i = 0; scan_i < number_of_samples; scan_i++) {
-        U_set_scan(id_list[scan_i]);
-        result.id_values << result_vector[sample_index];
-        sample_index++;
-    }
-
-    U_set_scan(reserved_scan);
-    emit US_id_roi_LC_data(result);
-}
-//
-void UC_plot::U_generate_additional_data() {
-    for (int x = x_min; x < x_max; x++) {
-        for (int y = y_min; y < y_max; y++) {
-            scan->U_create_data_additional();
-            U_calculating_xmu(x, y);
-        }
-    }
-}
-
-void UC_plot::U_calculating_xmu(int x, int y) {
-    int scan_index_reserved = this->scan_index;
-    int scan_index_ff = scans_list[scan_index].U_get_settings().ff_int;
-    U_set_scan(scan_index_ff);
-
-    QVector<double> data_y_ff(n_thl);
-    QVector<double> data_thl_ff(n_thl);
-    QVector<int> * data_thl_ff_int = scan->U_get_thl_vector();
-    for (int i = 0; i < n_thl; i++) {
-        data_thl_ff[i] = (*data_thl_ff_int)[i];
-    }
-
-    for (int thl_index = 0; thl_index < n_thl; thl_index++) {
-        data_y_ff[thl_index] = U_get_pixel_data(pixel_type, thl_index, x, y);
-    }
-    U_renew_progress_bar();
-    data_y_ff = U_smooth(data_thl_ff, data_y_ff, smoothing);
-    data_y_ff = U_diff(data_thl_ff, data_y_ff);
-    data_y_ff = U_vector_minus(data_y_ff);
-    data_y_ff = U_smooth(data_thl_ff, data_y_ff, smoothing);
-
-    U_set_scan(scan_index_reserved);
-    QVector<double> data_y_scan(n_thl);
-    QVector<double> data_thl_scan(n_thl);
-    QVector<int> * data_thl_scan_int = scan->U_get_thl_vector();
-    for (int i = 0; i < n_thl; i++) {
-        data_thl_scan[i] = (*data_thl_scan_int)[i];
-    }
-
-    for (int thl_index = 0; thl_index < n_thl; thl_index++) {
-        data_y_scan[thl_index] = U_get_pixel_data(pixel_type, thl_index, x, y);
-    }
-    U_renew_progress_bar();
-    data_y_scan = U_smooth(data_thl_scan, data_y_scan, smoothing);
-    data_y_scan = U_diff(data_thl_scan, data_y_scan);
-    data_y_scan = U_vector_minus(data_y_scan);
-    data_y_scan = U_smooth(data_thl_scan, data_y_scan, smoothing);
-
-    U_vector_divide(data_thl_ff, data_y_ff, data_thl_scan, data_y_scan);
-    data_thl_scan = data_thl_ff;
-    data_y_scan = U_smooth(data_thl_ff, data_y_ff, smoothing);
-    data_y_scan = U_vector_log(data_y_scan);
-
-    for (int thl_index = 0; thl_index < n_thl; thl_index++) {
-        scan->U_set_data_additional(thl_index, x, y, data_y_scan[thl_index]);
-    }
-    U_renew_progress_bar();
-}
-
-void UC_plot::U_calculating_id(UC_data_container * scan, QList<UC_data_container *> id_samples) {
-    int number_of_samples = id_samples.size();
-
-    QVector<int> thl_samples(number_of_samples);
-    for (int i = 0; i < number_of_samples; i++) {
-        thl_samples[i] = id_samples[i]->U_get_thl_sample();
-    }
-
-    for (int x = x_min; x < x_max; x++) {
-        for (int y = y_min; y < y_max; y++) {
-            TMatrixD eqv_matr(number_of_samples, number_of_samples);
-            TVectorD scan_thl_data(number_of_samples);
-            for (int sample_index = 0; sample_index < number_of_samples; sample_index++) {
-                for (int thl_index = 0; thl_index < number_of_samples; thl_index++) {
-                    UC_data_container * current_scan = id_samples[sample_index];
-                    QVector<int> * thl_vcs = current_scan->U_get_thl_vector();
-                    double data = 0;
-                    int thl = thl_samples[thl_index];
-
-                    if ((thl >= (*thl_vcs)[0]) && (thl <= (*thl_vcs)[thl_vcs->size() - 1])) {
-                        int index = thl_vcs->indexOf(thl);
-                        if (index == -1) {
-                            index = 0;
-                            while ((*thl_vcs)[index] < thl) {
-                                index++;
-                            }
-                            data = (current_scan->U_get_data_additional(index, x, y) - current_scan->U_get_data_additional(index - 1, x, y)) * (thl - (*thl_vcs)[index - 1]);
-                            data /= ((*thl_vcs)[index] - (*thl_vcs)[index - 1]);
-                            data += current_scan->U_get_data_additional(index - 1, x, y);
-                        } else {
-                            data = current_scan->U_get_data_additional(index, x, y);
-                        }
-                    } else {
-                       data = 0;
-                    }
-
-                    eqv_matr[thl_index][sample_index] = data;
-                }
-                U_renew_progress_bar();
-            }
-            for (int thl_index = 0; thl_index < number_of_samples; thl_index++) {
-                QVector<int> * thl_vcs = scan->U_get_thl_vector();
-                double data = 0;
-                int thl = thl_samples[thl_index];
-
-                if ((thl >= (*thl_vcs)[0]) && (thl <= (*thl_vcs)[thl_vcs->size() - 1])) {
-                    int index = thl_vcs->indexOf(thl);
-                    if (index == -1) {
-                        index = 0;
-                        while ((*thl_vcs)[index] < thl) {
-                            index++;
-                        }
-                        data = (scan->U_get_data_additional(index, x, y) - scan->U_get_data_additional(index - 1, x, y)) * (thl - (*thl_vcs)[index - 1]);
-                        data /= ((*thl_vcs)[index] - (*thl_vcs)[index - 1]);
-                        data += scan->U_get_data_additional(index - 1, x, y);
-                    } else {
-                        data = scan->U_get_data_additional(index, x, y);
-                    }
-                } else {
-                   data = 0;
-                }
-
-                scan_thl_data[thl_index] = data;
-            }
-            U_renew_progress_bar();
-            TDecompLU decomp(eqv_matr);
-            Bool_t ok;
-            TVectorD result_vector = decomp.Solve(scan_thl_data, ok);
-            int nr = 0;
-            while (!ok) {
-                decomp.SetMatrix(eqv_matr);
-                decomp.SetTol(0.1 * decomp.GetTol());
-                if (nr++ > 10) break;
-                result_vector = decomp.Solve(scan_thl_data, ok);
-            }
-            for (int i = 0; i < number_of_samples; i++) {
-                scan->U_set_id_data(x, y, result_vector[i]);
-            }
-
-            U_renew_progress_bar();
-        }
-    }
-}
 
 ////////////////////////////!!!!!!!!!!SLOTS!!!!!!!!!!!///////////////////////////////////////////////////////////////////////////
 
 void UC_plot::U_set_data(UC_data_container::UTStr_data_container_settings * settings_ptr) {
-    UC_data_container::UTStr_data_container_settings settings = * settings_ptr;
-    QString path = settings.path;
+    //UC_data_container::UTStr_data_container_settings settings = * settings_ptr;
+//    QString path = settings.path;
+    QString path = settings_ptr->path;
     QDir dir(path);
     QStringList file_names = dir.entryList(QDir::Files, QDir::Name);
 
@@ -1657,26 +1210,30 @@ void UC_plot::U_set_data(UC_data_container::UTStr_data_container_settings * sett
     }
 
     if (n == 0) {
-//        QMessageBox msgBox;
-//        msgBox.setText("Files of scan have not been found.");
-//        msgBox.exec();
         return;
     }
 
     if (n != 0) {
-        settings.thl_min = file_names[0].left(3).toInt();
-        settings.thl_max = file_names[file_names.size() - 1].left(3).toInt();
+//        settings.thl_min = file_names[0].left(3).toInt();
+//        settings.thl_max = file_names[file_names.size() - 1].left(3).toInt();
+        settings_ptr->thl_min = file_names[0].left(3).toInt();
+        settings_ptr->thl_max = file_names[file_names.size() - 1].left(3).toInt();
     }
 
-    settings.n_thl = file_names.size();
-    U_set_total_progress_bar(settings.n_thl);
+//    settings.n_thl = file_names.size();
+//    U_set_total_progress_bar(settings.n_thl);
+//    UC_data_container * data_container;
+//    data_container = new UC_data_container(settings);
+//    emit US_n_files(settings.n_thl);
+    settings_ptr->n_thl = file_names.size();
+    U_set_total_progress_bar(settings_ptr->n_thl);
     UC_data_container * data_container;
-    data_container = new UC_data_container(settings);
-    emit US_n_files(settings.n_thl);
+    data_container = new UC_data_container(*settings_ptr);
+    emit US_n_files(settings_ptr->n_thl);
 
     int adr_cnt0 = 1;
     int adr_cnt1 = 0;
-    if (!settings.both_counters) {
+    if (!settings_ptr->both_counters) {
         adr_cnt0 = 0;
         adr_cnt1 = 1;
     }
@@ -1730,7 +1287,7 @@ void UC_plot::U_set_data(UC_data_container::UTStr_data_container_settings * sett
         return;
     }
 
-    if (settings.both_counters) {
+    if (settings_ptr->both_counters) {
         data_container->U_calculate_mean();
     }
 
@@ -1749,16 +1306,12 @@ void UC_plot::U_set_data(UC_data_container::UTStr_data_container_settings * sett
     }
     U_set_scan(scan_index);
 
-    //emit US_thl_vector(thl_vector);
     emit US_list_scans(&scans_list, scan_index);
-//    U_get_max_thl_range();
     emit US_ready();
 }
 
 void UC_plot::U_reset_data() {
     scans_list.clear();
-
-    //thl_vector->clear();
 
     scan_enable = false;
     ff_enable = false;
@@ -1871,15 +1424,11 @@ void UC_plot::U_get_settings(int index) {
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void UC_plot::U_generate_spectra() {
-//    QVector<double> x;
-//    QVector<double> y;
     double x;
     double y;
     U_set_total_progress_bar(thl_index_max - thl_index_min);
     for (int thl_index = thl_index_min; thl_index <= thl_index_max; thl_index++) {
         U_reset_ff_minus_df_mean();
-//        y << U_get_frame_data(frame_type, pixel_type, thl);
-//        x << thl;
         y = U_get_frame_data(frame_type, pixel_type, thl_index);
         x = (*thl_vector)[thl_index];
         emit US_spectra_data(x, y);
@@ -1887,28 +1436,11 @@ void UC_plot::U_generate_spectra() {
         if (stop) break;
     }
     stop = false;
-//    emit US_replot_spectra(x, y);
     emit US_replot_spectra();
     emit US_ready();
 }
 
 void UC_plot::U_generate_spectra(int n) {
-//    QVector<double> x;
-//    QVector<double> y;
-//    double e_delta = (energy_max - energy_min) / n;
-//    double e_max = 0;
-//    U_set_total_progress_bar(n);
-//    for (double e_min = energy_min; e_min < energy_max; e_min += e_delta) {
-//        e_max = e_min + e_delta;
-//        y << U_get_frame_data_energy(frame_type, pixel_type, e_min, e_max);
-//        x << e_min + e_delta / 2;
-//        U_renew_progress_bar();
-//        if (stop) break;
-//    }
-//    stop = false;
-//    emit US_replot_spectra(x, y);
-//    emit US_ready();
-
     QVector<QVector<double>> dev(n);
     QVector<double> bounds(n);
     double e_delta = (energy_max - energy_min) / n;
@@ -1916,16 +1448,6 @@ void UC_plot::U_generate_spectra(int n) {
     for (int i = 1; i < n; i++) {
         bounds[i] =  bounds[i - 1] + e_delta;
     }
-//    int thl_index_min = 512;
-//    int thl_index_max = 0;
-//    int thl_index = 0;
-//    for (int chip = 0; chip < 15; chip++) {
-//        thl_index = thl_vector->indexOf(U_get_thl_from_energy_chip(chip, energy_max));
-//        if (thl_index_max < thl_index) thl_index_max = thl_index;
-//        thl_index = thl_vector->indexOf(U_get_thl_from_energy_chip(chip, energy_min));
-//        if (thl_index == -1) continue;
-//        if (thl_index_min > thl_index) thl_index_min = thl_index;
-//    }
     U_set_total_progress_bar((x_max - x_min) * n_thl);
     for (int thl_index = 0; thl_index <= n_thl - 1; thl_index++) {
         U_reset_ff_minus_df_mean();
@@ -1959,6 +1481,46 @@ void UC_plot::U_generate_spectra(int n) {
     stop = false;
     emit US_replot_spectra();
     emit US_ready();
+//    QVector<double> dev;
+//    int chip_min = x_min / 256;
+//    int chip_max = (x_max / 256) + 1;
+//    if (chip_max > 14) chip_max = 14;
+//    int thl_max = 0;
+//    int thl_max_temp = 0;
+//    int thl_min = 512;
+//    int thl_min_temp = 0;
+//    for (int chip = chip_min; chip <= chip_max; chip++) {
+//        thl_max_temp = U_get_thl_from_energy_chip(chip, energy_max);
+//        if (thl_max < thl_max_temp) thl_max = thl_max_temp;
+//        thl_min_temp = U_get_thl_from_energy_chip(chip, energy_min);
+//        if (thl_min > thl_min_temp) thl_min = thl_min_temp;
+//    }
+//    U_set_total_progress_bar(15 * (thl_max - thl_min));
+//    for (int thl_index = thl_min; thl_index <= thl_max; thl_index++) {
+//        U_reset_ff_minus_df_mean();
+//        for (int chip = chip_min; chip <= chip_max; chip++) {
+//            int x_max_current = x_max;
+//            if ((x_max_current / 256) > chip) x_max_current = 256 * (chip + 1);
+//            int x_min_current = x_min;
+//            if ((x_min_current / 256) < chip) x_min_current = 256 * chip;
+//            double energy = U_get_energy_from_thl_chip(chip, (*thl_vector)[thl_index]);
+//            for (int x = x_min_current; x < x_max_current; x++) {
+//                for (int y = y_min; y < y_max; y++) {
+//                    if (!U_get_mask(x, y)) {
+//                        dev << U_get_pixel_data(pixel_type, thl_index, x, y);
+//                    }
+//                    if (stop) break;
+//                }
+//                if (stop) break;
+//            }
+//            emit US_spectra_data(energy, U_get_frame_data_energy(frame_type, dev));
+//            if (stop) break;
+//        }
+//        if (stop) break;
+//    }
+//    stop = false;
+//    emit US_replot_spectra();
+//    emit US_ready();
 }
 
 void UC_plot::U_generate_frame(int thl_index) {
@@ -2205,7 +1767,6 @@ void UC_plot::U_generate_calibration(int chip) {
 }
 
 void UC_plot::U_generate_calibration() {
-//    UC_data_container * scan_reserve = scan;
     int scan_index_reserve = scan_index;
     QVector<double> fit_x[15];
     QVector<double> fit_y;
@@ -2278,7 +1839,6 @@ void UC_plot::U_generate_calibration() {
         U_renew_progress_bar();
     }
 
-//    scan = scan_reserve;
     using_calibration = !stop;
     U_set_scan(scan_index_reserve);
     if (!stop) U_get_energy_range((*thl_vector)[0], (*thl_vector)[thl_vector->size() - 1]);
@@ -2353,102 +1913,6 @@ void UC_plot::U_generate_spectra_2d(double energy_min, double energy_max) {
     stop = false;
     emit US_ready();
 }
-
-void UC_plot::U_generate_id_roi() {
-    switch (id_type) {
-        case UTE_IT_GA_method : {
-            U_id_roi_1();
-            return;
-        }
-        case UTE_IT_linear_combination : {
-            U_id_roi_2();
-            return;
-        }
-    }
-}
-
-
-
-//void UC_plot::U_generate_id_data() {
-//    QList<UC_data_container *> id_samples;
-//    QList<QString> elements;
-
-//    scan->U_clean_id_data(x_min, x_max, y_min, y_max);
-//    U_generate_additional_data();
-
-//    UC_data_container * scan_reserved = scan;
-//    for (int i = 0; i < scans_list.size(); i++) {
-//        if (scans_list[i].U_get_sample_of_element()) {
-//            id_samples << &(scans_list[i]);
-//            scan = &(scans_list[i]);
-//            U_generate_additional_data();
-//            elements << scan->U_get_name();
-//        }
-//    }
-//    scan = scan_reserved;
-
-//    U_calculating_id(scan, id_samples);
-//    emit US_id_scan_list(elements);
-//}
-
-void UC_plot::U_generate_id_frame() {
-    QList<int> list_id;
-    QList<QString> elements;
-    QList<UC_data_container *> id_samples;
-    int scan_index_reseved = scan_index;
-
-    int n = scans_list.size();
-    for (int i = 0; i < n; i++) {
-        if (scans_list[i].U_get_settings().sample_of_element) {
-            list_id << i;
-        }
-    }
-    int n_id = list_id.size();
-
-    U_set_total_progress_bar((x_max - x_min) * (y_max - y_min) * (4 * n_id + 5));
-
-    scan->U_clean_id_data(x_min, x_max, y_min, y_max);
-    U_generate_additional_data();
-    for (int i = 0; i < n_id; i++) {
-        U_set_scan(list_id[i]);
-        id_samples << scan;
-        scan->U_clean_id_data(x_min, x_max, y_min, y_max);
-        U_generate_additional_data();
-        elements << scan->U_get_name();
-    }
-    U_set_scan(scan_index_reseved);
-    U_calculating_id(scan, id_samples);
-    emit US_id_scan_list(elements);
-
-    double z;
-    for (int x = x_min; x < x_max; x++) {
-        for (int y = y_min; y < y_max; y++) {
-            if (U_get_mask(x, y)) {
-                emit US_id_frame_data(x, y, 0);
-            } else {
-                z = scan->U_get_id_data(x, y, 0);
-                emit US_id_frame_data(x, y, z);
-            }
-        }
-    }
-    emit US_replot_id_frame();
-}
-
-void UC_plot::U_generate_id_frame(int element_index) {
-    double z;
-    for (int x = x_min; x < x_max; x++) {
-        for (int y = y_min; y < y_max; y++) {
-            if (U_get_mask(x, y)) {
-                emit US_id_frame_data(x, y, 0);
-            } else {
-                z = scan->U_get_id_data(x, y, element_index);
-                emit US_id_frame_data(x, y, z);
-            }
-        }
-    }
-    emit US_replot_id_frame();
-}
-
 
 void UC_plot::U_generate_range(int thl_index) {
     double z;
@@ -2571,11 +2035,6 @@ void UC_plot::U_generate_range_spectra_2d(double energy_min, double energy_max) 
         } else {
             if (thl_index_max < (thl_vector->size() - 2)) thl_index_min = thl_index_min + 1;
         }
-
-//        int thl_max = U_get_thl_from_energy(x, energy_max);
-//        int thl_index_max = thl_vector->indexOf(thl_max) + 1;
-//        if (thl_index_min < this->thl_index_min) thl_index_min = this->thl_index_min;
-//        if (thl_index_max > this->thl_index_max) thl_index_max = this->thl_index_max;
         for (int thl_index = thl_index_min; thl_index <= thl_index_max; thl_index++) {
             U_reset_ff_minus_df_mean();
             energy = U_get_energy_from_thl(x, (*thl_vector)[thl_index]);
@@ -2614,10 +2073,6 @@ void UC_plot::U_set_pixel_type(UTE_pixel_type pixel_type) {
     this->pixel_type = pixel_type;
 }
 
-void UC_plot::U_set_id_type(UC_plot::UTE_id_type id_type) {
-    this->id_type = id_type;
-}
-
 void UC_plot::U_set_calibration_type(UC_plot::UTE_calibration_type calibration_type) {
     this->calibration_type = calibration_type;
 }
@@ -2628,19 +2083,6 @@ void UC_plot::U_set_roi(int x_min, int x_max, int y_min, int y_max) {
     this->y_min = y_min;
     this->y_max = y_max;
     U_get_energy_range((*thl_vector)[0], (*thl_vector)[thl_vector->size() - 1]);
-}
-
-void UC_plot::U_set_rebin(int rebin_x, int rebin_y, int rebin_thl) {
-    this->rebin_x   = rebin_x;
-    this->rebin_y   = rebin_y;
-    this->rebin_thl = rebin_thl;
-}
-
-void UC_plot::U_set_id_thresholds(int thl_id_1, int thl_id_2, int thl_id_3, int thl_id_4) {
-    this->thl_id_1 = thl_id_1;
-    this->thl_id_2 = thl_id_2;
-    this->thl_id_3 = thl_id_3;
-    this->thl_id_4 = thl_id_4;
 }
 
 void UC_plot::U_set_threshold_range(int thl_index_min, int thl_index_max) {
@@ -2729,14 +2171,6 @@ void UC_plot::U_get_energy_range(int thl_min, int thl_max) {
         if (max > energy_max) energy_max = max;
         if (min < energy_min) energy_min = min;
     }
-//    for (int i = 0; i < scans_list.size(); i++) {
-//        for (int chip = 0; chip < 15; chip++) {
-//            max = U_get_energy_from_thl_chip(chip, thl_max);
-//            min = U_get_energy_from_thl_chip(chip, thl_min);
-//            if (max > energy_max) energy_max = max;
-//            if (min < energy_min) energy_min = min;
-//        }
-//    }
     emit US_energy_range(energy_min, energy_max);
 }
 
